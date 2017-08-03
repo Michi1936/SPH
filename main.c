@@ -112,18 +112,3 @@ void percentage(int time, int *countPer)
     *countPer=*countPer+1;
   }
 }
-
-void normalizePressure(Particle_State p[]){
-  int i;
-  double maxPres=0;
-  for(i=0; i<N; i++){
-    if(p[i].p>maxPres){
-      maxPres=p[i].p;
-    }
-  }
-  fprintf(stderr, "maxPres%f\n", maxPres);
-  maxPres=500.0;
-  for(i=0; i<N; i++){
-    p[i].p=p[i].p/maxPres;
-  }
-}

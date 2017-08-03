@@ -59,6 +59,5 @@ void allocateBucket(int **bfst, int **blst, int **nxt);
 void checkParticle(Particle_State p[]);
 void makeBucket(int *bfst, int *blst, int*nxt, Particle_State p[]);
 void freeBucket(int *bfst, int *blst, int*nxt);
-void normalizePressure(Particle_State p[]);
 
 #endif //_SPH
