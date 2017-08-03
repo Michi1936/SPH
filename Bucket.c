@@ -43,13 +43,13 @@ void makeBucket(int *bfst, int *blst, int*nxt, Particle_State p[])//putting part
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px - MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py - MIN_Y)/BktLgth)+1;
-      int ib = ix+iy*nBx;//index of backet
+      int ib = ix+iy*nBx;//index of backet including ith particle
       int j = blst[ib];
       blst[ib]=i;//particle i is last particle in backet ib
-      if(j==-1){
-        bfst[ib]=i;//if particle i is
-      }else{
-        nxt[j]=i;
+      if(j==-1){//if ith particle is first particle contained ibth bucket
+        bfst[ib]=i;//
+      }else{//if ibth bucket already contains some particle
+        nxt[j]=i;//jth particle's next particle in ibth bucket is i
       }
     }
   }
