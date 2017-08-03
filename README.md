@@ -9,3 +9,6 @@ main.c:上述の関数を呼び出す
 particle.py画像データを流体、壁粒子の初期位置の座標に変換
 anime.txt:出力されたデータをgnuplot上で再生するためのコード
 fluid.txt, wall.txt:流体粒子、壁粒子の初期位置
+
+コンパイル:
+gcc main.c SPH.c setting.c Bucket.c -lm
