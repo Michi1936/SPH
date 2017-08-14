@@ -3,10 +3,7 @@
 #include"numbers.h"
 #include<stdio.h>
 #include<math.h>
-#define RW 2 //right wall
-#define LW 0 //left wall
-#define BW 0 //bottom wall
-#define UW 2 //upper wall
+
 #define initDist 0.05 
 void initialization(Particle_State p[], int particleNumber)	//make all values of particles zero
 {

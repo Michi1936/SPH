@@ -4,15 +4,15 @@
 #define m 0.003 //particle mass
 #define h 0.07 //smoothing length
 #define k1 15.0 //pressure constant
-#define dt 6.0e-3 //time step size
+#define dt 4.0e-3 //time step size
 #define rho0 3.0 // reference density
-#define nu 0.1 //viscosity coefficient
+#define nu 0.2 //viscosity coefficient
 #define g 9.8//gravitational constant
-#define gamm 0//surface tension coefficient
+#define gamm 0.3//surface tension coefficient
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
 #define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 400//time step
+#define T 600//time step
 
 #define MAX_X 5   
 #define MAX_Y 4  
@@ -51,6 +51,7 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[]);
 void timeDevelopment(Particle_State p[]);
 void leapfrogStart(Particle_State p[]);
 void leapfrogStep(Particle_State p[]);
+void boundaryCondition(Particle_State p[]);
 void initialization(Particle_State p[], int particleNumber);
 int fluidParticles(Particle_State p[]);
 int wallParticles(Particle_State p[]);

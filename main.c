@@ -60,6 +60,7 @@ int main(void){
       leapfrogStart(a);
     }else{
       leapfrogStep(a);
+      boundaryCondition(a);
     }
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);

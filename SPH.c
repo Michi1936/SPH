@@ -314,6 +314,26 @@ void leapfrogStart(Particle_State p[])
   }
 }
 
+void boundaryCondition(Particle_State p[])
+{
+  double LW=0.05*3;
+  double RW=4.0-0.05*2;
+  double BW=0.05*3;
+  int i;
+  for(i=0; i<FLP; i++){
+    if(p[i].px<LW || p[i].px>RW){
+      p[i].vx=0;
+      p[i].vy=0;
+    }
+
+    if(p[i].py<BW){
+      p[i].vx=0;
+      p[i].vy=0;
+    }
+  }
+          
+}
+
 void leapfrogStep(Particle_State p[])
 {
   int i;
@@ -327,3 +347,5 @@ void leapfrogStep(Particle_State p[])
   }
   
 }
+
+
