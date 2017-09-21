@@ -8,6 +8,8 @@
 void initialization(Particle_State p[], int particleNumber)	//make all values of particles zero
 {
   int	i;
+  int half=particleNumber/2;
+
   for(i=0; i<particleNumber; i++){
     p[i].inRegion = 1;//1 means particle is in region for calculatin 
     p[i].px  = -100;
@@ -18,6 +20,7 @@ void initialization(Particle_State p[], int particleNumber)	//make all values of
     p[i].vyh = 0;
     p[i].ax  = 0;
     p[i].ay  = 0;
+    p[i].mass= 0.003;
     p[i].rho = 0;
     p[i].p   = 0;
   }

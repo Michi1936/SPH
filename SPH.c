@@ -3,6 +3,7 @@
 #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
+//Equations below are based upon "Simulations of single bubbles rising through viscous liquids using SPH" by Szewc, Pozorski, Minier ,2013
 
 double cubicSpline1(double q)//cubic spline for 0<=q<=1
 {
@@ -20,47 +21,37 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   double dy = fabs(p1.py-p2.py);
   double dist = sqrt(dx*dx+dy*dy);
   double q = dist/h;
-  if(0<=q && q<=1){
-    return cubicSpline1(q);
-  }
-  else if(1<=q && q<=2){
-    return cubicSpline2(q);
-  }
-  else {
+  double coef=21.0/(16.0*M_PI*h*h*h);
+  if(q<2.0){
+    return coef*(pow(1.0-q/2.0,4)*(2.0*q+1.0));
+  }else{
     return 0;
   }
 
 }
 
-double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gradient of kernel
+double gradKernel(Particle_State p1, Particle_State p2, int dir)//calculate gradient of kernel
 {
   
   double dx = fabs(p1.px-p2.px);
   double dy = fabs(p1.py-p2.py);
   double dist = sqrt(dx*dx+dy*dy);
   double q = dist/h;
-  double coeff_x = (p1.px-p2.px)/(dist*h+epsilon);
-  double coeff_y = (p1.py-p2.py)/(dist*h+epsilon);
+  double coef=21.0/(16.0*M_PI*h*h*h);
+  double coef_x=-coef*(5.0*q/(dist*h))*(p1.px-p2.px);
+  double coef_y=-coef*(5.0*q/(dist*h))*(p1.py-p2.py);
   
-  if(axis==0){//x direction 
-    if(0<=q && q<=1){
-      return coeff_x*((cubicSpline1(q+dh)-cubicSpline1(q-dh))/(2*dh));
-    }
-    else if(1<=q && q<=2){
-      return coeff_x*((cubicSpline2(q+dh)-cubicSpline2(q-dh))/(2*dh));
-    }
-    else {
+  if(dir==0){//x direction 
+    if(q<2.0){
+      return coef_x*pow(1.0-q/2.0,3);
+    }else{
       return 0;
     }
   }
-  else if(axis==1){//y direction 
-    if(0<=q && q<=1){
-      return coeff_y*((cubicSpline1(q+dh)-cubicSpline1(q-dh))/(2*dh));
-    }
-    else if(1<=q && q<=2){
-      return coeff_y*((cubicSpline2(q+dh)-cubicSpline2(q-dh))/(2*dh));
-    }
-    else {
+  else if(dir==1){//y direction 
+    if(q<2.0){
+      return coef_y*pow(1.0-q/2.0,3);
+    }else{
       return 0;
     }
   }
@@ -117,11 +108,10 @@ void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[])
           jb = jx + jy*nBx;
           int j = bfst[jb];
           //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          if(j==-1)continue;
-          for(;;){
+          while(j!=-1){
             double rhoij=0;
-            rhoij=m*kernel(p[i], p[j]);
-            p[i].rho+=rhoij;
+            rhoij=kernel(p[i], p[j]);
+            p[i].rho+=p[i].mass*rhoij;
             j = nxt[j];
             if(j==-1)break;
           }
@@ -129,7 +119,7 @@ void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[])
       }
     }
   }
-  //  fprintf(stderr, "Density calculated\n");
+     fprintf(stderr, "Density calculated\n");
 }
 
 
@@ -147,6 +137,7 @@ void calcPressure(Particle_State p[])
       p[i].p=0;
     }
   }
+  fprintf(stderr, "Pressure is deducted\n");
 }
 
 void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
@@ -168,40 +159,76 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
   }
 
   //calculation about viscosity
-  //Muller(2003) viscosity model is used 
+
   for(i=0; i<FLP+BP; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
       //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
       int jx, jy;
-      
+      double Theta_i=0;
       for(jx=ix-1; jx<=ix+1; jx++){
         for(jy=iy-1; jy<=iy+1; jy++){
-          int jb = jx + jy*nBx;
+          int jb = 0;
+          jb = jx + jy*nBx;
           int j = bfst[jb];
+          //fprintf(stderr, "j=%d, i=%d, ix=%d, iy=%d, jx=%d, jy=%d\n", j, i, ix, iy, jx, jy);
+          while(j!=-1){
+            Theta_i+=kernel(p[i], p[j]);
+            j = nxt[j];
+            //      fprintf(stderr,"Theta_i is summed\n");
+          }
+        }
+      }//Theta_i is deducted
+      //  fprintf(stderr, "Theta_i is deducted\n");
+      
+
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
           //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          if(j==-1)continue;
-          for(;;){
+          int jb=0;
+          jb=jx+jy*nBx;
+          int j = bfst[jb];
+          while(j!=-1){
+            double Theta_j=0;
+            int lx = (int)((p[j].px-MIN_X)/BktLgth)+1;
+            int ly = (int)((p[j].py-MIN_Y)/BktLgth)+1;
+            int kx,ky;
+            for(kx=lx-1; kx<=lx+1; kx++){
+              for(ky=ly-1; ky<=ly+1; ky++){
+                int nb = 0;
+                nb = kx + ky*nBx;
+                int nn = bfst[nb];
+                while(nn!=-1){
+                  Theta_j+=kernel(p[j], p[nn]);
+                  nn=nxt[nn];
+                  if(nn=-1)break;
+                }
+              }
+            }//Theta_j is deducted
             double aijx, aijy;
             aijx=0, aijy=0;
             double viscCoef=0;
             double dx = fabs(p[i].px-p[j].px);
             double dy = fabs(p[i].py-p[j].py);
+            double rx = (p[i].px-p[j].px);
+            double ry = (p[i].py-p[j].py);
             double dist = dx*dx+dy*dy+epsilon;
-            viscCoef = nu*m*Laplacian(p[i], p[j])/p[j].rho;
-            aijx = -viscCoef*(p[i].vx-p[j].vx);
-            aijy = -viscCoef*(p[i].vy-p[j].vy);
+          
+            viscCoef=((2.0*p[i].mu*p[j].mu)/(p[i].mu+p[j].mu))*(1.0/pow(Theta_i,2)+1.0/pow(Theta_j,2))*(rx*gradKernel(p[i],p[j],0)+ry*gradKernel(p[i],p[j],1))/(p[i].mass*(pow(dist,2)+pow(0.01,2)));
+            aijx = viscCoef*(p[i].vx-p[i].vy);
+            aijy = viscCoef*(p[i].vy-p[j].vy);
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j = nxt[j];
-            if(j==-1)break;
           }
         }
       }
+      
     }
   }
-  //calculation about pressure   
+      
+//calculation about pressure   
   for(i=0; i<FLP+BP; i++){  
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
@@ -214,8 +241,8 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
           if(j==-1)continue;
           for(;;){
             double aijx=0, aijy=0;
-            aijx = -m*(p[i].p/(pow(p[i].rho,2)+epsilon) + p[j].p/(pow(p[j].rho,2)+epsilon))*gradKernel(p[i],p[j],0);
-            aijy = -m*(p[i].p/(pow(p[i].rho,2)+epsilon) + p[j].p/(pow(p[j].rho,2)+epsilon))*gradKernel(p[i],p[j],1);
+            aijx = -p[i].mass*(p[i].p/(pow(p[i].rho,2)+epsilon) + p[j].p/(pow(p[j].rho,2)+epsilon))*gradKernel(p[i],p[j],0);
+            aijy = -p[i].mass*(p[i].p/(pow(p[i].rho,2)+epsilon) + p[j].p/(pow(p[j].rho,2)+epsilon))*gradKernel(p[i],p[j],1);
             p[i].ax += aijx;
             p[i].ay += aijy;
             j = nxt[j];

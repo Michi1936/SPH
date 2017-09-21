@@ -8,11 +8,11 @@
 #define rho0 3.0 // reference density
 #define nu 0.2 //viscosity coefficient
 #define g 9.8//gravitational constant
-#define gamm 0.3//surface tension coefficient
+#define gamm 0//surface tension coefficient
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
 #define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 600//time step
+#define T 5//time step
 
 #define MAX_X 5   
 #define MAX_Y 4  
@@ -35,8 +35,10 @@ typedef struct{
   double vyh;
   double ax;
   double ay;
+  double mass;//mass of particle
   double rho; //density
   double p; //pressure
+  double mu;
 }Particle_State;
 
 double cubicSpline1(double q);
