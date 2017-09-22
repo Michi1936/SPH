@@ -22,6 +22,7 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   double dist = sqrt(dx*dx+dy*dy);
   double q = dist/h;
   double coef=21.0/(16.0*M_PI*h*h*h);
+  coef=1.0;
   if(q<2.0){
     return coef*(pow(1.0-q/2.0,4)*(2.0*q+1.0));
   }else{
@@ -38,8 +39,9 @@ double gradKernel(Particle_State p1, Particle_State p2, int dir)//calculate grad
   double dist = sqrt(dx*dx+dy*dy);
   double q = dist/h;
   double coef=21.0/(16.0*M_PI*h*h*h);
-  double coef_x=-coef*(5.0*q/(dist*h))*(p1.px-p2.px);
-  double coef_y=-coef*(5.0*q/(dist*h))*(p1.py-p2.py);
+  coef=1.0;
+  double coef_x=-coef*(5.0*q/(dist*h+epsilon))*(p1.px-p2.px);
+  double coef_y=-coef*(5.0*q/(dist*h+epsilon))*(p1.py-p2.py);
   
   if(dir==0){//x direction 
     if(q<2.0){
@@ -119,8 +121,7 @@ void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[])
       }
     }
   }
-     fprintf(stderr, "Density calculated\n");
-}
+    }
 
 
 void calcPressure(Particle_State p[])
@@ -137,13 +138,40 @@ void calcPressure(Particle_State p[])
       p[i].p=0;
     }
   }
-  fprintf(stderr, "Pressure is deducted\n");
 }
 
 void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
 {
   int i,j;
-  
+
+  //inverse of the particle volume(Hu and Adams,2006)
+  double Theta[FLP+BP];
+  for (i=0; i<FLP+BP; i++){
+    Theta[i]=0;
+  }
+
+  for(i=0; i<FLP+BP; i++){
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb = 0;
+          jb = jx + jy*nBx;
+          int j = bfst[jb];
+          //fprintf(stderr, "j=%d, i=%d, ix=%d, iy=%d, jx=%d, jy=%d\n", j, i, ix, iy, jx, jy);
+          while(j!=-1){
+            Theta[i]+=kernel(p[i], p[j]);
+            j = nxt[j];
+            //      fprintf(stderr,"Theta_i is summed\n");
+          }
+        }
+      }
+    }else{Theta[i]=0;}
+  }
+
   for(i=0; i<N; i++){
     p[i].ax=0;
     p[i].ay=0;
@@ -160,28 +188,12 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
 
   //calculation about viscosity
 
-  for(i=0; i<FLP+BP; i++){
+  for(i=0; i<5; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
       //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
       int jx, jy;
-      double Theta_i=0;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb = 0;
-          jb = jx + jy*nBx;
-          int j = bfst[jb];
-          //fprintf(stderr, "j=%d, i=%d, ix=%d, iy=%d, jx=%d, jy=%d\n", j, i, ix, iy, jx, jy);
-          while(j!=-1){
-            Theta_i+=kernel(p[i], p[j]);
-            j = nxt[j];
-            //      fprintf(stderr,"Theta_i is summed\n");
-          }
-        }
-      }//Theta_i is deducted
-      //  fprintf(stderr, "Theta_i is deducted\n");
-      
 
       for(jx=ix-1; jx<=ix+1; jx++){
         for(jy=iy-1; jy<=iy+1; jy++){
@@ -189,46 +201,63 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
           int jb=0;
           jb=jx+jy*nBx;
           int j = bfst[jb];
-          while(j!=-1){
-            double Theta_j=0;
-            int lx = (int)((p[j].px-MIN_X)/BktLgth)+1;
-            int ly = (int)((p[j].py-MIN_Y)/BktLgth)+1;
-            int kx,ky;
-            for(kx=lx-1; kx<=lx+1; kx++){
-              for(ky=ly-1; ky<=ly+1; ky++){
-                int nb = 0;
-                nb = kx + ky*nBx;
-                int nn = bfst[nb];
-                while(nn!=-1){
-                  Theta_j+=kernel(p[j], p[nn]);
-                  nn=nxt[nn];
-                  if(nn=-1)break;
-                }
-              }
-            }//Theta_j is deducted
-            double aijx, aijy;
-            aijx=0, aijy=0;
-            double viscCoef=0;
-            double dx = fabs(p[i].px-p[j].px);
-            double dy = fabs(p[i].py-p[j].py);
-            double rx = (p[i].px-p[j].px);
-            double ry = (p[i].py-p[j].py);
-            double dist = dx*dx+dy*dy+epsilon;
+          double aijx, aijy;
+          double viscCoef;
+          aijx=0, aijy=0;
+          viscCoef=0;
+          double dx = fabs(p[i].px-p[j].px);
+          double dy = fabs(p[i].py-p[j].py);
+          double rx = (p[i].px-p[j].px);
+          double ry = (p[i].py-p[j].py);
+          double dist = dx*dx+dy*dy+epsilon;
           
-            viscCoef=((2.0*p[i].mu*p[j].mu)/(p[i].mu+p[j].mu))*(1.0/pow(Theta_i,2)+1.0/pow(Theta_j,2))*(rx*gradKernel(p[i],p[j],0)+ry*gradKernel(p[i],p[j],1))/(p[i].mass*(pow(dist,2)+pow(0.01,2)));
-            aijx = viscCoef*(p[i].vx-p[i].vy);
-            aijy = viscCoef*(p[i].vy-p[j].vy);
+          viscCoef=( (2.0*p[i].mu*p[j].mu)/(p[i].mu+p[j].mu+epsilon) )*(1.0/(pow(Theta[i],2)+epsilon)+1.0/(pow(Theta[j],2)+epsilon))*(rx*gradKernel(p[i],p[j],0)+ry*gradKernel(p[i],p[j],1))/(p[i].mass*(pow(dist,2)+pow(0.01,2)));
+          fprintf(stderr, "i=%i, %f %f Theta_i=%f, Theta_j=%f\n", i, p[i].mu, p[j].mu, Theta[i], Theta[j]);
+          fprintf(stderr, "rx=%f, ry=%f, dist=%f, gradKernel_x=%f, gradKernel_y=%f\n",
+                  rx, ry, dist, gradKernel(p[i],p[j],0), gradKernel(p[i],p[j],1));
+          aijx = viscCoef*(p[i].vx-p[i].vy);
+          aijy = viscCoef*(p[i].vy-p[j].vy);
+          p[i].ax+=aijx;
+          p[i].ay+=aijy;
+          j = nxt[j];
+        }
+      }
+      fprintf(stderr, "%f  %f \n", p[i].ax, p[i].ay);
+    }
+  }
+
+      
+//calculation about pressure   
+  for(i=0; i<FLP+BP; i++){
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
+          int jb=0;
+          jb=jx+jy*nBx;
+          int j = bfst[jb];
+          while(j!=-1){
+            double aijx, aijy;
+            double presCoef=0;
+            aijx=0, aijy=0;
+            presCoef=(p[i].p/(pow(Theta[i],2)+epsilon)+p[j].p/(pow(Theta[j],2)+epsilon))/(p[i].mass+epsilon);
+
+            aijx=presCoef*gradKernel(p[i], p[j], 0);
+            aijy=presCoef*gradKernel(p[i], p[j], 1);
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j = nxt[j];
           }
         }
       }
-      
     }
   }
-      
-//calculation about pressure   
+  
+  /*
   for(i=0; i<FLP+BP; i++){  
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
@@ -251,7 +280,8 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
         }
       }
     } 
-  }
+    }*/
+
   if(gamm!=0){
     //calculation of normal vector 
     double *nx, *ny;

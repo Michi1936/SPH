@@ -9,6 +9,40 @@
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
 
+
+    
+void printParticles(Particle_State p[], FILE *fp){
+  int i;
+  for(i=0; i<FLP; i++){ 
+    fprintf(fp,"%d %e %e %e %e %e %e %e %e %e \n",i, p[i].px, p[i].py,
+            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
+            p[i].rho, p[i].p, p[i].ax, p[i].ay);
+  }
+  fprintf(fp, "\n\n");
+  for(i=FLP; i<FLP+BP; i++){ 
+    fprintf(fp,"%d %e %e %e %e %e %e %e %e %e \n",i, p[i].px, p[i].py,
+            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
+            p[i].rho, p[i].p, p[i].ax, p[i].ay);
+  }
+  for(i=FLP+BP; i<N; i++){ 
+    fprintf(fp,"%d %e %e %e %e %e %e %e %e %e \n",i, p[i].px, p[i].py,
+            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
+            p[i].rho, p[i].p, p[i].ax, p[i].ay);
+  }
+  fprintf(fp,"\n\n");
+}
+
+void percentage(int time, int *countPer)
+{
+  double per;
+  per = time/(double)T;
+  per=(int)(per*10);
+  if(per==*countPer){
+    fprintf(stderr,"%d", (int)per);
+    *countPer=*countPer+1;
+  }
+}
+
 int main(void){
     
   Particle_State a[N];
@@ -37,7 +71,7 @@ int main(void){
   fprintf(stderr, "check obstacle boundary\n");
   checkParticle(a);
   
-  
+
   makeBucket(bfst, blst, nxt, a);
   fprintf(stderr,"check makeBucket\n");
   
@@ -80,36 +114,4 @@ int main(void){
   fprintf(stderr,"Processor time: %fs\n", (double)(end-start)/CLOCKS_PER_SEC);
   return  0;
   
-}
-    
-void printParticles(Particle_State p[], FILE *fp){
-  int i;
-  for(i=0; i<FLP; i++){ 
-    fprintf(fp,"%d %e %e %e %e %e %e %e %e %e \n",i, p[i].px, p[i].py,
-            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
-            p[i].rho, p[i].p, p[i].ax, p[i].ay);
-  }
-  fprintf(fp, "\n\n");
-  for(i=FLP; i<FLP+BP; i++){ 
-    fprintf(fp,"%d %e %e %e %e %e %e %e %e %e \n",i, p[i].px, p[i].py,
-            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
-            p[i].rho, p[i].p, p[i].ax, p[i].ay);
-  }
-  for(i=FLP+BP; i<N; i++){ 
-    fprintf(fp,"%d %e %e %e %e %e %e %e %e %e \n",i, p[i].px, p[i].py,
-            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
-            p[i].rho, p[i].p, p[i].ax, p[i].ay);
-  }
-  fprintf(fp,"\n\n");
-}
-
-void percentage(int time, int *countPer)
-{
-  double per;
-  per = time/(double)T;
-  per=(int)(per*10);
-  if(per==*countPer){
-    fprintf(stderr,"%d", (int)per);
-    *countPer=*countPer+1;
-  }
 }

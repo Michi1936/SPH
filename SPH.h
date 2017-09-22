@@ -3,16 +3,16 @@
 
 #define m 0.003 //particle mass
 #define h 0.07 //smoothing length
-#define k1 15.0 //pressure constant
+#define k1 1.0 //pressure constant
 #define dt 4.0e-3 //time step size
-#define rho0 3.0 // reference density
-#define nu 0.2 //viscosity coefficient
+#define rho0 1.0 // reference density
+#define nu 0.3 //viscosity coefficient
 #define g 9.8//gravitational constant
 #define gamm 0//surface tension coefficient
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
 #define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 5//time step
+#define T 0//time step
 
 #define MAX_X 5   
 #define MAX_Y 4  
