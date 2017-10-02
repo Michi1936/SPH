@@ -30,6 +30,8 @@ void printParticles(Particle_State p[], FILE *fp){
             p[i].rho, p[i].p, p[i].ax, p[i].ay);
   }
   fprintf(fp,"\n\n");
+
+  //  printf("Printed\n");
 }
 
 void percentage(int time, int *countPer)
@@ -61,16 +63,16 @@ int main(void){
 
   initialization(a, N);
   fprintf(stderr,"check initialization\n");
-  allocateBucket(&bfst, &blst, &nxt);
-  fprintf(stderr,"%d %d %d check allocateBucket\n", nBx, nBy, nBxy);
   fluidParticles(a);
   fprintf(stderr,"check initialConditions\n");
   wallParticles(a);
   fprintf(stderr,"check wallParitcles\n");
   obstacleBoundaryParticles(a);
   fprintf(stderr, "check obstacle boundary\n");
+  allocateBucket(&bfst, &blst, &nxt);
+  fprintf(stderr,"%d %d %d check allocateBucket\n", nBx, nBy, nBxy);
   checkParticle(a);
-  
+  fprintf(stderr,"check checkParticle");
 
   makeBucket(bfst, blst, nxt, a);
   fprintf(stderr,"check makeBucket\n");

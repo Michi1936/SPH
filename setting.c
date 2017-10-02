@@ -4,14 +4,15 @@
 #include<stdio.h>
 #include<math.h>
 
-#define initDist 0.05 
+
+
 void initialization(Particle_State p[], int particleNumber)	//make all values of particles zero
 {
   int	i;
   int half=particleNumber/2;
 
   for(i=0; i<particleNumber; i++){
-    p[i].inRegion = 1;//1 means particle is in region for calculatin 
+    p[i].inRegion = 0;//1 means particle is in region for calculatin 
     p[i].px  = -100;
     p[i].py  = -100; 
     p[i].vx  = 0;
@@ -40,8 +41,8 @@ int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt
   }
 
   while((ret=fscanf(fp, "%d %d %d %d %d", &px, &py, &r, &gr, &b))!=EOF){
-      p[i].px=(px+1)*initDist;
-      p[i].py=(py+1)*initDist;
+      p[i].px=(px+1)*interval;
+      p[i].py=(py+1)*interval;
       p[i].vy=(gr-127)*0.2;
       i++;
   }
@@ -49,8 +50,8 @@ int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt
     fp=fopen("fluid.txt","r");
     for(i=0; i<FLP; i++){
       fscanf(fp,"%d %d %d %d %d", &px, &py, &r, &gr, &b);
-      p[i].px=(px+1)*initDist;
-      p[i].py=(py+1)*initDist;
+      p[i].px=(px+1)*interval;
+      p[i].py=(py+1)*interval;
       p[i].vy=(gr-127)*0.2;
       fprintf(stderr, "vy=%f %d", p[i].vy, gr);
       //      fprintf(stderr,"%f %f %f\n", p[i].px, p[i].py, p[i].vy);
@@ -72,16 +73,16 @@ int wallParticles(Particle_State p[]){
     return -1;
   }
   while((ret = fscanf(fp, "%d %d %*d %*d %*d", &px, &py))!=EOF){
-    p[i].px=(px+1)*initDist;
-    p[i].py=(py+1)*initDist;
+    p[i].px=(px+1)*interval;
+    p[i].py=(py+1)*interval;
     i++;
   }
   
   /*  fp=fopen("wall.txt","r");
   for(i=FLP; i<FLP+BP; i++){
     fscanf(fp,"%d %d %d %d %d", &px, &py);
-    p[i].px=(px+1)*initDist;
-    p[i].py=(py+1)*initDist;
+    p[i].px=(px+1)*interval;
+    p[i].py=(py+1)*interval;
     fprintf(stderr,"%f %f\n", p[i].px, p[i].py);
     
     }*/
@@ -94,7 +95,7 @@ int wallParticles(Particle_State p[]){
 void obstacleBoundaryParticles(Particle_State obp[])
 {
   int i;
-  double dif = initDist;
+  double dif = interval;
   double x,y;
   x=1.0-dif;
   y=0.25;

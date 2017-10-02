@@ -46,7 +46,7 @@ void makeBucket(int *bfst, int *blst, int*nxt, Particle_State p[])//putting part
       int ib = ix+iy*nBx;//index of backet including ith particle
       int j = blst[ib];
       blst[ib]=i;//particle i is last particle in backet ib
-      if(j==-1){//if ith particle is first particle contained ibth bucket
+      if(j==-1){//if ith particle is first particle contained in ibth bucket
         bfst[ib]=i;//
       }else{//if ibth bucket already contains some particle
         nxt[j]=i;//jth particle's next particle in ibth bucket is i

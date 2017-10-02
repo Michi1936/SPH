@@ -1,24 +1,27 @@
 #ifndef _SPH_H_
 #define _SPH_H_
 
-#define m 0.003 //particle mass
-#define h 0.07 //smoothing length
+#define m 1.0 //particle mass
+#define h 1.0 //smoothing length
 #define k1 1.0 //pressure constant
-#define dt 4.0e-3 //time step size
-#define rho0 1.0 // reference density
+#define dt 4.0e-2 //time step size
+#define rho0 1000.0 // reference density
 #define nu 0.3 //viscosity coefficient
 #define g 9.8//gravitational constant
 #define gamm 0//surface tension coefficient
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
 #define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 0//time step
 
-#define MAX_X 5   
-#define MAX_Y 4  
-#define MIN_X -5   
-#define MIN_Y -10
-#define BktLgth 0.3
+#define interval 0.5//interval between particles at t=0
+
+#define T 50//time step
+
+#define MAX_X 100   
+#define MAX_Y 100  
+#define MIN_X -100   
+#define MIN_Y -100
+#define BktLgth 1.0
 #define BktNum 1.0/BktLgth
 #define nBx ((int)((MAX_X-MIN_X)/BktLgth)+2 )
 #define nBy ((int)((MAX_Y-MIN_Y)/BktLgth)+2 )

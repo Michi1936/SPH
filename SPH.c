@@ -22,7 +22,6 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   double dist = sqrt(dx*dx+dy*dy);
   double q = dist/h;
   double coef=21.0/(16.0*M_PI*h*h*h);
-  coef=1.0;
   if(q<2.0){
     return coef*(pow(1.0-q/2.0,4)*(2.0*q+1.0));
   }else{
@@ -39,7 +38,6 @@ double gradKernel(Particle_State p1, Particle_State p2, int dir)//calculate grad
   double dist = sqrt(dx*dx+dy*dy);
   double q = dist/h;
   double coef=21.0/(16.0*M_PI*h*h*h);
-  coef=1.0;
   double coef_x=-coef*(5.0*q/(dist*h+epsilon))*(p1.px-p2.px);
   double coef_y=-coef*(5.0*q/(dist*h+epsilon))*(p1.py-p2.py);
   
@@ -134,9 +132,7 @@ void calcPressure(Particle_State p[])
   
   for(i=0; i<N; i++){
     p[i].p = k1*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
-    if(p[i].p<0) {
-      p[i].p=0;
-    }
+    
   }
 }
 
@@ -212,9 +208,9 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
           double dist = dx*dx+dy*dy+epsilon;
           
           viscCoef=( (2.0*p[i].mu*p[j].mu)/(p[i].mu+p[j].mu+epsilon) )*(1.0/(pow(Theta[i],2)+epsilon)+1.0/(pow(Theta[j],2)+epsilon))*(rx*gradKernel(p[i],p[j],0)+ry*gradKernel(p[i],p[j],1))/(p[i].mass*(pow(dist,2)+pow(0.01,2)));
-          fprintf(stderr, "i=%i, %f %f Theta_i=%f, Theta_j=%f\n", i, p[i].mu, p[j].mu, Theta[i], Theta[j]);
-          fprintf(stderr, "rx=%f, ry=%f, dist=%f, gradKernel_x=%f, gradKernel_y=%f\n",
-                  rx, ry, dist, gradKernel(p[i],p[j],0), gradKernel(p[i],p[j],1));
+          //          fprintf(stderr, "i=%i, %f %f Theta_i=%f, Theta_j=%f\n", i, p[i].mu, p[j].mu, Theta[i], Theta[j]);
+          //          fprintf(stderr, "rx=%f, ry=%f, dist=%f, gradKernel_x=%f, gradKernel_y=%f\n",
+          //                  rx, ry, dist, gradKernel(p[i],p[j],0), gradKernel(p[i],p[j],1));
           aijx = viscCoef*(p[i].vx-p[i].vy);
           aijy = viscCoef*(p[i].vy-p[j].vy);
           p[i].ax+=aijx;
@@ -222,7 +218,7 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
           j = nxt[j];
         }
       }
-      fprintf(stderr, "%f  %f \n", p[i].ax, p[i].ay);
+      //      fprintf(stderr, "%f  %f \n", p[i].ax, p[i].ay);
     }
   }
 
