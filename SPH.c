@@ -4,14 +4,15 @@
 #include<stdio.h>
 #include<stdlib.h>
 
+//MOnaghan(2005) cubic spline is used 
 double cubicSpline1(double q)//cubic spline for 0<=q<=1
 {
-  return Ch*(pow(2.0-q,3) - 4.0*pow(1.0-q,3));
+  return ( pow(2.0-q,3)-4.0*pow(1.0-q,3))/6.0;
 }
 
 double cubicSpline2(double q)//cubic spline for 1<=q<=2
 {
-  return Ch*pow(2.0-q,3);
+  return (pow(2.0-q, 3))/6.0;
 }
 
 double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
@@ -21,10 +22,10 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   double dist = sqrt(dx*dx+dy*dy);
   double q = dist/h;
   if(0<=q && q<=1){
-    return cubicSpline1(q);
+    return ( pow(2.0-q,3)-4.0*pow(1.0-q,3))/6.0;
   }
   else if(1<=q && q<=2){
-    return cubicSpline2(q);
+    return (pow(2.0-q, 3))/6.0;
   }
   else {
     return 0;
@@ -53,6 +54,7 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
       return 0;
     }
   }
+  
   else if(axis==1){//y direction 
     if(0<=q && q<=1){
       return coeff_y*((cubicSpline1(q+dh)-cubicSpline1(q-dh))/(2*dh));
@@ -68,7 +70,8 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
     return 0;
   }
 }
-  
+
+//Muller(2003)  Kernel for viscosity term is used
 double Laplacian(Particle_State p1, Particle_State p2)
 {
   double ans=0;
@@ -76,8 +79,7 @@ double Laplacian(Particle_State p1, Particle_State p2)
   double dy = fabs(p1.py-p2.py);
   double dist = sqrt(dx*dx+dy*dy);
   if(0<= dist && dist <= h){
-    ans = 20/(3*M_PI*pow(h,5));
-    ans = ans*(h-dist);
+    ans=(45.0/(M_PI*pow(h,6)))*(h-dist);
   }
   else{
     ans = 0;
@@ -143,9 +145,7 @@ void calcPressure(Particle_State p[])
   
   for(i=0; i<N; i++){
     p[i].p = k1*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
-    if(p[i].p<0) {
-      p[i].p=0;
-    }
+   
   }
 }
 
@@ -186,12 +186,20 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
             double aijx, aijy;
             aijx=0, aijy=0;
             double viscCoef=0;
-            double dx = fabs(p[i].px-p[j].px);
-            double dy = fabs(p[i].py-p[j].py);
+            double dx = (p[i].px-p[j].px);
+            double dy = (p[i].py-p[j].py);
+            double dvx = (p[i].vx-p[j].vx);
+            double dvy = (p[i].vy-p[j].vy);
+            double dot=dx*dvx+dy*dvy;
             double dist = dx*dx+dy*dy+epsilon;
-            viscCoef = nu*m*Laplacian(p[i], p[j])/p[j].rho;
-            aijx = -viscCoef*(p[i].vx-p[j].vx);
-            aijy = -viscCoef*(p[i].vy-p[j].vy);
+            viscCoef=-nu(dot)/(dist*dist+epsilon);
+            if(dot<0){
+              aijx = -m*viscCoef*gradKernel(p[i], p[j], 0);
+              aijy = -m*viscCoef*gradKernel(p[i], p[j], 1);
+            }else if(dot>=0){
+              aijx=0; 
+              aijy=0;
+            }
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j = nxt[j];
@@ -201,9 +209,12 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
       }
     }
   }
+  
   //calculation about pressure   
+  //Muller(2003) model is used
   for(i=0; i<FLP+BP; i++){  
     if(p[i].inRegion==1){
+      int count=0;
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
       int jx, jy;
@@ -213,9 +224,10 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
           int j = bfst[jb];
           if(j==-1)continue;
           for(;;){
-            double aijx=0, aijy=0;
-            aijx = -m*(p[i].p/(pow(p[i].rho,2)+epsilon) + p[j].p/(pow(p[j].rho,2)+epsilon))*gradKernel(p[i],p[j],0);
-            aijy = -m*(p[i].p/(pow(p[i].rho,2)+epsilon) + p[j].p/(pow(p[j].rho,2)+epsilon))*gradKernel(p[i],p[j],1);
+            double aijx=0;
+            double aijy=0;
+            aijx=-m*(p[i].p/pow(p[i].rho,2.0) + p[j].p/pow(p[j].rho,2.0))*gradKernel(p[i], p[j], 0);
+            aijy=-m*(p[i].p/pow(p[i].rho,2.0) + p[j].p/pow(p[j].rho,2.0))*gradKernel(p[i], p[j], 1);
             p[i].ax += aijx;
             p[i].ay += aijy;
             j = nxt[j];
@@ -225,6 +237,7 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
       }
     } 
   }
+  
   if(gamm!=0){
     //calculation of normal vector 
     double *nx, *ny;
@@ -271,6 +284,8 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
               aijx = -gamm*m*(m*cohesion(dist)*dx/dist + (nx[i]-nx[j]));
               aijy = -gamm*m*(m*cohesion(dist)*dy/dist + (ny[i]-ny[j]));
               
+              aijx=aijx/(p[i].rho+epsilon);
+              aijy=aijy/(p[i].rho+epsilon);
               p[i].ax+=aijx;
               p[i].ay+=aijy;
               
@@ -285,6 +300,8 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
     free(nx);
     free(ny);
   }
+
+
 }
 
 void timeDevelopment(Particle_State p[])
