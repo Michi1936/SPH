@@ -29,6 +29,7 @@ void checkParticle(Particle_State p[])
 void makeBucket(int *bfst, int *blst, int*nxt, Particle_State p[])//putting particles into backet
 {
   int i;
+
   for(i=0; i<nBxy; i++){
     bfst[i]=-1;
   }

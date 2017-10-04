@@ -1,6 +1,6 @@
 from PIL import Image
 
-im=Image.open("./drop.png")#image file name for initial condition
+im=Image.open("./test.png")#image file name for initial condition
 
 rgb_im=im.convert("RGB")
 

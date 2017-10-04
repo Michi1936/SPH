@@ -14,18 +14,18 @@ void percentage(int time, int *countPer);
 void printParticles(Particle_State p[], FILE *fp){
   int i;
   for(i=0; i<FLP; i++){ 
-    fprintf(fp,"%d %e %e %e %e %e %e %e %e %e \n",i, p[i].px, p[i].py,
+    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
             p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
             p[i].rho, p[i].p, p[i].ax, p[i].ay);
   }
   fprintf(fp, "\n\n");
   for(i=FLP; i<FLP+BP; i++){ 
-    fprintf(fp,"%d %e %e %e %e %e %e %e %e %e \n",i, p[i].px, p[i].py,
+    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
             p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
             p[i].rho, p[i].p, p[i].ax, p[i].ay);
   }
   for(i=FLP+BP; i<N; i++){ 
-    fprintf(fp,"%d %e %e %e %e %e %e %e %e %e \n",i, p[i].px, p[i].py,
+    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
             p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
             p[i].rho, p[i].p, p[i].ax, p[i].ay);
   }
@@ -90,11 +90,11 @@ int main(void){
   
   //time development
   for(i=1; i<=T; i++){
-    if(i==0){
+    if(i==1){
       leapfrogStart(a);
     }else{
       leapfrogStep(a);
-      boundaryCondition(a);
+      //      boundaryCondition(a);
     }
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);

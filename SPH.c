@@ -4,7 +4,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-//MOnaghan(2005) cubic spline is used 
+//Monaghan(2005) cubic spline is used 
 double cubicSpline1(double q)//cubic spline for 0<=q<=1
 {
   return ( pow(2.0-q,3)-4.0*pow(1.0-q,3))/6.0;
@@ -22,10 +22,10 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   double dist = sqrt(dx*dx+dy*dy);
   double q = dist/h;
   if(0<=q && q<=1){
-    return ( pow(2.0-q,3)-4.0*pow(1.0-q,3))/6.0;
+    return cubicSpline1(q);
   }
   else if(1<=q && q<=2){
-    return (pow(2.0-q, 3))/6.0;
+    return cubicSpline2(q);
   }
   else {
     return 0;
@@ -45,10 +45,10 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
   
   if(axis==0){//x direction 
     if(0<=q && q<=1){
-      return coeff_x*((cubicSpline1(q+dh)-cubicSpline1(q-dh))/(2*dh));
+      return coeff_x*(4.0*pow(1.0-q,2)-pow(2.0-q,2))/2.0;
     }
     else if(1<=q && q<=2){
-      return coeff_x*((cubicSpline2(q+dh)-cubicSpline2(q-dh))/(2*dh));
+      return -coeff_x*pow(2.0-q,2)/2.0;
     }
     else {
       return 0;
@@ -57,10 +57,10 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
   
   else if(axis==1){//y direction 
     if(0<=q && q<=1){
-      return coeff_y*((cubicSpline1(q+dh)-cubicSpline1(q-dh))/(2*dh));
+      return coeff_y*(4.0*pow(1.0-q,2)-pow(2.0-q,2))/2.0;
     }
     else if(1<=q && q<=2){
-      return coeff_y*((cubicSpline2(q+dh)-cubicSpline2(q-dh))/(2*dh));
+      return -coeff_y*pow(2.0-q,2)/2.0;
     }
     else {
       return 0;
@@ -135,18 +135,25 @@ void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[])
 }
 
 
+//Muller(2005) pressure model is used
 void calcPressure(Particle_State p[])
 {
   //set p=0
   int i;
+  double coef;
+  double cs=88.5;
+  coef=(rho0*pow(cs,2))/7.0;
   for(i=0; i<N; i++){
     p[i].p=0;
   }
   
   for(i=0; i<N; i++){
-    p[i].p = k1*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
-   
+    p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
+    if(p[i].p<0){
+      p[i].p=0;
+    }
   }
+
 }
 
 void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
@@ -168,14 +175,13 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
   }
 
   //calculation about viscosity
-  //Muller(2003) viscosity model is used 
+  //Muller(2005) model is used
   for(i=0; i<FLP+BP; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
       //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
       int jx, jy;
-      
       for(jx=ix-1; jx<=ix+1; jx++){
         for(jy=iy-1; jy<=iy+1; jy++){
           int jb = jx + jy*nBx;
@@ -186,16 +192,20 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
             double aijx, aijy;
             aijx=0, aijy=0;
             double viscCoef=0;
+            double cs = 88.5;
             double dx = (p[i].px-p[j].px);
             double dy = (p[i].py-p[j].py);
             double dvx = (p[i].vx-p[j].vx);
             double dvy = (p[i].vy-p[j].vy);
             double dot=dx*dvx+dy*dvy;
-            double dist = dx*dx+dy*dy+epsilon;
-            viscCoef=-nu(dot)/(dist*dist+epsilon);
+            double dist = dx*dx+dy*dy;
+            viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
+            viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
+
             if(dot<0){
               aijx = -m*viscCoef*gradKernel(p[i], p[j], 0);
               aijy = -m*viscCoef*gradKernel(p[i], p[j], 1);
+              //fprintf(stderr, "dot=%f %f %f aijx=%f, aijy=%f\n",dot, viscCoef, gradKernel(p[i], p[j], 0),  aijx, aijy);
             }else if(dot>=0){
               aijx=0; 
               aijy=0;
@@ -322,19 +332,28 @@ void leapfrogStart(Particle_State p[])
 {
   int i;
   for(i=0; i<FLP; i++){
+    if(i==2){
+      fprintf(stderr, "%e %e\n", p[i].px, p[i].py);
+      fprintf(stderr, "%e\n", 0.0014*dt);
+      fprintf(stderr, "%e\n", 0.0014*dt*dt);
+    }
     p[i].vxh=p[i].vx+p[i].ax*dt/2;
     p[i].vyh=p[i].vy+p[i].ay*dt/2;
     p[i].vx+=p[i].ax*dt;
     p[i].vy+=p[i].ay*dt;
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
+    if(i==2){
+
+      fprintf(stderr, "%0.12e %0.12e %0.12e %0.12e %0.12e %0.12e\n", p[i].ax, p[i].ay, p[i].vxh, p[i].vyh, p[i].px, p[i].py);
+    }
   }
 }
 
 void boundaryCondition(Particle_State p[])
 {
-  double LW=0.05*3;
-  double RW=4.0-0.05*2;
+  double LW=interval*3;
+  double RW=4.0-interval*2;
   double BW=0.05*3;
   int i;
   for(i=0; i<FLP; i++){
