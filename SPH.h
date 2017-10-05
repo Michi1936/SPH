@@ -6,7 +6,7 @@
 #define k1 1.0 //pressure constant
 #define dt 4.0e-4 //time step size
 #define rho0 1000.0 // reference density
-#define nu 0.0 //viscosity coefficient
+#define nu 0.3 //viscosity coefficient
 #define g 9.8//gravitational constant
 #define gamm 0//surface tension coefficient
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
@@ -22,7 +22,7 @@
 #define MIN_X -100  
 #define MIN_Y -100
 #define BktNum 1.0/BktLgth
-#define BktLgth 0.5
+#define BktLgth 0.8
 #define nBx ((int)((MAX_X-MIN_X)/BktLgth)+2 )
 #define nBy ((int)((MAX_Y-MIN_Y)/BktLgth)+2 )
 #define nBxy (nBx*nBy)

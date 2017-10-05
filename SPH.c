@@ -7,12 +7,12 @@
 //Monaghan(2005) cubic spline is used 
 double cubicSpline1(double q)//cubic spline for 0<=q<=1
 {
-  return ( pow(2.0-q,3)-4.0*pow(1.0-q,3))/6.0;
+  return (15.0/(pow(h,2)*14.0*M_PI))*(pow(2.0-q,3)-4.0*pow(1.0-q,3));
 }
 
 double cubicSpline2(double q)//cubic spline for 1<=q<=2
 {
-  return (pow(2.0-q, 3))/6.0;
+  return (15.0/(pow(h,2)*14.0*M_PI))*(pow(2.0-q, 3));
 }
 
 double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
@@ -45,10 +45,10 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
   
   if(axis==0){//x direction 
     if(0<=q && q<=1){
-      return coeff_x*(4.0*pow(1.0-q,2)-pow(2.0-q,2))/2.0;
+      return (15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
     }
     else if(1<=q && q<=2){
-      return -coeff_x*pow(2.0-q,2)/2.0;
+      return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(3.0*pow(1.0-q,2));
     }
     else {
       return 0;
@@ -57,10 +57,10 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
   
   else if(axis==1){//y direction 
     if(0<=q && q<=1){
-      return coeff_y*(4.0*pow(1.0-q,2)-pow(2.0-q,2))/2.0;
+      return (15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
     }
     else if(1<=q && q<=2){
-      return -coeff_y*pow(2.0-q,2)/2.0;
+      return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(3.0*pow(1.0-q,2));
     }
     else {
       return 0;
@@ -149,9 +149,7 @@ void calcPressure(Particle_State p[])
   
   for(i=0; i<N; i++){
     p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
-    if(p[i].p<0){
-      p[i].p=0;
-    }
+
   }
 
 }
