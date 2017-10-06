@@ -36,19 +36,19 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
 double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gradient of kernel
 {
   
-  double dx = fabs(p1.px-p2.px);
-  double dy = fabs(p1.py-p2.py);
+  double dx = (p1.px-p2.px);
+  double dy = (p1.py-p2.py);
   double dist = sqrt(dx*dx+dy*dy);
   double q = dist/h;
-  double coeff_x = (p1.px-p2.px)/(dist*h+epsilon);
-  double coeff_y = (p1.py-p2.py)/(dist*h+epsilon);
+  double coeff_x = (dx)/(dist*h+epsilon);
+  double coeff_y = (dy)/(dist*h+epsilon);
   
   if(axis==0){//x direction 
     if(0<=q && q<=1){
       return (15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
     }
     else if(1<=q && q<=2){
-      return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(3.0*pow(1.0-q,2));
+      return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(3.0*pow(2.0-q,2));
     }
     else {
       return 0;
@@ -60,7 +60,7 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
       return (15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
     }
     else if(1<=q && q<=2){
-      return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(3.0*pow(1.0-q,2));
+      return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(3.0*pow(2.0-q,2));
     }
     else {
       return 0;
@@ -149,7 +149,9 @@ void calcPressure(Particle_State p[])
   
   for(i=0; i<N; i++){
     p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
-
+    if(p[i].p<0){
+      p[i].p=0;
+    }
   }
 
 }
@@ -171,6 +173,34 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
     p[i].ax += aijx;
     p[i].ay += aijy;
   }
+  //calculation about pressure   
+  //Muller(2003) model is used
+  for(i=0; i<FLP+BP; i++){  
+    if(p[i].inRegion==1){
+      int count=0;
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb = jx + jy*nBx;
+          int j = bfst[jb];
+          if(j==-1)continue;
+          for(;;){
+            double aijx=0;
+            double aijy=0;
+            aijx=-m*(p[i].p/pow(p[i].rho,2.0) + p[j].p/pow(p[j].rho,2.0))*gradKernel(p[i], p[j], 0);
+            aijy=-m*(p[i].p/pow(p[i].rho,2.0) + p[j].p/pow(p[j].rho,2.0))*gradKernel(p[i], p[j], 1);
+            p[i].ax += aijx;
+            p[i].ay += aijy;
+            j = nxt[j];
+            if(j==-1)break;
+          }
+        }
+      }
+    } 
+  }
+  
 
   //calculation about viscosity
   //Muller(2005) model is used
@@ -216,34 +246,6 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
         }
       }
     }
-  }
-  
-  //calculation about pressure   
-  //Muller(2003) model is used
-  for(i=0; i<FLP+BP; i++){  
-    if(p[i].inRegion==1){
-      int count=0;
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb = jx + jy*nBx;
-          int j = bfst[jb];
-          if(j==-1)continue;
-          for(;;){
-            double aijx=0;
-            double aijy=0;
-            aijx=-m*(p[i].p/pow(p[i].rho,2.0) + p[j].p/pow(p[j].rho,2.0))*gradKernel(p[i], p[j], 0);
-            aijy=-m*(p[i].p/pow(p[i].rho,2.0) + p[j].p/pow(p[j].rho,2.0))*gradKernel(p[i], p[j], 1);
-            p[i].ax += aijx;
-            p[i].ay += aijy;
-            j = nxt[j];
-            if(j==-1)break;
-          }
-        }
-      }
-    } 
   }
   
   if(gamm!=0){

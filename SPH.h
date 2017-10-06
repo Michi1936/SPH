@@ -1,12 +1,12 @@
 #ifndef _SPH_H_
 #define _SPH_H_
 
-#define m 1.0 //particle mass
-#define h 0.1 //smoothing length
+#define h 0.2 //smoothing length
 #define k1 1.0 //pressure constant
 #define dt 4.0e-4 //time step size
 #define rho0 1000.0 // reference density
-#define nu 0.3 //viscosity coefficient
+#define m M_PI*h*h*rho0/12.0 //particle mass
+#define nu 0.0 //viscosity coefficient
 #define g 9.8//gravitational constant
 #define gamm 0//surface tension coefficient
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
