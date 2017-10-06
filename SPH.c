@@ -8,11 +8,20 @@
 double cubicSpline1(double q)//cubic spline for 0<=q<=1
 {
   return (15.0/(pow(h,2)*14.0*M_PI))*(pow(2.0-q,3)-4.0*pow(1.0-q,3));
+  //  return (315.0/(64.0*M_PI*pow(h,9)))*pow(h*h-q*q,3);
 }
 
 double cubicSpline2(double q)//cubic spline for 1<=q<=2
 {
   return (15.0/(pow(h,2)*14.0*M_PI))*(pow(2.0-q, 3));
+}
+
+double poly6(double q){
+  if(q<=1){
+return  cubicSpline1(q);
+  }else{
+    return 0;
+  }
 }
 
 double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
@@ -24,9 +33,9 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   if(0<=q && q<=1){
     return cubicSpline1(q);
   }
-  else if(1<=q && q<=2){
+    else if(1<=q && q<=2){
     return cubicSpline2(q);
-  }
+    }
   else {
     return 0;
   }
@@ -42,10 +51,10 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
   double q = dist/h;
   double coeff_x = (dx)/(dist*h+epsilon);
   double coeff_y = (dy)/(dist*h+epsilon);
-  
+  double dh = 0.01;
   if(axis==0){//x direction 
     if(0<=q && q<=1){
-      return (15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
+      // return (15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
     }
     else if(1<=q && q<=2){
       return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(3.0*pow(2.0-q,2));
@@ -57,7 +66,7 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
   
   else if(axis==1){//y direction 
     if(0<=q && q<=1){
-      return (15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
+      return coeff_y*(poly6(q+dh/2.0)-poly6(q-dh/2.0))/dh;
     }
     else if(1<=q && q<=2){
       return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(3.0*pow(2.0-q,2));
@@ -86,7 +95,6 @@ double Laplacian(Particle_State p1, Particle_State p2)
   }
   return ans;
 }
-
 double cohesion(double r)//caluculating cohesion term 
 {
   double coef=32.0/(M_PI*pow(h,9));
@@ -225,7 +233,7 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
             double dy = (p[i].py-p[j].py);
             double dvx = (p[i].vx-p[j].vx);
             double dvy = (p[i].vy-p[j].vy);
-            double dot=dx*dvx+dy*dvy;
+            double dot = dx*dvx+dy*dvy;
             double dist = dx*dx+dy*dy;
             viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
             viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);

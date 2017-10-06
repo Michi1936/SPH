@@ -1,6 +1,8 @@
 from PIL import Image
 
-im=Image.open("./test.png")#image file name for initial condition
+fileName=input("Enter file name.:")
+fileName=fileName+".png"
+im=Image.open(fileName)#image file name for initial condition
 
 rgb_im=im.convert("RGB")
 
