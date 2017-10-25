@@ -84,7 +84,11 @@ int main(void){
   //calculations for rho0, p0, a0  
   calcDensity(a, bfst, blst, nxt);
   calcPressure(a);
-  calcAcceleration(a, bfst, blst, nxt);
+  initializeAccel(a);
+  calcAccelByPressure(a,bfst,blst, nxt);
+  calcAccelByViscosity(a,bfst,blst, nxt);
+  calcAccelByExternalForces(a,bfst, blst, nxt);
+  calcAccelBySurfaceTension(a, bfst, blst, nxt);
   
   printParticles(a,fp);//Here shows parameters at t=0
   
@@ -100,7 +104,11 @@ int main(void){
     makeBucket(bfst, blst, nxt, a);
     calcDensity(a, bfst, blst, nxt);
     calcPressure(a);
-    calcAcceleration(a, bfst, blst, nxt);
+    initializeAccel(a);
+    calcAccelByPressure(a,bfst,blst, nxt);
+    calcAccelByViscosity(a,bfst,blst, nxt);
+    calcAccelByExternalForces(a,bfst, blst, nxt);
+    calcAccelBySurfaceTension(a, bfst, blst, nxt);
     printParticles(a, fp);//here show paremeters at t=(i*dt)
     percentage(i, &countPer);
   }

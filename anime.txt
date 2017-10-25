@@ -2,7 +2,9 @@ set size square
 do for[i=1:t:2]{
 
 print i
-set xrange[-1:12]
-set yrange[-1:12]
-plot 'sample.dat' index i u 2:3:8 w p lt 7 lc palette, 'sample.dat' index i+1 u 2:3 w p lt 20
+if(i%50==1){
+	set xrange[-0.5:15]
+	set yrange[-0.5:15]
+	plot 'sample.dat' index i u 2:3:8 w p lt 7 lc palette, 'sample.dat' index i+1 u 2:3 w p lt 20
+	}
 }
