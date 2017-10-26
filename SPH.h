@@ -3,19 +3,19 @@
 
 #define h 0.1//smoothing length
 #define k1 1.0 //pressure constant
-#define dt 8.0e-5//time step size
+#define dt 1.0e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
-#define nu 0.3 //viscosity coefficient
+#define nu 0.1 //viscosity coefficient
 #define g 9.8//gravitational constant
-#define gamm 0//surface tension coefficient
+#define gamm 0.3//surface tension coefficient
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 150//time step
+#define T 20000//time step
 
 
-#define interval 0.11
+#define interval 0.1
 
 #define MAX_X 100   
 #define MAX_Y 100
@@ -53,7 +53,6 @@ void calcPressure(Particle_State p[]);
 void initializeAccel(Particle_State p[]);
 void calcAccelByExternalForces(Particle_State p[], int bfst[], int blst[], int nxt[]);
 void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[]);
-void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[]);
 void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[]);
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int nxt[]);
 void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[]);
@@ -61,13 +60,17 @@ void timeDevelopment(Particle_State p[]);
 void leapfrogStart(Particle_State p[]);
 void leapfrogStep(Particle_State p[]);
 void boundaryCondition(Particle_State p[]);
+
 void initialization(Particle_State p[], int particleNumber);
 int fluidParticles(Particle_State p[]);
 int wallParticles(Particle_State p[]);
 void obstacleBoundaryParticles(Particle_State obp[]);
+
 void allocateBucket(int **bfst, int **blst, int **nxt);
 void checkParticle(Particle_State p[]);
 void makeBucket(int *bfst, int *blst, int*nxt, Particle_State p[]);
 void freeBucket(int *bfst, int *blst, int*nxt);
+double gradSpikey(Particle_State p1, Particle_State p2, int axis);
+double poly6(Particle_State p1, Particle_State p2);
 
 #endif //_SPH

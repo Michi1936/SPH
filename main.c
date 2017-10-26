@@ -9,8 +9,6 @@
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
 
-
-    
 void printParticles(Particle_State p[], FILE *fp){
   int i;
   for(i=0; i<FLP; i++){ 
@@ -36,11 +34,13 @@ void percentage(int time, int *countPer)
 {
   double per;
   per = time/(double)T;
-  per=(int)(per*10);
+  per=(int)(per*100);
   if(per==*countPer){
-    fprintf(stderr,"%d", (int)per);
+    fprintf(stderr,"%d ", (int)per);
     *countPer=*countPer+1;
   }
+ 
+  
 }
 
 int main(void){
@@ -52,9 +52,16 @@ int main(void){
   clock_t start, end;
   start=clock();
   FILE *fp;
+  FILE *paramTxt;
   fp=fopen("sample.dat", "w");
+  paramTxt=fopen("parameters.dat","w");
 
   if(fp==NULL){
+    printf("File opening was failed.\n");
+    return -1;
+  }
+
+  if(paramTxt==NULL){
     printf("File opening was failed.\n");
     return -1;
   }
@@ -78,8 +85,8 @@ int main(void){
   fprintf(stderr,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
   fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
     
-  fprintf(fp,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
-  fprintf(fp,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
+  fprintf(paramTxt,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
+  fprintf(paramTxt,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
   
   //calculations for rho0, p0, a0  
   calcDensity(a, bfst, blst, nxt);

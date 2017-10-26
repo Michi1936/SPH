@@ -16,12 +16,45 @@ double cubicSpline2(double q)//cubic spline for 1<=q<=2
   return (15.0/(pow(h,2)*14.0*M_PI))*(pow(2.0-q, 3));
 }
 
-double poly6(double q){
-  if(q<=1){
-return  cubicSpline1(q);
+double poly6(Particle_State p1, Particle_State p2)
+{
+  double dx = (p1.px-p2.px);
+  double dy = (p1.py-p2.py);
+  double dist = sqrt(dx*dx+dy*dy);
+  double coef=4.0/(M_PI*pow(h,8));
+  double val=0;
+  if(dist<=1){
+    val=coef*pow(h*h-dist*dist,3);
   }else{
-    return 0;
+    val=0;
   }
+  return val;
+}
+
+double gradSpikey(Particle_State p1, Particle_State p2, int axis)
+{
+  double dx = (p1.px-p2.px);
+  double dy = (p1.py-p2.py);
+  double dist = sqrt(dx*dx+dy*dy);
+  double coeff_x = -30.0*dx/(M_PI*pow(h,5)*dist+epsilon);
+  double coeff_y = -30.0*dy/(M_PI*pow(h,5)*dist+epsilon);
+  double val=0;
+  if(axis==0){//x direction 
+    if(dist<=h){
+      val=coeff_x*pow(h-dist,2);
+    }else{
+      val=0;
+    }
+    if(axis==1){//x direction 
+      if(dist<=h){
+        val=coeff_y*pow(h-dist,2);
+      }else{
+        val=0;
+      }
+    }
+  }
+  return val;
+  
 }
 
 double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
@@ -79,7 +112,7 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
   
   else if(axis==1){//y direction 
     if(0<=q && q<=1){
-      return coeff_y*(poly6(q+dh/2.0)-poly6(q-dh/2.0))/dh;
+      return (15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
     }
     else if(1<=q && q<=2){
       return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(3.0*pow(2.0-q,2));
@@ -126,6 +159,7 @@ double Laplacian(Particle_State p1, Particle_State p2)
   }
   return ans;
 }
+
 double cohesion(double r)//caluculating cohesion term 
 {
   double coef=32.0/(M_PI*pow(h,9));
@@ -162,6 +196,7 @@ void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[])
           for(;;){
             double rhoij=0;
             rhoij=m*kernel(p[i], p[j]);
+
             p[i].rho+=rhoij;
             j = nxt[j];
             if(j==-1)break;
@@ -247,10 +282,13 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[])
 
   
 }
-void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[])
-{
-  int i,j;
 
+
+void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[])
+    //Muller(2005) Weakly compressible SPH for free surface flow model is used.
+{
+  int i;
+ 
 for(i=0; i<FLP+BP; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
@@ -539,11 +577,7 @@ void leapfrogStart(Particle_State p[])
 {
   int i;
   for(i=0; i<FLP; i++){
-    if(i==2){
-      fprintf(stderr, "%e %e\n", p[i].px, p[i].py);
-      fprintf(stderr, "%e\n", 0.0014*dt);
-      fprintf(stderr, "%e\n", 0.0014*dt*dt);
-    }
+ 
     p[i].vxh=p[i].vx+p[i].ax*dt/2.0;
     p[i].vyh=p[i].vy+p[i].ay*dt/2.0;
     p[i].vx+=p[i].ax*dt;
@@ -552,7 +586,7 @@ void leapfrogStart(Particle_State p[])
     p[i].py+=p[i].vyh*dt;
     if(i==2){
 
-      fprintf(stderr, "%0.12e %0.12e %0.12e %0.12e %0.12e %0.12e\n", p[i].ax, p[i].ay, p[i].vxh, p[i].vyh, p[i].px, p[i].py);
+      //     fprintf(stderr, "%0.12e %0.12e %0.12e %0.12e %0.12e %0.12e\n", p[i].ax, p[i].ay, p[i].vxh, p[i].vyh, p[i].px, p[i].py);
     }
   }
 }

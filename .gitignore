@@ -7,3 +7,6 @@ GRTAGS
 GSYMS
 GTAGS
 SPH
+fluid.txt
+wall.txt
+numbers.h
