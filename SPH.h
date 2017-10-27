@@ -3,26 +3,26 @@
 
 #define h 0.1//smoothing length
 #define k1 1.0 //pressure constant
-#define dt 1.0e-4//time step size
+#define dt 2.0e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
-#define nu 0.1 //viscosity coefficient
+#define nu 0.08 //viscosity coefficient
 #define g 9.8//gravitational constant
-#define gamm 0.3//surface tension coefficient
+#define gamm 1.0e-3//surface tension coefficient
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 20000//time step
+#define T 10//time step
 
 
 #define interval 0.1
 
-#define MAX_X 100   
-#define MAX_Y 100
-#define MIN_X -100  
-#define MIN_Y -100
+#define MAX_X 25   
+#define MAX_Y 25
+#define MIN_X -10  
+#define MIN_Y -10
 #define BktNum 1.0/BktLgth
-#define BktLgth 0.5
+#define BktLgth 0.3
 #define nBx ((int)((MAX_X-MIN_X)/BktLgth)+2 )
 #define nBy ((int)((MAX_Y-MIN_Y)/BktLgth)+2 )
 #define nBxy (nBx*nBy)

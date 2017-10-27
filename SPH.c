@@ -337,7 +337,7 @@ for(i=0; i<FLP+BP; i++){
 
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int nxt[])
 {
-  int i,j;
+  int i;
   
   double *nx, *ny;
     nx=(double*)malloc(sizeof(double)*FLP);
@@ -372,7 +372,6 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int n
             for(;;){
               double aijx, aijy;
               double dx, dy, dist, Kij;
-              
               aijx=0, aijy=0;
               dx = fabs(p[i].px-p[j].px);
               dy = fabs(p[i].py-p[j].py);
@@ -380,11 +379,14 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int n
               dist = sqrt(dx*dx+dy*dy)+epsilon;
               Kij=2.0*rho0/(p[i].rho+p[j].rho+epsilon);
               
-              aijx = -gamm*m*(m*cohesion(dist)*dx/dist + (nx[i]-nx[j]));
-              aijy = -gamm*m*(m*cohesion(dist)*dy/dist + (ny[i]-ny[j]));
+              //aijx = -gamm*m*(m*cohesion(dist)*dx/dist + (nx[i]-nx[j]));
+              //aijy = -gamm*m*(m*cohesion(dist)*dy/dist + (ny[i]-ny[j]));
+
+              aijx=Kij*( (-gamm*m*m*cohesion(dist)*dx/dist)
+                         +(-gamm*m*(nx[i]-nx[j])) );
+              aijy=Kij*( (-gamm*m*m*cohesion(dist)*dy/dist)
+                         +(-gamm*m*(ny[i]-ny[j])) );
               
-              aijx=aijx/(p[i].rho+epsilon);
-              aijy=aijy/(p[i].rho+epsilon);
               p[i].ax+=aijx;
               p[i].ay+=aijy;
               
@@ -572,25 +574,6 @@ void timeDevelopment(Particle_State p[])
   //  fprintf(stderr, "time developed\n")
 }
 
-
-void leapfrogStart(Particle_State p[])
-{
-  int i;
-  for(i=0; i<FLP; i++){
- 
-    p[i].vxh=p[i].vx+p[i].ax*dt/2.0;
-    p[i].vyh=p[i].vy+p[i].ay*dt/2.0;
-    p[i].vx+=p[i].ax*dt;
-    p[i].vy+=p[i].ay*dt;
-    p[i].px+=p[i].vxh*dt;
-    p[i].py+=p[i].vyh*dt;
-    if(i==2){
-
-      //     fprintf(stderr, "%0.12e %0.12e %0.12e %0.12e %0.12e %0.12e\n", p[i].ax, p[i].ay, p[i].vxh, p[i].vyh, p[i].px, p[i].py);
-    }
-  }
-}
-
 void boundaryCondition(Particle_State p[])
 {
   double LW=interval*3;
@@ -608,7 +591,25 @@ void boundaryCondition(Particle_State p[])
       p[i].vy=0;
     }
   }
-          
+}
+
+
+void leapfrogStart(Particle_State p[])
+{
+  int i;
+  for(i=0; i<FLP; i++){
+ 
+    p[i].vxh=p[i].vx+p[i].ax*dt/2.0;
+    p[i].vyh=p[i].vy+p[i].ay*dt/2.0;
+    p[i].vx+=p[i].ax*dt;
+    p[i].vy+=p[i].ay*dt;
+    p[i].px+=p[i].vxh*dt;
+    p[i].py+=p[i].vyh*dt;
+    if(i==2){
+
+      //     fprintf(stderr, "%0.12e %0.12e %0.12e %0.12e %0.12e %0.12e\n", p[i].ax, p[i].ay, p[i].vxh, p[i].vyh, p[i].px, p[i].py);
+    }
+  }
 }
 
 void leapfrogStep(Particle_State p[])

@@ -39,8 +39,17 @@ void percentage(int time, int *countPer)
     fprintf(stderr,"%d ", (int)per);
     *countPer=*countPer+1;
   }
- 
-  
+}
+
+void tipPosition(Particle_State p[], int time, FILE *tip){
+  double max=0;
+  int i;
+  for(i=0; i<FLP; i++){
+    if(p[i].px>max){
+      max=p[i].px;
+    }
+  }
+  fprintf(tip, "%f %f %f %f\n", dt*time, max-0.3, (dt*time)*sqrt(2.0*g/4.0), ((max-0.3)/4.0));
 }
 
 int main(void){
@@ -53,9 +62,10 @@ int main(void){
   start=clock();
   FILE *fp;
   FILE *paramTxt;
+  FILE *tip;
   fp=fopen("sample.dat", "w");
   paramTxt=fopen("parameters.dat","w");
-
+  tip=fopen("tip.dat", "w");
   if(fp==NULL){
     printf("File opening was failed.\n");
     return -1;
@@ -65,6 +75,12 @@ int main(void){
     printf("File opening was failed.\n");
     return -1;
   }
+  
+  if(tip==NULL){
+    printf("File opening was failed.\n");
+    return -1;
+  }
+
 
   initialization(a, N);
   fprintf(stderr,"check initialization\n");
@@ -96,9 +112,9 @@ int main(void){
   calcAccelByViscosity(a,bfst,blst, nxt);
   calcAccelByExternalForces(a,bfst, blst, nxt);
   calcAccelBySurfaceTension(a, bfst, blst, nxt);
-  
   printParticles(a,fp);//Here shows parameters at t=0
-  
+  tipPosition(a, 0, tip);
+
   //time development
   for(i=1; i<=T; i++){
     if(i==1){
@@ -116,6 +132,7 @@ int main(void){
     calcAccelByViscosity(a,bfst,blst, nxt);
     calcAccelByExternalForces(a,bfst, blst, nxt);
     calcAccelBySurfaceTension(a, bfst, blst, nxt);
+    tipPosition(a, i, tip);
     printParticles(a, fp);//here show paremeters at t=(i*dt)
     percentage(i, &countPer);
   }
@@ -125,6 +142,8 @@ int main(void){
   free(blst);
   free(nxt);
   fclose(fp);
+  fclose(paramTxt);
+  fclose(tip);
   end=clock();
   fprintf(stderr,"Processor time: %fs\n", (double)(end-start)/CLOCKS_PER_SEC);
   return  0;
