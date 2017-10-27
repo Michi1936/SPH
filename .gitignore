@@ -1,0 +1,12 @@
+*.dat
+*.gif
+*.png
+*.out
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+/SPH
+/fluid.txt
+/wall.txt
+/numbers.h

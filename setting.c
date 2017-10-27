@@ -5,7 +5,6 @@
 #include<math.h>
 
 
-
 void initialization(Particle_State p[], int particleNumber)	//make all values of particles zero
 {
   int	i;

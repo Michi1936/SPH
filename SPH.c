@@ -5,14 +5,16 @@
 #include<stdlib.h>
 //Equations below are based upon "Simulations of single bubbles rising through viscous liquids using SPH" by Szewc, Pozorski, Minier ,2013
 
+//Monaghan(2005) cubic spline is used 
 double cubicSpline1(double q)//cubic spline for 0<=q<=1
 {
-  return Ch*(pow(2.0-q,3) - 4.0*pow(1.0-q,3));
+  return (15.0/(pow(h,2)*14.0*M_PI))*(pow(2.0-q,3)-4.0*pow(1.0-q,3));
+  //  return (315.0/(64.0*M_PI*pow(h,9)))*pow(h*h-q*q,3);
 }
 
 double cubicSpline2(double q)//cubic spline for 1<=q<=2
 {
-  return Ch*pow(2.0-q,3);
+  return (15.0/(pow(h,2)*14.0*M_PI))*(pow(2.0-q, 3));
 }
 
 double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
@@ -21,37 +23,62 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   double dy = fabs(p1.py-p2.py);
   double dist = sqrt(dx*dx+dy*dy);
   double q = dist/h;
-  double coef=21.0/(16.0*M_PI*h*h*h);
-  if(q<2.0){
-    return coef*(pow(1.0-q/2.0,4)*(2.0*q+1.0));
-  }else{
+  if(0<=q && q<=1){
+    return cubicSpline1(q);
+  }
+   else if(1<=q && q<=2){
+    return cubicSpline2(q);
+    }
+    else {
     return 0;
   }
 
 }
+double Wendrand(Particle_State p1, Particle_State p2){
 
-double gradKernel(Particle_State p1, Particle_State p2, int dir)//calculate gradient of kernel
-{
-  
   double dx = fabs(p1.px-p2.px);
   double dy = fabs(p1.py-p2.py);
   double dist = sqrt(dx*dx+dy*dy);
   double q = dist/h;
-  double coef=21.0/(16.0*M_PI*h*h*h);
-  double coef_x=-coef*(5.0*q/(dist*h+epsilon))*(p1.px-p2.px);
-  double coef_y=-coef*(5.0*q/(dist*h+epsilon))*(p1.py-p2.py);
+  double val=0;
+  if(q<2){
+    val = 21*pow(1.0-(q/2.0),4)*(2.0*q+1.0)/(16*M_PI*h*h*h);
+  }else{
+    val=0;
+  }
+  return val;
+}
+
+double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gradient of kernel
+{
   
-  if(dir==0){//x direction 
-    if(q<2.0){
-      return coef_x*pow(1.0-q/2.0,3);
-    }else{
+  double dx = (p1.px-p2.px);
+  double dy = (p1.py-p2.py);
+  double dist = sqrt(dx*dx+dy*dy);
+  double q = dist/h;
+  double coeff_x = (dx)/(dist*h+epsilon);
+  double coeff_y = (dy)/(dist*h+epsilon);
+  double dh = 0.01;
+  if(axis==0){//x direction 
+    if(0<=q && q<=1){
+      return (15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
+    }
+    else if(1<=q && q<=2){
+      return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(3.0*pow(2.0-q,2));
+    }
+    else {
       return 0;
     }
   }
-  else if(dir==1){//y direction 
-    if(q<2.0){
-      return coef_y*pow(1.0-q/2.0,3);
-    }else{
+  
+  else if(axis==1){//y direction 
+    if(0<=q && q<=1){
+      return (15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
+    }
+    else if(1<=q && q<=2){
+      return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(3.0*pow(2.0-q,2));
+    }
+    else {
       return 0;
     }
   }
@@ -59,7 +86,39 @@ double gradKernel(Particle_State p1, Particle_State p2, int dir)//calculate grad
     return 0;
   }
 }
-  
+
+double gradWendlandKernel(Particle_State p1, Particle_State p2, int axis)
+{
+  double dx = (p1.px-p2.px);
+  double dy = (p1.py-p2.py);
+  double dist = sqrt(dx*dx+dy*dy);
+  double q = dist/h;
+  double coeff_x = (dx)/(dist*h+epsilon);
+  double coeff_y = (dy)/(dist*h+epsilon);
+  double val=0;
+  if(axis==0){//x direction 
+    if(q<2){
+      val = (21.0/(16.0*M_PI*pow(h,3)))*coeff_x*2.0*pow(1.0-(q/2.0),3)*(-5.0*q/2.0);
+    }
+    else{
+      val=0;
+    }
+  }
+    else if(axis==1){//y direction 
+    if(q<2){
+      val = (21.0/(16.0*M_PI*pow(h,3)))*coeff_y*2.0*pow(1.0-(q/2.0),3)*(-5.0*q/2.0);
+    }
+    else{
+      val=0;
+    }
+  }
+  else{
+    return 0;
+  }
+  return val;
+}
+
+//Muller(2003)  Kernel for viscosity term is used
 double Laplacian(Particle_State p1, Particle_State p2)
 {
   double ans=0;
@@ -67,8 +126,7 @@ double Laplacian(Particle_State p1, Particle_State p2)
   double dy = fabs(p1.py-p2.py);
   double dist = sqrt(dx*dx+dy*dy);
   if(0<= dist && dist <= h){
-    ans = 20/(3*M_PI*pow(h,5));
-    ans = ans*(h-dist);
+    ans=(45.0/(M_PI*pow(h,6)))*(h-dist);
   }
   else{
     ans = 0;
@@ -119,29 +177,46 @@ void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[])
       }
     }
   }
-    }
+}
 
 
+//Muller(2005) pressure model is used
 void calcPressure(Particle_State p[])
 {
   //set p=0
   int i;
+  double coef;
+  double cs=88.5;
+  coef=(rho0*pow(cs,2))/7.0;
   for(i=0; i<N; i++){
     p[i].p=0;
   }
-  
   for(i=0; i<N; i++){
-    p[i].p = k1*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
-    
+
+    p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
+    if(p[i].p<0){
+      p[i].p=0;
+    }
+
+  }
+
+}
+void initializeAccel(Particle_State p[])
+{
+
+  int i;
+  for(i=0; i<N; i++){
+    p[i].ax=0;
+    p[i].ay=0;
   }
 }
 
-void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
+void calcInverseParticleVolume(Particle_State p[], int bfst[], int nxt[],double Theta[])
 {
   int i,j;
 
   //inverse of the particle volume(Hu and Adams,2006)
-  double Theta[FLP+BP];
+  //  double Theta[FLP+BP];
   for (i=0; i<FLP+BP; i++){
     Theta[i]=0;
   }
@@ -168,92 +243,24 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
     }else{Theta[i]=0;}
   }
 
-  for(i=0; i<N; i++){
-    p[i].ax=0;
-    p[i].ay=0;
-  }
- 
-  //calculation about external force
-  for(i=0; i<FLP; i++){
+}
+
+void calcAccelByExternalForces(Particle_State p[], int bfst[], int blst[], int nxt[])
+{
+  int i;
+for(i=0; i<FLP; i++){
     double aijx, aijy;
     aijx     = 0;
     aijy     = - g;//gravitational force
     p[i].ax += aijx;
     p[i].ay += aijy;
   }
+}
 
-  //calculation about viscosity
+void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[], double Theta[])
+{
+  int i;
 
-  for(i=0; i<5; i++){
-    if(p[i].inRegion==1){
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
-      int jx, jy;
-
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          int jb=0;
-          jb=jx+jy*nBx;
-          int j = bfst[jb];
-          double aijx, aijy;
-          double viscCoef;
-          aijx=0, aijy=0;
-          viscCoef=0;
-          double dx = fabs(p[i].px-p[j].px);
-          double dy = fabs(p[i].py-p[j].py);
-          double rx = (p[i].px-p[j].px);
-          double ry = (p[i].py-p[j].py);
-          double dist = dx*dx+dy*dy+epsilon;
-          
-          viscCoef=( (2.0*p[i].mu*p[j].mu)/(p[i].mu+p[j].mu+epsilon) )*(1.0/(pow(Theta[i],2)+epsilon)+1.0/(pow(Theta[j],2)+epsilon))*(rx*gradKernel(p[i],p[j],0)+ry*gradKernel(p[i],p[j],1))/(p[i].mass*(pow(dist,2)+pow(0.01,2)));
-          //          fprintf(stderr, "i=%i, %f %f Theta_i=%f, Theta_j=%f\n", i, p[i].mu, p[j].mu, Theta[i], Theta[j]);
-          //          fprintf(stderr, "rx=%f, ry=%f, dist=%f, gradKernel_x=%f, gradKernel_y=%f\n",
-          //                  rx, ry, dist, gradKernel(p[i],p[j],0), gradKernel(p[i],p[j],1));
-          aijx = viscCoef*(p[i].vx-p[i].vy);
-          aijy = viscCoef*(p[i].vy-p[j].vy);
-          p[i].ax+=aijx;
-          p[i].ay+=aijy;
-          j = nxt[j];
-        }
-      }
-      //      fprintf(stderr, "%f  %f \n", p[i].ax, p[i].ay);
-    }
-  }
-
-      
-//calculation about pressure   
-  for(i=0; i<FLP+BP; i++){
-    if(p[i].inRegion==1){
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          int jb=0;
-          jb=jx+jy*nBx;
-          int j = bfst[jb];
-          while(j!=-1){
-            double aijx, aijy;
-            double presCoef=0;
-            aijx=0, aijy=0;
-            presCoef=(p[i].p/(pow(Theta[i],2)+epsilon)+p[j].p/(pow(Theta[j],2)+epsilon))/(p[i].mass+epsilon);
-
-            aijx=presCoef*gradKernel(p[i], p[j], 0);
-            aijy=presCoef*gradKernel(p[i], p[j], 1);
-            p[i].ax+=aijx;
-            p[i].ay+=aijy;
-            j = nxt[j];
-          }
-        }
-      }
-    }
-  }
-  
-  /*
   for(i=0; i<FLP+BP; i++){  
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
@@ -265,22 +272,71 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
           int j = bfst[jb];
           if(j==-1)continue;
           for(;;){
-            double aijx=0, aijy=0;
-            aijx = -p[i].mass*(p[i].p/(pow(p[i].rho,2)+epsilon) + p[j].p/(pow(p[j].rho,2)+epsilon))*gradKernel(p[i],p[j],0);
-            aijy = -p[i].mass*(p[i].p/(pow(p[i].rho,2)+epsilon) + p[j].p/(pow(p[j].rho,2)+epsilon))*gradKernel(p[i],p[j],1);
-            p[i].ax += aijx;
-            p[i].ay += aijy;
-            j = nxt[j];
-            if(j==-1)break;
+            double aijx=0;
+            double aijy=0;
+            double presCoef=0;
+           presCoef=(p[i].p/(pow(Theta[i],2)+epsilon)+p[j].p/(pow(Theta[j],2)+epsilon))/(p[i].mass+epsilon);
+
+           aijx=presCoef*gradKernel(p[i], p[j], 0);
+           aijy=presCoef*gradKernel(p[i], p[j], 1);
+           p[i].ax += aijx;
+           p[i].ay += aijy;
+           j = nxt[j];
+           if(j==-1)break;
           }
         }
       }
     } 
-    }*/
+  }
+}
 
-  if(gamm!=0){
-    //calculation of normal vector 
-    double *nx, *ny;
+
+void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[], double Theta[])
+    //Muller(2005) Weakly compressible SPH for free surface flow model is used.
+{
+  int i;
+ 
+  for(i=0; i<FLP+BP; i++){
+
+        if(p[i].inRegion==1){
+          int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+          int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+          //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
+          int jx, jy;
+          for(jx=ix-1; jx<=ix+1; jx++){
+            for(jy=iy-1; jy<=iy+1; jy++){
+              //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
+              int jb=0;
+              jb=jx+jy*nBx;
+              int j = bfst[jb];
+              double aijx, aijy;
+              double viscCoef;
+              aijx=0, aijy=0;
+              viscCoef=0;
+              double dx = fabs(p[i].px-p[j].px);
+              double dy = fabs(p[i].py-p[j].py);
+              double rx = (p[i].px-p[j].px);
+              double ry = (p[i].py-p[j].py);
+              double dist = dx*dx+dy*dy+epsilon;
+          
+          viscCoef=( (2.0*p[i].mu*p[j].mu)/(p[i].mu+p[j].mu+epsilon) )*(1.0/(pow(Theta[i],2)+epsilon)+1.0/(pow(Theta[j],2)+epsilon))*(rx*gradKernel(p[i],p[j],0)+ry*gradKernel(p[i],p[j],1))/(p[i].mass*(pow(dist,2)+pow(0.01,2)));
+          aijx = viscCoef*(p[i].vx-p[i].vy);
+          aijy = viscCoef*(p[i].vy-p[j].vy);
+          p[i].ax+=aijx;
+          p[i].ay+=aijy;
+          j = nxt[j];
+        }
+      }
+      //      fprintf(stderr, "%f  %f \n", p[i].ax, p[i].ay);
+    }
+  }
+}
+
+void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int nxt[])
+{
+  int i,j;
+  
+  double *nx, *ny;
     nx=(double*)malloc(sizeof(double)*FLP);
     ny=(double*)malloc(sizeof(double)*FLP);
     int k;
@@ -324,6 +380,8 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
               aijx = -gamm*m*(m*cohesion(dist)*dx/dist + (nx[i]-nx[j]));
               aijy = -gamm*m*(m*cohesion(dist)*dy/dist + (ny[i]-ny[j]));
               
+              aijx=aijx/(p[i].rho+epsilon);
+              aijy=aijy/(p[i].rho+epsilon);
               p[i].ax+=aijx;
               p[i].ay+=aijy;
               
@@ -337,7 +395,7 @@ void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
     // fprintf(stderr,"Acceleration is calculated\n");
     free(nx);
     free(ny);
-  }
+  
 }
 
 void timeDevelopment(Particle_State p[])
@@ -358,19 +416,24 @@ void leapfrogStart(Particle_State p[])
 {
   int i;
   for(i=0; i<FLP; i++){
-    p[i].vxh=p[i].vx+p[i].ax*dt/2;
-    p[i].vyh=p[i].vy+p[i].ay*dt/2;
+ 
+    p[i].vxh=p[i].vx+p[i].ax*dt/2.0;
+    p[i].vyh=p[i].vy+p[i].ay*dt/2.0;
     p[i].vx+=p[i].ax*dt;
     p[i].vy+=p[i].ay*dt;
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
+    if(i==2){
+
+      //     fprintf(stderr, "%0.12e %0.12e %0.12e %0.12e %0.12e %0.12e\n", p[i].ax, p[i].ay, p[i].vxh, p[i].vyh, p[i].px, p[i].py);
+    }
   }
 }
 
 void boundaryCondition(Particle_State p[])
 {
-  double LW=0.05*3;
-  double RW=4.0-0.05*2;
+  double LW=interval*3;
+  double RW=4.0-interval*2;
   double BW=0.05*3;
   int i;
   for(i=0; i<FLP; i++){
@@ -393,8 +456,8 @@ void leapfrogStep(Particle_State p[])
   for(i=0; i<FLP; i++){
     p[i].vxh+=p[i].ax*dt;
     p[i].vyh+=p[i].ay*dt;
-    p[i].vx=p[i].vxh+p[i].ax*dt/2;
-    p[i].vy=p[i].vyh+p[i].ay*dt/2;
+    p[i].vx=p[i].vxh+p[i].ax*dt/2.0;
+    p[i].vy=p[i].vyh+p[i].ay*dt/2.0;
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
   }
