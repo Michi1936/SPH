@@ -6,7 +6,7 @@ GPATH
 GRTAGS
 GSYMS
 GTAGS
-SPH
-fluid.txt
-wall.txt
-numbers.h
+/SPH
+/fluid.txt
+/wall.txt
+/numbers.h
