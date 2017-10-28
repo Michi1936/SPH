@@ -111,7 +111,7 @@ int main(void){
   calcAccelByPressure(a,bfst,blst, nxt);
   calcAccelByViscosity(a,bfst,blst, nxt);
   calcAccelByExternalForces(a,bfst, blst, nxt);
-  calcAccelBySurfaceTension(a, bfst, blst, nxt);
+  // calcAccelBySurfaceTension(a, bfst, blst, nxt);
   printParticles(a,fp);//Here shows parameters at t=0
   tipPosition(a, 0, tip);
 
@@ -131,9 +131,12 @@ int main(void){
     calcAccelByPressure(a,bfst,blst, nxt);
     calcAccelByViscosity(a,bfst,blst, nxt);
     calcAccelByExternalForces(a,bfst, blst, nxt);
-    calcAccelBySurfaceTension(a, bfst, blst, nxt);
+    //calcAccelBySurfaceTension(a, bfst, blst, nxt);
     tipPosition(a, i, tip);
+    if(i%500==0){
     printParticles(a, fp);//here show paremeters at t=(i*dt)
+    fprintf(stderr,"%d printed\n", i);
+    }
     percentage(i, &countPer);
   }
 

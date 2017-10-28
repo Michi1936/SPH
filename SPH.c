@@ -97,7 +97,6 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
   double q = dist/h;
   double coeff_x = (dx)/(dist*h+epsilon);
   double coeff_y = (dy)/(dist*h+epsilon);
-  double dh = 0.01;
   if(axis==0){//x direction 
     if(0<=q && q<=1){
       return (15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
@@ -180,6 +179,7 @@ void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[])
   }
 
   //  fprintf(stderr,"density initialized\n");
+#pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<N; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
@@ -220,6 +220,7 @@ void calcPressure(Particle_State p[])
   for(i=0; i<N; i++){
     p[i].p=0;
   }
+#pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<N; i++){
     p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
     if(p[i].p<0){
@@ -240,6 +241,7 @@ void initializeAccel(Particle_State p[])
 void calcAccelByExternalForces(Particle_State p[], int bfst[], int blst[], int nxt[])
 {
   int i;
+#pragma omp parallel for schedule(dynamic,64)
 for(i=0; i<FLP; i++){
     double aijx, aijy;
     aijx     = 0;
@@ -252,7 +254,7 @@ for(i=0; i<FLP; i++){
 void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[])
 {
   int i,j;
-
+#pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<FLP+BP; i++){  
     if(p[i].inRegion==1){
       int count=0;
@@ -288,7 +290,7 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[])
     //Muller(2005) Weakly compressible SPH for free surface flow model is used.
 {
   int i;
- 
+ #pragma omp parallel for schedule(dynamic,64)
 for(i=0; i<FLP+BP; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
@@ -356,6 +358,7 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int n
 
     //calculation of cohesion force and surface area minimization
     //Akinci(2013) cohesion and surface tension model is used 
+#pragma omp parallel for schedule(dynamic,64)
     for(i=0; i<FLP; i++){
       if(p[i].inRegion==1){
         int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;

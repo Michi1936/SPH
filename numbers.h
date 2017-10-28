@@ -1,4 +1,4 @@
-#define FLP 3200 
-#define BP 1362 
+#define FLP 952 
+#define BP 476 
 #define OBP 1 
-#define N 4563 
+#define N 1429 
