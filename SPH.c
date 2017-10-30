@@ -475,7 +475,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])
               continue;
             }
             double aijx, aijy;
-            double dx = p[i].px-p[j].py;
+            double dx = p[i].px-p[j].px;
             double dy = p[i].py-p[j].py;
             double dist = sqrt(dx*dx+dy*dy);
             aijx=0, aijy=0;
