@@ -475,7 +475,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])
               continue;
             }
             double aijx, aijy;
-            double dx = p[i].px-p[j].py;
+            double dx = p[i].px-p[j].px;
             double dy = p[i].py-p[j].py;
             double dist = sqrt(dx*dx+dy*dy);
             aijx=0, aijy=0;
@@ -710,10 +710,27 @@ void leapfrogStep(Particle_State p[])
     p[i].vyh+=p[i].ay*dt;
     p[i].vx=p[i].vxh+p[i].ax*dt/2.0;
     p[i].vy=p[i].vyh+p[i].ay*dt/2.0;
+    if(p[i].inRegion==0){
+      p[i].vxh =0; 
+      p[i].vyh =0; 
+      p[i].vx=0;
+      p[i].vy=0;
+    }
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
   }
-  
 }
+
+void haltParticle(Particle_State p[])
+{
+  int i;
+  for(i=0; i<FLP; i++){
+    if(p[i].inRegion==0){
+      p[i].vx=0;
+      p[i].vy=0;
+    }
+}
+}
+
 
 

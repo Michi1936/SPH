@@ -3,7 +3,7 @@
 
 #define h 0.1//smoothing length
 #define k1 1.0 //pressure constant
-#define dt 1.0e-4//time step size
+#define dt 2.0e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define nu 0.001 //viscosity coefficient
@@ -13,7 +13,7 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 30000//time step
+#define T 40000//time step
 
 
 #define interval 0.1
@@ -21,7 +21,7 @@
 #define MAX_X 25   
 #define MAX_Y 25
 #define MIN_X -10  
-#define MIN_Y -10
+#define MIN_Y -1
 #define BktNum 1.0/BktLgth
 #define BktLgth 0.3
 #define nBx ((int)((MAX_X-MIN_X)/BktLgth)+2 )
@@ -63,6 +63,7 @@ void timeDevelopment(Particle_State p[]);
 void leapfrogStart(Particle_State p[]);
 void leapfrogStep(Particle_State p[]);
 void boundaryCondition(Particle_State p[]);
+void haltParticle(Particle_State p[]);
 
 void initialization(Particle_State p[], int particleNumber);
 int fluidParticles(Particle_State p[]);

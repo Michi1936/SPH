@@ -1,6 +1,6 @@
 set size square
-set xrange[-0.5:8]	
-set yrange[-0.5:8]
+set xrange[-2:11]	
+set yrange[-2:11]
 do for[i=0:t:2]{
 if(i%1==0){
 	print i

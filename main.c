@@ -121,7 +121,7 @@ int main(void){
   calcAccelByViscosity(a,bfst,blst, nxt);
   calcAccelByExternalForces(a,bfst, blst, nxt);
   //calcAccelBySurfaceTension(a, bfst, blst, nxt);
-  calcAccelByBoundaryForce(a, bfst, nxt);
+  //calcAccelByBoundaryForce(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
   printParticles(a,plot);
   tipPosition(a, 0, tip);
@@ -143,7 +143,7 @@ int main(void){
     calcAccelByViscosity(a,bfst,blst, nxt);
     calcAccelByExternalForces(a,bfst, blst, nxt);
     //calcAccelBySurfaceTension(a, bfst, blst, nxt);
-    calcAccelByBoundaryForce(a, bfst, nxt);
+    //calcAccelByBoundaryForce(a, bfst, nxt);
     //printParticles(a,data);
     tipPosition(a, i, tip);
     if(i%250==0){
