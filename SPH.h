@@ -3,16 +3,17 @@
 
 #define h 0.1//smoothing length
 #define k1 1.0 //pressure constant
-#define dt 2.0e-4//time step size
+#define dt 1.0e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
-#define nu 0.03 //viscosity coefficient
+#define nu 0.001 //viscosity coefficient
 #define g 9.8//gravitational constant
-#define gamm 1.0e-3//surface tension coefficient
+#define gamm 1.0//surface tension coefficient
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
+#define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 40000//time step
+#define T 30000//time step
 
 
 #define interval 0.1
@@ -55,6 +56,8 @@ void calcAccelByExternalForces(Particle_State p[], int bfst[], int blst[], int n
 void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[]);
 void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[]);
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int nxt[]);
+double boundaryGamma(Particle_State p1, Particle_State p2);
+void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
 void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[]);
 void timeDevelopment(Particle_State p[]);
 void leapfrogStart(Particle_State p[]);

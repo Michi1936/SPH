@@ -4,6 +4,6 @@ set yrange[-0.5:8]
 do for[i=0:t:2]{
 if(i%1==0){
 	print i
-	plot 'sample.dat' index i u 2:3:8 w p lt 7 lc palette
+	plot 'plot.dat' index i u 2:3:8 w p lt 7 lc palette, 'plot.dat' index i+1 u 2:3 w p 
 	}
 }

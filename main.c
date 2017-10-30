@@ -60,13 +60,17 @@ int main(void){
   int i;
   clock_t start, end;
   start=clock();
-  FILE *fp;
+  FILE *data;
+  FILE *plot;
   FILE *paramTxt;
   FILE *tip;
-  fp=fopen("sample.dat", "w");
+  
+  data=fopen("sample.dat", "w");
   paramTxt=fopen("parameters.dat","w");
   tip=fopen("tip.dat", "w");
-  if(fp==NULL){
+  plot=fopen("plot.dat","w");
+
+  if(data==NULL){
     printf("File opening was failed.\n");
     return -1;
   }
@@ -77,6 +81,11 @@ int main(void){
   }
   
   if(tip==NULL){
+    printf("File opening was failed.\n");
+    return -1;
+  }
+
+  if(plot==NULL){
     printf("File opening was failed.\n");
     return -1;
   }
@@ -111,8 +120,10 @@ int main(void){
   calcAccelByPressure(a,bfst,blst, nxt);
   calcAccelByViscosity(a,bfst,blst, nxt);
   calcAccelByExternalForces(a,bfst, blst, nxt);
-  // calcAccelBySurfaceTension(a, bfst, blst, nxt);
-  printParticles(a,fp);//Here shows parameters at t=0
+  //calcAccelBySurfaceTension(a, bfst, blst, nxt);
+  calcAccelByBoundaryForce(a, bfst, nxt);
+  //printParticles(a,data);//Here shows parameters at t=0
+  printParticles(a,plot);
   tipPosition(a, 0, tip);
 
   //time development
@@ -132,9 +143,11 @@ int main(void){
     calcAccelByViscosity(a,bfst,blst, nxt);
     calcAccelByExternalForces(a,bfst, blst, nxt);
     //calcAccelBySurfaceTension(a, bfst, blst, nxt);
+    calcAccelByBoundaryForce(a, bfst, nxt);
+    //printParticles(a,data);
     tipPosition(a, i, tip);
-    if(i%500==0){
-    printParticles(a, fp);//here show paremeters at t=(i*dt)
+    if(i%250==0){
+    printParticles(a, plot);//here show paremeters at t=(i*dt)
     fprintf(stderr,"%d printed\n", i);
     }
     percentage(i, &countPer);
@@ -144,9 +157,10 @@ int main(void){
   free(bfst);
   free(blst);
   free(nxt);
-  fclose(fp);
+  fclose(data);
   fclose(paramTxt);
   fclose(tip);
+  fclose(plot);
   end=clock();
   fprintf(stderr,"Processor time: %fs\n", (double)(end-start)/CLOCKS_PER_SEC);
   return  0;
