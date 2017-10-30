@@ -452,7 +452,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])
 {
   int i;
 
-
+#pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<FLP+BP; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
@@ -466,11 +466,12 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])
 
           if(j==-1)continue;
           for(;;){
-            fprintf(stderr, "%d \n", j);
-            if(j>=FLP+BP+OBP)break;
-            if(j>=FLP){
+            //fprintf(stderr, "%d \n", j);
+            if(j<FLP){
               j = nxt[j];
-              if(j==-1)break;
+              if(j==-1){
+				  break;
+			  }
               continue;
             }
             double aijx, aijy;
