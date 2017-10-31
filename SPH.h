@@ -13,7 +13,7 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 40000//time step
+#define T 70000//time step
 
 
 #define interval 0.1
@@ -63,7 +63,6 @@ void timeDevelopment(Particle_State p[]);
 void leapfrogStart(Particle_State p[]);
 void leapfrogStep(Particle_State p[]);
 void boundaryCondition(Particle_State p[]);
-void haltParticle(Particle_State p[]);
 
 void initialization(Particle_State p[], int particleNumber);
 int fluidParticles(Particle_State p[]);

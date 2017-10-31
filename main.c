@@ -8,8 +8,12 @@
 
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
+void printBoundaryParticles(Particle_State p[], FILE *fp);
+void printFluidParticles(Particle_State p[], FILE *fp);
+void tipPosition(Particle_State p[], int time, FILE *tip);
 
-void printParticles(Particle_State p[], FILE *fp){
+void printParticles(Particle_State p[], FILE *fp)
+{
   int i;
   for(i=0; i<FLP; i++){ 
     fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
@@ -30,6 +34,36 @@ void printParticles(Particle_State p[], FILE *fp){
   fprintf(fp,"\n\n");
 }
 
+void printBoundaryParticles(Particle_State p[], FILE *fp)
+{
+  int i;
+  for(i=FLP; i<FLP+BP; i++){ 
+    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
+            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
+            p[i].rho, p[i].p, p[i].ax, p[i].ay);
+  }
+  for(i=FLP+BP; i<N; i++){ 
+    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
+            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
+            p[i].rho, p[i].p, p[i].ax, p[i].ay);
+  }
+  fprintf(fp,"\n\n");
+
+}
+
+void printFluidParticles(Particle_State p[], FILE *fp)
+{
+  int i;
+
+  for(i=0; i<FLP; i++){ 
+    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
+            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
+            p[i].rho, p[i].p, p[i].ax, p[i].ay);
+  }
+  fprintf(fp, "\n\n");
+
+}
+
 void percentage(int time, int *countPer)
 {
   double per;
@@ -41,7 +75,8 @@ void percentage(int time, int *countPer)
   }
 }
 
-void tipPosition(Particle_State p[], int time, FILE *tip){
+void tipPosition(Particle_State p[], int time, FILE *tip)
+{
   double max=0;
   int i;
   for(i=0; i<FLP; i++){
@@ -123,7 +158,8 @@ int main(void){
   //calcAccelBySurfaceTension(a, bfst, blst, nxt);
   //calcAccelByBoundaryForce(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
-  printParticles(a,plot);
+  printBoundaryParticles(a, plot);
+  printFluidParticles(a, plot);
   tipPosition(a, 0, tip);
 
   //time development
@@ -147,7 +183,7 @@ int main(void){
     //printParticles(a,data);
     tipPosition(a, i, tip);
     if(i%250==0){
-    printParticles(a, plot);//here show paremeters at t=(i*dt)
+    printFluidParticles(a, plot);//here show paremeters at t=(i*dt)
     fprintf(stderr,"%d printed\n", i);
     }
     percentage(i, &countPer);

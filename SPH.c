@@ -721,16 +721,3 @@ void leapfrogStep(Particle_State p[])
   }
 }
 
-void haltParticle(Particle_State p[])
-{
-  int i;
-  for(i=0; i<FLP; i++){
-    if(p[i].inRegion==0){
-      p[i].vx=0;
-      p[i].vy=0;
-    }
-}
-}
-
-
-
