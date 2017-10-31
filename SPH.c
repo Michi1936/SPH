@@ -168,7 +168,9 @@ double cohesion(double r)//caluculating cohesion term
   else if(r>0 && 2*r<=h){
     return (coef*(2.0*pow(h-r,3)*pow(r,3) - pow(h,6)/64.0));
   }
-  else return 0;
+  else {
+    return 0;
+  }
 }
 
 void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[])
@@ -241,7 +243,7 @@ void calcAccelByExternalForces(Particle_State p[], int bfst[], int blst[], int n
 {
   int i;
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<FLP; i++){
+  for(i=0; i<N; i++){
     double aijx, aijy;
     aijx     = 0;
     aijy     = - g;//gravitational force
@@ -254,9 +256,8 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[])
 {
   int i,j;
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<FLP+BP; i++){  
+  for(i=0; i<N; i++){  
     if(p[i].inRegion==1){
-      int count=0;
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
       int jx, jy;
@@ -287,7 +288,7 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[])
 {
   int i;
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<FLP+BP; i++){
+  for(i=0; i<N; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
@@ -453,7 +454,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])
   int i;
 
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<FLP+BP; i++){
+  for(i=0; i<N; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
@@ -470,8 +471,8 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])
             if(j<FLP){
               j = nxt[j];
               if(j==-1){
-				  break;
-			  }
+                break;
+              }
               continue;
             }
             double aijx, aijy;
@@ -493,193 +494,71 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])
   }
 }
 
-void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[])
-{
-  int i,j;
-  
-  for(i=0; i<N; i++){
-    p[i].ax=0;
-    p[i].ay=0;
-  }
- 
-  //calculation about external force
-  for(i=0; i<FLP; i++){
-    double aijx, aijy;
-    aijx     = 0;
-    aijy     = - g;//gravitational force
-    p[i].ax += aijx;
-    p[i].ay += aijy;
-  }
-  //calculation about pressure   
-  //Muller(2003) model is used
-  for(i=0; i<FLP+BP; i++){  
-    if(p[i].inRegion==1){
-      int count=0;
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb = jx + jy*nBx;
-          int j = bfst[jb];
-          if(j==-1)continue;
-          for(;;){
-            double aijx=0;
-            double aijy=0;
-            aijx=-m*((p[i].p/pow(p[i].rho,2.0)) + (p[j].p/pow(p[j].rho,2.0)))*gradKernel(p[i], p[j], 0);
-            aijy=-m*((p[i].p/pow(p[i].rho,2.0)) + (p[j].p/pow(p[j].rho,2.0)))*gradKernel(p[i], p[j], 1);
-            p[i].ax += aijx;
-            p[i].ay += aijy;
-            j = nxt[j];
-            if(j==-1)break;
-          }
-        }
-      }
-    } 
-  }
-  
-
-  //calculation about viscosity
-  //Muller(2005) model is used
-  for(i=0; i<FLP+BP; i++){
-    if(p[i].inRegion==1){
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb = jx + jy*nBx;
-          int j = bfst[jb];
-          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          if(j==-1)continue;
-          for(;;){
-            double aijx, aijy;
-            aijx=0, aijy=0;
-            double viscCoef=0;
-
-            double dx = (p[i].px-p[j].px);
-            double dy = (p[i].py-p[j].py);
-            double dvx = (p[i].vx-p[j].vx);
-            double dvy = (p[i].vy-p[j].vy);
-            double dot = dx*dvx+dy*dvy;
-            double dist = dx*dx+dy*dy;
-            viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
-            viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
-
-            if(dot<0){
-              aijx = -m*viscCoef*gradKernel(p[i], p[j], 0);
-              aijy = -m*viscCoef*gradKernel(p[i], p[j], 1);
-              //fprintf(stderr, "dot=%f %f %f aijx=%f, aijy=%f\n",dot, viscCoef, gradKernel(p[i], p[j], 0),  aijx, aijy);
-            }else if(dot>=0){
-              aijx=0; 
-              aijy=0;
-            }
-            p[i].ax+=aijx;
-            p[i].ay+=aijy;
-            j = nxt[j];
-            if(j==-1)break;
-          }
-        }
-      }
-    }
-  }
-  
-  if(gamm!=0){
-    //calculation of normal vector 
-    double *nx, *ny;
-    nx=(double*)malloc(sizeof(double)*FLP);
-    ny=(double*)malloc(sizeof(double)*FLP);
-    int k;
-    for(i=0; i<FLP; i++){
-      nx[i]=0;
-      ny[i]=0;
-    }
-    for(i=0; i<FLP; i++){
-      for(k=0; k<FLP; k++){
-        nx[i]+=h*m*gradKernel(p[i],p[k],0)/(p[k].rho+epsilon);
-        ny[i]+=h*m*gradKernel(p[i],p[k],1)/(p[k].rho+epsilon);
-      }
-    }
-
-    //calculation of cohesion force and surface area minimization
-    //Akinci(2013) cohesion and surface tension model is used 
-    for(i=0; i<FLP; i++){
-      if(p[i].inRegion==1){
-        int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-        int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-        //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
-        int jx, jy;
-        
-        for(jx=ix-1; jx<=ix+1; jx++){
-          for(jy=iy-1; jy<=iy+1; jy++){
-            int jb = jx + jy*nBx;
-            int j = bfst[jb];
-            //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-            if(j==-1)continue;
-            for(;;){
-              double aijx, aijy;
-              double dx, dy, dist, Kij;
-              
-              aijx=0, aijy=0;
-              dx = fabs(p[i].px-p[j].px);
-              dy = fabs(p[i].py-p[j].py);
-              
-              dist = sqrt(dx*dx+dy*dy)+epsilon;
-              Kij=2.0*rho0/(p[i].rho+p[j].rho+epsilon);
-              
-              aijx = -gamm*m*(m*cohesion(dist)*dx/dist + (nx[i]-nx[j]));
-              aijy = -gamm*m*(m*cohesion(dist)*dy/dist + (ny[i]-ny[j]));
-              
-              aijx=aijx/(p[i].rho+epsilon);
-              aijy=aijy/(p[i].rho+epsilon);
-              p[i].ax+=aijx;
-              p[i].ay+=aijy;
-              
-              j = nxt[j];
-              if(j==-1)break;
-            }
-          }
-        }
-      }
-    }
-    // fprintf(stderr,"Acceleration is calculated\n");
-    free(nx);
-    free(ny);
-  }
-
-
-}
-
-void timeDevelopment(Particle_State p[])
+void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[])
 {
   int i;
-  for(i=0; i<FLP; i++){
-    //Symplectic Euler method
-    p[i].vx += p[i].ax*dt;
-    p[i].vy += p[i].ay*dt;
-    p[i].px+=p[i].vx*dt; 
-    p[i].py+=p[i].vy*dt; 
+  double rgx[2], rgy[2];
+  double rgxDashed, rgyDashed;
+  double rxDashed[OBP], ryDashed[OBP];
+  double inertia;
+  double theta;
+  rgx[0]=0;
+  rgy[0]=0;
+  rgx[1]=0;
+  rgy[1]=0;
+  rgxDashed=0;
+  rgyDashed=0;
+  inertia=0;
+  for(i=0; i<OBP; i++){
+    rxDashed[i]=0;
+    ryDashed[i]=0;
   }
-  //  fprintf(stderr, "time developed\n")
+  
+  for(i=FLP+BP; i<N; i++){//center of mass before time development
+    rgx[0]+=p[i].prepx/(double)OBP;
+    rgy[0]+=p[i].prepy/(double)OBP;
+  }
+
+  for(i=FLP+BP; i<N; i++){//center of mass after time development
+    rgx[1]+=p[i].px/(double)OBP;
+    rgy[1]+=p[i].py/(double)OBP;
+  }
+
+  for(i=FLP+BP; i<N; i++){//moment of inertia before time development
+    double dx = fabs(p[i].px-rgx[0]);
+    double dy = fabs(p[i].py-rgy[0]);
+    double dist = sqrt(dx*dx+dy*dy);
+    inertia+=p[i].mass*dist*dist;
+  }
+
+  for(i=FLP+BP; i<N; i++){//difference of position during time development
+    rxDashed[i-FLP-BP]=p[i].px-p[i].prepx;
+    ryDashed[i-FLP-BP]=p[i].py-p[i].prepy;
+  }
+
+  for(i=0; i<OBP; i++){
+    rgxDashed+=rxDashed[i]/(double)OBP;
+    rgyDashed+=ryDashed[i]/(double)OBP;
 }
+  
+  for(i=FLP+BP; i<N; i++){
+    theta+=p[i].mass*( rxDashed[i-FLP-BP]*(p[i].prepy-rgy[1])-ryDashed[i-FLP-BP]*(p[i].prepy-rgx[1]))
+           /(inertia+epsilon);
 
-void boundaryCondition(Particle_State p[])
-{
-  double LW=interval*3;
-  double RW=4.0-interval*2;
-  double BW=0.05*3;
-  int i;
-  for(i=0; i<FLP; i++){
-    if(p[i].px<LW || p[i].px>RW){
-      p[i].vx=0;
-      p[i].vy=0;
-    }
+  }
+  for(i=FLP+BP; i<N; i++){
+    rxDashed[i-FLP-BP]=rgxDashed+(cos(theta)-1)*(p[i].prepx-rgx[1])+sin(theta)*(p[i].prepy-rgy[1]);
+    ryDashed[i-FLP-BP]=rgyDashed+(-sin(theta))*(p[i].prepx-rgx[1])+(cos(theta)-1)*(p[i].prepy-rgy[1]);
+  }
 
-    if(p[i].py<BW){
-      p[i].vx=0;
-      p[i].vy=0;
-    }
+  for(i=FLP+BP; i<N; i++){
+    p[i].vx=rxDashed[i-FLP-BP]/dt;
+    p[i].vy=ryDashed[i-FLP-BP]/dt;
+  }
+
+  for(i=FLP+BP; i<N; i++){
+    p[i].px=p[i].prepx+rxDashed[i-FLP-BP];
+    p[i].py=p[i].prepy+ryDashed[i-FLP-BP];
   }
 }
 
@@ -695,10 +574,17 @@ void leapfrogStart(Particle_State p[])
     p[i].vy+=p[i].ay*dt;
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
-    if(i==2){
+  }
 
-      //     fprintf(stderr, "%0.12e %0.12e %0.12e %0.12e %0.12e %0.12e\n", p[i].ax, p[i].ay, p[i].vxh, p[i].vyh, p[i].px, p[i].py);
-    }
+  for(i=FLP+BP; i<N; i++){
+    p[i].vxh=p[i].vx+p[i].ax*dt/2.0;
+    p[i].vyh=p[i].vy+p[i].ay*dt/2.0;
+    p[i].vx+=p[i].ax*dt;
+    p[i].vy+=p[i].ay*dt;
+    p[i].prepx=p[i].px;
+    p[i].prepy=p[i].py;
+    p[i].px+=p[i].vxh*dt;
+    p[i].py+=p[i].vyh*dt;
   }
 }
 
@@ -718,6 +604,26 @@ void leapfrogStep(Particle_State p[])
     }
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
+  }
+
+  for(i=FLP+BP; i<N; i++){
+    p[i].vxh+=p[i].ax*dt;
+    p[i].vyh+=p[i].ay*dt;
+
+    p[i].vx=p[i].vxh+p[i].ax*dt/2.0;
+    p[i].vy=p[i].vyh+p[i].ay*dt/2.0;
+    if(p[i].inRegion==0){
+      p[i].vxh =0; 
+      p[i].vyh =0; 
+      p[i].vx=0;
+      p[i].vy=0;
+    }
+    p[i].prepx=p[i].px;
+    p[i].prepy=p[i].py;
+    //    fprintf(stderr, "%f %f ", p[i].px, p[i].py);
+    p[i].px+=p[i].vxh*dt;
+    p[i].py+=p[i].vyh*dt;
+    //  fprintf(stderr, "%f %f \n", p[i].px, p[i].py);
   }
 }
 

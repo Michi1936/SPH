@@ -13,7 +13,7 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 70000//time step
+#define T 40000//time step
 
 
 #define interval 0.1
@@ -33,6 +33,8 @@ typedef struct{
   int inRegion;
   double px; 
   double py;
+  double prepx;
+  double prepy;
   double vx;
   double vy;
   double vxh;
@@ -41,6 +43,7 @@ typedef struct{
   double ay;
   double rho; //density
   double p; //pressure
+  double mass;
 }Particle_State;
 
 double cubicSpline1(double q);
@@ -58,16 +61,14 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[])
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int nxt[]);
 double boundaryGamma(Particle_State p1, Particle_State p2);
 void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
-void calcAcceleration(Particle_State p[], int bfst[], int blst[], int nxt[]);
-void timeDevelopment(Particle_State p[]);
+void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[]);
 void leapfrogStart(Particle_State p[]);
 void leapfrogStep(Particle_State p[]);
-void boundaryCondition(Particle_State p[]);
 
 void initialization(Particle_State p[], int particleNumber);
 int fluidParticles(Particle_State p[]);
 int wallParticles(Particle_State p[]);
-void obstacleBoundaryParticles(Particle_State obp[]);
+int obstacleBoundaryParticles(Particle_State p[]);
 
 void allocateBucket(int **bfst, int **blst, int **nxt);
 void checkParticle(Particle_State p[]);
