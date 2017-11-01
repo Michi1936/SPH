@@ -161,7 +161,7 @@ int main(void){
   calcAccelByViscosity(a,bfst,blst, nxt);
   calcAccelByExternalForces(a,bfst, blst, nxt);
   //calcAccelBySurfaceTension(a, bfst, blst, nxt);
-  //calcAccelByBoundaryForce(a, bfst, nxt);
+  calcAccelByBoundaryForce(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
   printBoundaryParticles(a, plot);
   printFluidParticles(a, plot);
@@ -174,9 +174,8 @@ int main(void){
       leapfrogStart(a);
     }else{
       leapfrogStep(a);
-      //      boundaryCondition(a);
-    }
-    rigidBodyCorrection(a, bfst, nxt);
+      }
+    //rigidBodyCorrection(a, bfst, nxt);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
     calcDensity(a, bfst, blst, nxt);
@@ -186,13 +185,13 @@ int main(void){
     calcAccelByViscosity(a,bfst,blst, nxt);
     calcAccelByExternalForces(a,bfst, blst, nxt);
     //calcAccelBySurfaceTension(a, bfst, blst, nxt);
-    //calcAccelByBoundaryForce(a, bfst, nxt);
+    calcAccelByBoundaryForce(a, bfst, nxt);
     //printParticles(a,data);
     tipPosition(a, i, tip);
     if(i%100==0){
     printFluidParticles(a, plot);//here show paremeters at t=(i*dt)
     printObstacleParticles(a, plot);
-    fprintf(stderr,"%d printed\n", i);
+    // fprintf(stderr,"%d printed\n", i);
     }
     percentage(i, &countPer);
   }

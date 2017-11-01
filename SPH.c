@@ -431,7 +431,7 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int n
 
 double boundaryGamma(Particle_State p1, Particle_State p2){
   double val=0;
-  double dx = p1.px-p2.py;
+  double dx = p1.px-p2.px;
   double dy = p1.py-p2.py;
   double dist = sqrt(dx*dx+dy*dy);
   double q =dist/h;
@@ -446,15 +446,15 @@ double boundaryGamma(Particle_State p1, Particle_State p2){
     val=0;
   }
 
-  return 0.02*cs*cs*val/dist;
+  return 0.02*cs*cs*val/(dist+epsilon);
 }
 
-void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])
+void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Boundary force in Monaghan(2005) model
 {
   int i;
 
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<N; i++){
+  for(i=0; i<FLP; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
@@ -480,13 +480,70 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])
             double dy = p[i].py-p[j].py;
             double dist = sqrt(dx*dx+dy*dy);
             aijx=0, aijy=0;
-            aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist);
-            aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist);
+            aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
+            aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j=nxt[j];
             if(j==-1)break;
+          }
+        }
+      }
+    }
+  }
+}
 
+double adhesionCoefficient(Particle_State p1, Particle_State p2){
+double val=0;
+  double dx = p1.px-p2.px;
+  double dy = p1.py-p2.py;
+  double dist = sqrt(dx*dx+dy*dy);
+
+  if(2.0*dist>h && dist<=h){
+    val=pow((-4.0*dist*dist/h)+6.0*dist-2.0*h, 1.0/4.0);
+  }else{
+    val=0;
+  }
+
+  return 0.007*val/pow(h,3.25);
+}
+void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]){
+  int i;
+
+  
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=0; i<FLP; i++){
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb=jx+jy*nBx;
+          int j=bfst[jb];
+
+          if(j==-1)continue;
+          for(;;){
+            //fprintf(stderr, "%d \n", j);
+            if(j<FLP){
+              j = nxt[j];
+              if(j==-1){
+                break;
+              }
+              continue;
+            }
+            double aijx, aijy;
+            double dx = p[i].px-p[j].px;
+            double dy = p[i].py-p[j].py;
+            double dist = sqrt(dx*dx+dy*dy);
+            aijx=0, aijy=0;
+            aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
+            aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
+            p[i].ax+=aijx;
+            p[i].ay+=aijy;
+            j=nxt[j];
+            if(j==-1)break;
           }
         }
       }
