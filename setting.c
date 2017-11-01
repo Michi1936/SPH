@@ -12,6 +12,8 @@ void initialization(Particle_State p[], int particleNumber)	//make all values of
     p[i].inRegion = 0;//1 means particle is in region for calculatin 
     p[i].px  = -100;
     p[i].py  = -100; 
+    p[i].prepx=-100;
+    p[i].prepy=-100;
     p[i].vx  = 0;
     p[i].vy  = 0;
     p[i].vxh = 0;

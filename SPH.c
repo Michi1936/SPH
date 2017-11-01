@@ -509,6 +509,7 @@ void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[])
   rgxDashed=0;
   rgyDashed=0;
   inertia=0;
+  theta=0;
   for(i=0; i<OBP; i++){
     rxDashed[i]=0;
     ryDashed[i]=0;
@@ -541,11 +542,11 @@ void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[])
     rgyDashed+=ryDashed[i]/(double)OBP;
 }
   
-  for(i=FLP+BP; i<N; i++){
-    theta+=p[i].mass*( rxDashed[i-FLP-BP]*(p[i].prepy-rgy[1])-ryDashed[i-FLP-BP]*(p[i].prepy-rgx[1]))
+  for(i=FLP+BP; i<N; i++){//calculating rotation angle theta
+    theta+=p[i].mass*( rxDashed[i-FLP-BP]*(p[i].prepy-rgy[1])-ryDashed[i-FLP-BP]*(p[i].prepx-rgx[1]))
            /(inertia+epsilon);
-
   }
+  
   for(i=FLP+BP; i<N; i++){
     rxDashed[i-FLP-BP]=rgxDashed+(cos(theta)-1)*(p[i].prepx-rgx[1])+sin(theta)*(p[i].prepy-rgy[1]);
     ryDashed[i-FLP-BP]=rgyDashed+(-sin(theta))*(p[i].prepx-rgx[1])+(cos(theta)-1)*(p[i].prepy-rgy[1]);

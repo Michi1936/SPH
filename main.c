@@ -176,7 +176,7 @@ int main(void){
       leapfrogStep(a);
       //      boundaryCondition(a);
     }
-    //    rigidBodyCorrection(a, bfst, nxt);
+    rigidBodyCorrection(a, bfst, nxt);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
     calcDensity(a, bfst, blst, nxt);
