@@ -359,6 +359,13 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int n
           int j = bfst[jb];
           if(j==-1)continue;
           for(;;){
+            if(j>=FLP){
+            j = nxt[j];
+            if(j==-1){
+              break;
+            }
+            continue;
+            }
             nx[i]+=h*m*gradKernel(p[i],p[j],0)/(p[j].rho+epsilon);
             ny[i]+=h*m*gradKernel(p[i],p[j],1)/(p[j].rho+epsilon);
             
@@ -399,7 +406,7 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int n
               
             dist = sqrt(dx*dx+dy*dy);
             Kij=2.0*rho0/(p[i].rho+p[j].rho+epsilon);
-           
+
             aijx=-Kij*gamm*m*(m*surfaceTensionCoefficient(dist)*dx/(dist+epsilon) + (nx[i]-nx[j]));
             aijx=-Kij*gamm*m*(m*surfaceTensionCoefficient(dist)*dy/(dist+epsilon) + (ny[i]-ny[j]));
               
