@@ -162,7 +162,7 @@ int main(void){
   calcAccelByExternalForces(a,bfst, blst, nxt);
   //calcAccelBySurfaceTension(a, bfst, blst, nxt);
   calcAccelByBoundaryForce(a, bfst, nxt);
-  calcAccelByAdhesion(a, bfst, nxt);
+  //calcAccelByAdhesion(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
   printBoundaryParticles(a, plot);
   printFluidParticles(a, plot);

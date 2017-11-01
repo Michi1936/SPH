@@ -159,20 +159,6 @@ double Laplacian(Particle_State p1, Particle_State p2)
   return ans;
 }
 
-double cohesion(double r)//caluculating cohesion term 
-{
-  double coef=32.0/(M_PI*pow(h,9));
-  if(2*r>h && r<=h){
-    return (coef*pow(h-r,3)*pow(r,3));
-  }
-  else if(r>0 && 2*r<=h){
-    return (coef*(2.0*pow(h-r,3)*pow(r,3) - pow(h,6)/64.0));
-  }
-  else {
-    return 0;
-  }
-}
-
 void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[])
 {
   int i;
@@ -333,6 +319,21 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[])
   
 }
 
+
+double surfaceTensionCoefficient(double r)//caluculating cohesion term 
+{
+  double coef=32.0/(M_PI*pow(h,9));
+  if(2*r>h && r<=h){
+    return (coef*pow(h-r,3.0)*pow(r,3.0));
+  }
+  else if(r>0 && 2*r<=h){
+    return (coef*(2.0*pow(h-r,3.0)*pow(r,3.0) - pow(h,6.0)/64.0));
+  }
+  else {
+    return 0;
+  }
+}
+
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int nxt[])
 {
   int i;
@@ -345,14 +346,6 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int n
     ny[i]=0;
   }
 
-  /*  for(i=0; i<FLP; i++){
-      for(k=0; k<FLP; k++){
-      nx[i]+=h*m*gradKernel(p[i],p[k],0)/(p[k].rho+epsilon);
-      ny[i]+=h*m*gradKernel(p[i],p[k],1)/(p[k].rho+epsilon);
-      
-      }
-      }*/
-  
 #pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<FLP; i++){
     if(p[i].inRegion==1){
@@ -385,14 +378,12 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int n
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
       int jx, jy;
         
       for(jx=ix-1; jx<=ix+1; jx++){
         for(jy=iy-1; jy<=iy+1; jy++){
           int jb = jx + jy*nBx;
           int j = bfst[jb];
-          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
           if(j==-1)continue;
           for(;;){
             if(j>=FLP){
@@ -408,12 +399,9 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int n
               
             dist = sqrt(dx*dx+dy*dy);
             Kij=2.0*rho0/(p[i].rho+p[j].rho+epsilon);
-              
-            //aijx = -gamm*m*(m*cohesion(dist)*dx/dist + (nx[i]-nx[j]));
-            //aijy = -gamm*m*(m*cohesion(dist)*dy/dist + (ny[i]-ny[j]));
-
-            aijx=-Kij*gamm*m*(m*cohesion(dist)*dx/(dist+epsilon) + (nx[i]-nx[j]));
-            aijx=-Kij*gamm*m*(m*cohesion(dist)*dy/(dist+epsilon) + (ny[i]-ny[j]));
+           
+            aijx=-Kij*gamm*m*(m*surfaceTensionCoefficient(dist)*dx/(dist+epsilon) + (nx[i]-nx[j]));
+            aijx=-Kij*gamm*m*(m*surfaceTensionCoefficient(dist)*dy/(dist+epsilon) + (ny[i]-ny[j]));
               
             p[i].ax+=aijx;
             p[i].ay+=aijy;
@@ -493,8 +481,9 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
   }
 }
 
-double adhesionCoefficient(Particle_State p1, Particle_State p2){
-double val=0;
+double adhesionCoefficient(Particle_State p1, Particle_State p2)
+{
+  double val=0;
   double dx = p1.px-p2.px;
   double dy = p1.py-p2.py;
   double dist = sqrt(dx*dx+dy*dy);
@@ -507,10 +496,53 @@ double val=0;
 
   return 0.007*val/pow(h,3.25);
 }
-void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]){
+void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[])
+{
   int i;
+  double boundaryParticleDensity[BP+OBP];
+  double psi[BP+OBP];
+  double beta=-1.0;
 
-  
+  for(i=0; i<BP+OBP; i++){
+    boundaryParticleDensity[i]=0;
+    psi[i]=0;
+  }
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=FLP; i<N; i++){//calculating number density of boundary particles 
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb=jx+jy*nBx;
+          int j=bfst[jb];
+
+          if(j==-1)continue;
+          for(;;){
+            //fprintf(stderr, "%d \n", j);
+            if(j<FLP){
+              j = nxt[j];
+              if(j==-1){
+                break;
+              }
+              continue;
+            }
+            boundaryParticleDensity[i-FLP]+=kernel(p[i], p[j]);
+
+            j=nxt[j];
+            if(j==-1)break;
+          }
+        }
+      }
+    }
+  }
+
+  for(i=0; i<BP+OBP; i++){
+    psi[i]=rho0*boundaryParticleDensity[i];
+  }
+
 #pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<FLP; i++){
     if(p[i].inRegion==1){
@@ -538,8 +570,10 @@ void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]){
             double dy = p[i].py-p[j].py;
             double dist = sqrt(dx*dx+dy*dy);
             aijx=0, aijy=0;
-            aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
-            aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
+
+            aijx=-beta*p[i].mass*psi[j-FLP]*adhesionCoefficient(p[i], p[j])*dx/(dist*epsilon);
+            aijy=-beta*p[i].mass*psi[j-FLP]*adhesionCoefficient(p[i], p[j])*dy/(dist*epsilon);
+
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j=nxt[j];

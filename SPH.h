@@ -48,7 +48,6 @@ typedef struct{
 
 double cubicSpline1(double q);
 double cubicSpline2(double q);
-double cohesion(double r);
 double kernel(Particle_State p1, Particle_State p2);
 double gradKernel(Particle_State p1, Particle_State p2, int x_or_y);
 double Laplacian(Particle_State p1, Particle_State p2);
@@ -58,9 +57,12 @@ void initializeAccel(Particle_State p[]);
 void calcAccelByExternalForces(Particle_State p[], int bfst[], int blst[], int nxt[]);
 void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[]);
 void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[]);
+double surfaceTensionCoefficient(double r);
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int nxt[]);
 double boundaryGamma(Particle_State p1, Particle_State p2);
 void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
+double adhesionCoefficient(Particle_State p1, Particle_State p2);
+void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]);
 void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[]);
 void leapfrogStart(Particle_State p[]);
 void leapfrogStep(Particle_State p[]);
