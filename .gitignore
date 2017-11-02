@@ -2,11 +2,15 @@
 *.gif
 *.png
 *.out
+*.exe
 GPATH
 GRTAGS
 GSYMS
 GTAGS
 /SPH
 /fluid.txt
+/air.txt
 /wall.txt
+/obstacle.txt
 /numbers.h
+/GifAnimations/

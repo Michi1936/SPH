@@ -26,14 +26,15 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   if(0<=q && q<=1){
     return cubicSpline1(q);
   }
-   else if(1<=q && q<=2){
+  else if(1<=q && q<=2){
     return cubicSpline2(q);
-    }
-    else {
+  }
+  else {
     return 0;
   }
 
 }
+
 double Wendrand(Particle_State p1, Particle_State p2){
 
   double dx = fabs(p1.px-p2.px);
@@ -58,7 +59,6 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
   double q = dist/h;
   double coeff_x = (dx)/(dist*h+epsilon);
   double coeff_y = (dy)/(dist*h+epsilon);
-  double dh = 0.01;
   if(axis==0){//x direction 
     if(0<=q && q<=1){
       return (15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
@@ -104,7 +104,7 @@ double gradWendlandKernel(Particle_State p1, Particle_State p2, int axis)
       val=0;
     }
   }
-    else if(axis==1){//y direction 
+  else if(axis==1){//y direction 
     if(q<2){
       val = (21.0/(16.0*M_PI*pow(h,3)))*coeff_y*2.0*pow(1.0-(q/2.0),3)*(-5.0*q/2.0);
     }
@@ -112,38 +112,44 @@ double gradWendlandKernel(Particle_State p1, Particle_State p2, int axis)
       val=0;
     }
   }
-  else{
-    return 0;
-  }
   return val;
 }
 
-//Muller(2003)  Kernel for viscosity term is used
-double Laplacian(Particle_State p1, Particle_State p2)
-{
-  double ans=0;
-  double dx = fabs(p1.px-p2.px);
-  double dy = fabs(p1.py-p2.py);
-  double dist = sqrt(dx*dx+dy*dy);
-  if(0<= dist && dist <= h){
-    ans=(45.0/(M_PI*pow(h,6)))*(h-dist);
-  }
-  else{
-    ans = 0;
-  }
-  return ans;
-}
 
-double cohesion(double r)//caluculating cohesion term 
+void calcInverseParticleVolume(Particle_State p[], int bfst[], int nxt[])
 {
-  double coef=32.0/(M_PI*pow(h,9));
-  if(2*r>h && r<=h){
-    return (coef*pow(h-r,3)*pow(r,3));
+  int i;
+
+  //inverse of the particle volume(Hu and Adams,2006)
+  for (i=0; i<N; i++){
+    p[i].Theta=0;
   }
-  else if(r>0 && 2*r<=h){
-    return (coef*(2.0*pow(h-r,3)*pow(r,3) - pow(h,6)/64.0));
+
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=0; i<N; i++){
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb = jx + jy*nBx;
+          int j = bfst[jb];
+          if(j==-1)continue;
+          for(;;){
+            p[i].Theta+=kernel(p[i], p[j]);
+
+            j=nxt[j];
+            if(j==-1)break;
+          }
+        }
+      }
+    }
   }
-  else return 0;
+
+  for(i=0; i<N; i++){
+    p[i].Theta=1.0/(p[i].Theta+epsilon);
+  }
 }
 
 void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[])
@@ -153,30 +159,10 @@ void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[])
     p[i].rho=0;
   }
 
-  //  fprintf(stderr,"density initialized\n");
   for(i=0; i<N; i++){
-    if(p[i].inRegion==1){
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb = 0;
-          jb = jx + jy*nBx;
-          int j = bfst[jb];
-          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          while(j!=-1){
-            double rhoij=0;
-            rhoij=kernel(p[i], p[j]);
-            p[i].rho+=p[i].mass*rhoij;
-            j = nxt[j];
-            if(j==-1)break;
-          }
-        }
-      }
-    }
+    p[i].rho=p[i].mass*p[i].Theta;
   }
+
 }
 
 
@@ -186,24 +172,21 @@ void calcPressure(Particle_State p[])
   //set p=0
   int i;
   double coef;
-  double cs=88.5;
   coef=(rho0*pow(cs,2))/7.0;
   for(i=0; i<N; i++){
     p[i].p=0;
   }
+#pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<N; i++){
-
     p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
     if(p[i].p<0){
       p[i].p=0;
     }
-
   }
-
 }
+
 void initializeAccel(Particle_State p[])
 {
-
   int i;
   for(i=0; i<N; i++){
     p[i].ax=0;
@@ -211,44 +194,12 @@ void initializeAccel(Particle_State p[])
   }
 }
 
-void calcInverseParticleVolume(Particle_State p[], int bfst[], int nxt[],double Theta[])
-{
-  int i,j;
-
-  //inverse of the particle volume(Hu and Adams,2006)
-  //  double Theta[FLP+BP];
-  for (i=0; i<FLP+BP; i++){
-    Theta[i]=0;
-  }
-
-  for(i=0; i<FLP+BP; i++){
-    if(p[i].inRegion==1){
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb = 0;
-          jb = jx + jy*nBx;
-          int j = bfst[jb];
-          //fprintf(stderr, "j=%d, i=%d, ix=%d, iy=%d, jx=%d, jy=%d\n", j, i, ix, iy, jx, jy);
-          while(j!=-1){
-            Theta[i]+=kernel(p[i], p[j]);
-            j = nxt[j];
-            //      fprintf(stderr,"Theta_i is summed\n");
-          }
-        }
-      }
-    }else{Theta[i]=0;}
-  }
-
-}
 
 void calcAccelByExternalForces(Particle_State p[], int bfst[], int blst[], int nxt[])
 {
   int i;
-for(i=0; i<FLP; i++){
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=0; i<N; i++){
     double aijx, aijy;
     aijx     = 0;
     aijy     = - g;//gravitational force
@@ -257,11 +208,11 @@ for(i=0; i<FLP; i++){
   }
 }
 
-void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[], double Theta[])
+void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
 {
   int i;
-
-  for(i=0; i<FLP+BP; i++){  
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=0; i<N; i++){  
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
@@ -274,15 +225,12 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[], 
           for(;;){
             double aijx=0;
             double aijy=0;
-            double presCoef=0;
-           presCoef=(p[i].p/(pow(Theta[i],2)+epsilon)+p[j].p/(pow(Theta[j],2)+epsilon))/(p[i].mass+epsilon);
-
-           aijx=presCoef*gradKernel(p[i], p[j], 0);
-           aijy=presCoef*gradKernel(p[i], p[j], 1);
-           p[i].ax += aijx;
-           p[i].ay += aijy;
-           j = nxt[j];
-           if(j==-1)break;
+            aijx=((p[i].p/(pow(p[i].Theta,2.0)+epsilon)) + (p[j].p/(pow(p[j].Theta,2.0)+epsilon)) )*gradKernel(p[i], p[j], 0)/(p[i].mass+epsilon);
+            aijy=((p[i].p/pow(p[i].Theta,2.0)) + (p[j].p/pow(p[j].Theta,2.0)))*gradKernel(p[i], p[j], 1)/(p[i].mass+epsilon);
+            p[i].ax += aijx;
+            p[i].ay += aijy;
+            j = nxt[j];
+            if(j==-1)break;
           }
         }
       }
@@ -290,41 +238,150 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[], 
   }
 }
 
-
-void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[], double Theta[])
+void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[])
     //Muller(2005) Weakly compressible SPH for free surface flow model is used.
 {
   int i;
- 
-  for(i=0; i<FLP+BP; i++){
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=0; i<N; i++){
 
-        if(p[i].inRegion==1){
-          int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-          int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-          //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
-          int jx, jy;
-          for(jx=ix-1; jx<=ix+1; jx++){
-            for(jy=iy-1; jy<=iy+1; jy++){
-              //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-              int jb=0;
-              jb=jx+jy*nBx;
-              int j = bfst[jb];
-              double aijx, aijy;
-              double viscCoef;
-              aijx=0, aijy=0;
-              viscCoef=0;
-              double dx = fabs(p[i].px-p[j].px);
-              double dy = fabs(p[i].py-p[j].py);
-              double rx = (p[i].px-p[j].px);
-              double ry = (p[i].py-p[j].py);
-              double dist = dx*dx+dy*dy+epsilon;
-          
-          viscCoef=( (2.0*p[i].mu*p[j].mu)/(p[i].mu+p[j].mu+epsilon) )*(1.0/(pow(Theta[i],2)+epsilon)+1.0/(pow(Theta[j],2)+epsilon))*(rx*gradKernel(p[i],p[j],0)+ry*gradKernel(p[i],p[j],1))/(p[i].mass*(pow(dist,2)+pow(0.01,2)));
-          aijx = viscCoef*(p[i].vx-p[i].vy);
-          aijy = viscCoef*(p[i].vy-p[j].vy);
-          p[i].ax+=aijx;
-          p[i].ay+=aijy;
-          j = nxt[j];
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb = 0;
+          jb = jx + jy*nBx;
+          int j = bfst[jb];
+          //fprintf(stderr, "j=%d, i=%d, ix=%d, iy=%d, jx=%d, jy=%d\n", j, i, ix, iy, jx, jy);
+          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
+          if(j==-1)continue;
+          for(;;){
+            double aijx, aijy;
+            aijx=0, aijy=0;
+            double dx = (p[i].px-p[j].px);
+            double dy = (p[i].py-p[j].py);
+            double dvx = (p[i].vx-p[j].vx);
+            double dvy = (p[i].vy-p[j].vy);
+            double dot=dx*gradKernel(p[i], p[j], 0)+dy*gradKernel(p[i],p[j], 1);
+            double dist = dx*dx+dy*dy;
+
+            aijx=2.0*p[i].mu*p[j].mu*(1.0/(pow(p[i].Theta,2)+epsilon) + 1.0/(pow(p[j].Theta,2)+epsilon))*dot*dvx/(p[i].mass*(p[i].mu+p[j].mu)*(dist*dist)+epsilon);
+
+            aijy=2.0*p[i].mu*p[j].mu*(1.0/(pow(p[i].Theta,2)+epsilon) + 1.0/(pow(p[j].Theta,2)+epsilon))*dot*dvy/(p[i].mass*(p[i].mu+p[j].mu)*(dist*dist)+epsilon);
+
+            p[i].ax+=aijx;
+            p[i].ay+=aijy;
+
+            j = nxt[j];
+            if(j==-1)break;
+            //      fprintf(stderr,"Theta_i is summed\n");
+          }
+        }
+      }
+    }
+  }
+
+
+}
+
+double surfaceTensionCoefficient(double r)//caluculating cohesion term 
+{
+  double coef=32.0/(M_PI*pow(h,9));
+  if(2*r>h && r<=h){
+    return (coef*pow(h-r,3.0)*pow(r,3.0));
+  }
+  else if(r>0 && 2*r<=h){
+    return (coef*(2.0*pow(h-r,3.0)*pow(r,3.0) - pow(h,6.0)/64.0));
+  }
+  else {
+    return 0;
+  }
+}
+
+
+void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int nxt[])
+{
+  int i;
+  
+  double nx[FLP];
+  double ny[FLP];
+
+  for(i=0; i<FLP; i++){
+    nx[i]=0;
+    ny[i]=0;
+  }
+
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=0; i<FLP; i++){
+
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+      int jx, jy;
+
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb = jx + jy*nBx;
+          int j = bfst[jb];
+          if(j==-1)continue;
+          for(;;){
+            if(j>=FLP){
+            j = nxt[j];
+            if(j==-1){
+              break;
+            }
+            continue;
+            }
+            nx[i]+=h*m*gradKernel(p[i],p[j],0)/(p[j].rho+epsilon);
+            ny[i]+=h*m*gradKernel(p[i],p[j],1)/(p[j].rho+epsilon);
+            
+            j=nxt[j];
+            if(j==-1)break;
+          }
+        }
+      }
+    }
+  }
+
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=0; i<FLP; i++){
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+      int jx, jy;
+        
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb = jx + jy*nBx;
+          int j = bfst[jb];
+          if(j==-1)continue;
+          for(;;){
+            if(j>=FLP){
+            j = nxt[j];
+            if(j==-1)break;
+            continue;
+            }
+            double aijx, aijy;
+            double dx, dy, dist, Kij;
+            aijx=0, aijy=0;
+            dx = (p[i].px-p[j].px);
+            dy = (p[i].py-p[j].py);
+              
+            dist = sqrt(dx*dx+dy*dy);
+            Kij=2.0*rho0/(p[i].rho+p[j].rho+epsilon);
+
+            aijx=-Kij*gamm*m*(m*surfaceTensionCoefficient(dist)*dx/(dist+epsilon) + (nx[i]-nx[j]));
+            aijx=-Kij*gamm*m*(m*surfaceTensionCoefficient(dist)*dy/(dist+epsilon) + (ny[i]-ny[j]));
+              
+            p[i].ax+=aijx;
+            p[i].ay+=aijy;
+              
+            j = nxt[j];
+            if(j==-1)break;
+          }
         }
       }
       //      fprintf(stderr, "%f  %f \n", p[i].ax, p[i].ay);
@@ -332,83 +389,242 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[],
   }
 }
 
-void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int nxt[])
-{
-  int i,j;
-  
-  double *nx, *ny;
-    nx=(double*)malloc(sizeof(double)*FLP);
-    ny=(double*)malloc(sizeof(double)*FLP);
-    int k;
-    for(i=0; i<FLP; i++){
-      nx[i]=0;
-      ny[i]=0;
-    }
-    for(i=0; i<FLP; i++){
-      for(k=0; k<FLP; k++){
-        nx[i]+=h*m*gradKernel(p[i],p[k],0)/(p[k].rho+epsilon);
-        ny[i]+=h*m*gradKernel(p[i],p[k],1)/(p[k].rho+epsilon);
-      }
-    }
+double boundaryGamma(Particle_State p1, Particle_State p2){
+  double val=0;
+  double dx = p1.px-p2.px;
+  double dy = p1.py-p2.py;
+  double dist = sqrt(dx*dx+dy*dy);
+  double q =dist/h;
 
-    //calculation of cohesion force and surface area minimization
-    //Akinci(2013) cohesion and surface tension model is used 
-    for(i=0; i<FLP; i++){
-      if(p[i].inRegion==1){
-        int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-        int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-        //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
-        int jx, jy;
-        
-        for(jx=ix-1; jx<=ix+1; jx++){
-          for(jy=iy-1; jy<=iy+1; jy++){
-            int jb = jx + jy*nBx;
-            int j = bfst[jb];
-            //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-            if(j==-1)continue;
-            for(;;){
-              double aijx, aijy;
-              double dx, dy, dist, Kij;
-              
-              aijx=0, aijy=0;
-              dx = fabs(p[i].px-p[j].px);
-              dy = fabs(p[i].py-p[j].py);
-              
-              dist = sqrt(dx*dx+dy*dy)+epsilon;
-              Kij=2.0*rho0/(p[i].rho+p[j].rho+epsilon);
-              
-              aijx = -gamm*m*(m*cohesion(dist)*dx/dist + (nx[i]-nx[j]));
-              aijy = -gamm*m*(m*cohesion(dist)*dy/dist + (ny[i]-ny[j]));
-              
-              aijx=aijx/(p[i].rho+epsilon);
-              aijy=aijy/(p[i].rho+epsilon);
-              p[i].ax+=aijx;
-              p[i].ay+=aijy;
-              
+  if(0<q && q<(2.0/3.0)){
+    val=2.0/3.0;
+  }else if(2.0/3.0<q && q<1.0){
+    val=(2.0*q-(2.0/3.0)*q*q);
+  }else if(1.0<q && q<2.0){
+    val=pow(2.0-q,2)/2.0;
+  }else{
+    val=0;
+  }
+
+  return 0.02*cs*cs*val/(dist+epsilon);
+}
+
+void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Boundary force in Monaghan(2005) model
+{
+  int i;
+
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=0; i<FLP+AirP; i++){
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb=jx+jy*nBx;
+          int j=bfst[jb];
+
+          if(j==-1)continue;
+          for(;;){
+            //fprintf(stderr, "%d \n", j);
+            if(j<FLP+AirP){
               j = nxt[j];
-              if(j==-1)break;
+              if(j==-1){
+                break;
+              }
+              continue;
             }
+            double aijx, aijy;
+            double dx = p[i].px-p[j].px;
+            double dy = p[i].py-p[j].py;
+            double dist = sqrt(dx*dx+dy*dy);
+            aijx=0, aijy=0;
+            aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
+            aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
+            p[i].ax+=aijx;
+            p[i].ay+=aijy;
+            j=nxt[j];
+            if(j==-1)break;
           }
         }
       }
     }
-    // fprintf(stderr,"Acceleration is calculated\n");
-    free(nx);
-    free(ny);
-  
+  }
 }
 
-void timeDevelopment(Particle_State p[])
+double adhesionCoefficient(Particle_State p1, Particle_State p2)
+{
+  double val=0;
+  double dx = p1.px-p2.px;
+  double dy = p1.py-p2.py;
+  double dist = sqrt(dx*dx+dy*dy);
+
+  if(2.0*dist>h && dist<=h){
+    val=pow((-4.0*dist*dist/h)+6.0*dist-2.0*h, 1.0/4.0);
+  }else{
+    val=0;
+  }
+
+  return 0.007*val/pow(h,3.25);
+}
+
+void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[])
 {
   int i;
-  for(i=0; i<FLP; i++){
-    //Symplectic Euler method
-    p[i].vx += p[i].ax*dt;
-    p[i].vy += p[i].ay*dt;
-    p[i].px+=p[i].vx*dt; 
-    p[i].py+=p[i].vy*dt; 
+  double boundaryParticleDensity[BP+OBP];
+  double psi[BP+OBP];
+  double beta=-1.0;
+
+  for(i=0; i<BP+OBP; i++){
+    boundaryParticleDensity[i]=0;
+    psi[i]=0;
   }
-  //  fprintf(stderr, "time developed\n")
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=FLP; i<N; i++){//calculating number density of boundary particles 
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb=jx+jy*nBx;
+          int j=bfst[jb];
+
+          if(j==-1)continue;
+          for(;;){
+            //fprintf(stderr, "%d \n", j);
+            if(j<FLP){
+              j = nxt[j];
+              if(j==-1){
+                break;
+              }
+              continue;
+            }
+            boundaryParticleDensity[i-FLP]+=kernel(p[i], p[j]);
+
+            j=nxt[j];
+            if(j==-1)break;
+          }
+        }
+      }
+    }
+  }
+
+  for(i=0; i<BP+OBP; i++){
+    psi[i]=rho0*boundaryParticleDensity[i];
+  }
+
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=0; i<FLP; i++){
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb=jx+jy*nBx;
+          int j=bfst[jb];
+
+          if(j==-1)continue;
+          for(;;){
+            //fprintf(stderr, "%d \n", j);
+            if(j<FLP){
+              j = nxt[j];
+              if(j==-1){
+                break;
+              }
+              continue;
+            }
+            double aijx, aijy;
+            double dx = p[i].px-p[j].px;
+            double dy = p[i].py-p[j].py;
+            double dist = sqrt(dx*dx+dy*dy);
+            aijx=0, aijy=0;
+
+            aijx=-beta*p[i].mass*psi[j-FLP]*adhesionCoefficient(p[i], p[j])*dx/(dist*epsilon);
+            aijy=-beta*p[i].mass*psi[j-FLP]*adhesionCoefficient(p[i], p[j])*dy/(dist*epsilon);
+
+            p[i].ax+=aijx;
+            p[i].ay+=aijy;
+            j=nxt[j];
+            if(j==-1)break;
+          }
+        }
+      }
+    }
+  }
+}
+
+void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[])
+{
+  int i;
+  double rgx[2], rgy[2];
+  double rgxDashed, rgyDashed;
+  double rxDashed[OBP], ryDashed[OBP];
+  double inertia;
+  double theta;
+  rgx[0]=0;
+  rgy[0]=0;
+  rgx[1]=0;
+  rgy[1]=0;
+  rgxDashed=0;
+  rgyDashed=0;
+  inertia=0;
+  theta=0;
+  for(i=0; i<OBP; i++){
+    rxDashed[i]=0;
+    ryDashed[i]=0;
+  }
+  
+  for(i=FLP+AirP+BP; i<N; i++){//center of mass before time development
+    rgx[0]+=p[i].prepx/(double)OBP;
+    rgy[0]+=p[i].prepy/(double)OBP;
+  }
+
+  for(i=FLP+AirP+BP; i<N; i++){//center of mass after time development
+    rgx[1]+=p[i].px/(double)OBP;
+    rgy[1]+=p[i].py/(double)OBP;
+  }
+
+  for(i=FLP+AirP+BP; i<N; i++){//moment of inertia before time development
+  double dx = fabs(p[i].px-rgx[0]);
+    double dy = fabs(p[i].py-rgy[0]);
+    double dist = sqrt(dx*dx+dy*dy);
+    inertia+=p[i].mass*dist*dist;
+  }
+
+  for(i=FLP+AirP+BP; i<N; i++){//difference of position during time development
+    rxDashed[i-FLP-AirP-BP]=p[i].px-p[i].prepx;
+    ryDashed[i-FLP-AirP-BP]=p[i].py-p[i].prepy;
+  }
+
+  for(i=0; i<OBP; i++){
+    rgxDashed+=rxDashed[i]/(double)OBP;
+    rgyDashed+=ryDashed[i]/(double)OBP;
+}
+  
+  for(i=FLP+AirP+BP; i<N; i++){//calculating rotation angle theta
+    theta+=p[i].mass*( rxDashed[i-FLP-AirP-BP]*(p[i].prepy-rgy[1])-ryDashed[i-FLP-AirP-BP]*(p[i].prepx-rgx[1]))
+           /(inertia+epsilon);
+  }
+  
+  for(i=FLP+AirP+BP; i<N; i++){
+    rxDashed[i-FLP-AirP-BP]=rgxDashed+(cos(theta)-1)*(p[i].prepx-rgx[1])+sin(theta)*(p[i].prepy-rgy[1]);
+    ryDashed[i-FLP-AirP-BP]=rgyDashed+(-sin(theta))*(p[i].prepx-rgx[1])+(cos(theta)-1)*(p[i].prepy-rgy[1]);
+  }
+
+  for(i=FLP+AirP+BP; i<N; i++){
+    p[i].vx=rxDashed[i-FLP-AirP-BP]/dt;
+    p[i].vy=ryDashed[i-FLP-AirP-BP]/dt;
+  }
+
+  for(i=FLP+AirP+BP; i<N; i++){
+    p[i].px=p[i].prepx+rxDashed[i-FLP-AirP-BP];
+    p[i].py=p[i].prepy+ryDashed[i-FLP-AirP-BP];
+  }
 }
 
 
@@ -423,31 +639,18 @@ void leapfrogStart(Particle_State p[])
     p[i].vy+=p[i].ay*dt;
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
-    if(i==2){
-
-      //     fprintf(stderr, "%0.12e %0.12e %0.12e %0.12e %0.12e %0.12e\n", p[i].ax, p[i].ay, p[i].vxh, p[i].vyh, p[i].px, p[i].py);
-    }
   }
-}
 
-void boundaryCondition(Particle_State p[])
-{
-  double LW=interval*3;
-  double RW=4.0-interval*2;
-  double BW=0.05*3;
-  int i;
-  for(i=0; i<FLP; i++){
-    if(p[i].px<LW || p[i].px>RW){
-      p[i].vx=0;
-      p[i].vy=0;
-    }
-
-    if(p[i].py<BW){
-      p[i].vx=0;
-      p[i].vy=0;
-    }
+  for(i=FLP+BP; i<N; i++){
+    p[i].vxh=p[i].vx+p[i].ax*dt/2.0;
+    p[i].vyh=p[i].vy+p[i].ay*dt/2.0;
+    p[i].vx+=p[i].ax*dt;
+    p[i].vy+=p[i].ay*dt;
+    p[i].prepx=p[i].px;
+    p[i].prepy=p[i].py;
+    p[i].px+=p[i].vxh*dt;
+    p[i].py+=p[i].vyh*dt;
   }
-          
 }
 
 void leapfrogStep(Particle_State p[])
@@ -458,10 +661,33 @@ void leapfrogStep(Particle_State p[])
     p[i].vyh+=p[i].ay*dt;
     p[i].vx=p[i].vxh+p[i].ax*dt/2.0;
     p[i].vy=p[i].vyh+p[i].ay*dt/2.0;
+    if(p[i].inRegion==0){
+      p[i].vxh =0; 
+      p[i].vyh =0; 
+      p[i].vx=0;
+      p[i].vy=0;
+    }
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
   }
-  
-}
 
+  for(i=FLP+BP; i<N; i++){
+    p[i].vxh+=p[i].ax*dt;
+    p[i].vyh+=p[i].ay*dt;
+
+    p[i].vx=p[i].vxh+p[i].ax*dt/2.0;
+    p[i].vy=p[i].vyh+p[i].ay*dt/2.0;
+    if(p[i].inRegion==0){
+      p[i].vxh =0; 
+      p[i].vyh =0; 
+      p[i].vx=0;
+      p[i].vy=0;
+    }
+    p[i].prepx=p[i].px;
+    p[i].prepy=p[i].py;
+
+    p[i].px+=p[i].vxh*dt;
+    p[i].py+=p[i].vyh*dt;
+  }
+}
 

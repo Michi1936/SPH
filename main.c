@@ -8,10 +8,13 @@
 
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
+void printBoundaryParticles(Particle_State p[], FILE *fp);
+void printFluidParticles(Particle_State p[], FILE *fp);
+void printObstacleParticles(Particle_State p[], FILE *fp);
+void tipPosition(Particle_State p[], int time, FILE *tip);
 
-
-    
-void printParticles(Particle_State p[], FILE *fp){
+void printParticles(Particle_State p[], FILE *fp)
+{
   int i;
   for(i=0; i<FLP; i++){ 
     fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
@@ -30,6 +33,57 @@ void printParticles(Particle_State p[], FILE *fp){
             p[i].rho, p[i].p, p[i].ax, p[i].ay);
   }
   fprintf(fp,"\n\n");
+}
+
+
+void printFluidParticles(Particle_State p[], FILE *fp)
+{
+  int i;
+
+  for(i=0; i<FLP; i++){ 
+    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
+            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
+            p[i].rho, p[i].p, p[i].ax, p[i].ay);
+  }
+  fprintf(fp, "\n\n");
+
+}
+
+
+void printAirParticles(Particle_State p[], FILE *fp)
+{
+  int i;
+
+  for(i=FLP; i<FLP+AirP; i++){ 
+    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
+            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
+            p[i].rho, p[i].p, p[i].ax, p[i].ay);
+  }
+  fprintf(fp, "\n\n");
+
+}
+
+void printBoundaryParticles(Particle_State p[], FILE *fp)
+{
+  int i;
+  for(i=FLP+AirP; i<FLP+AirP+BP; i++){ 
+    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
+            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
+            p[i].rho, p[i].p, p[i].ax, p[i].ay);
+  }
+  fprintf(fp,"\n\n");
+}
+
+
+void printObstacleParticles(Particle_State p[], FILE *fp)
+{
+  int i;
+  for(i=FLP+AirP+BP; i<N; i++){ 
+    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
+            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
+            p[i].rho, p[i].p, p[i].ax, p[i].ay);
+  }
+  fprintf(fp,"\n\n");
 
   //  printf("Printed\n");
 }
@@ -37,35 +91,57 @@ void printParticles(Particle_State p[], FILE *fp){
 void percentage(int time, int *countPer)
 {
   double per;
+  per=time/(double)T;
   per=(int)(per*100);
   if(per==*countPer){
-    fprintf(stderr,"%d ", (int)per);
+    fprintf(stderr, "%d ", (int)per);
     *countPer=*countPer+1;
+}
+}
+
+void tipPosition(Particle_State p[], int time, FILE *tip)
+{
+  double max=0;
+  int i;
+  for(i=0; i<FLP; i++){
+    if(p[i].px>max){
+      max=p[i].px;
+    }
   }
- 
-  
+  fprintf(tip, "%f %f %f %f\n", dt*time, max-0.3, (dt*time)*sqrt(2.0*g/4.0), ((max-0.3)/4.0));
 }
 
 int main(void){
     
   Particle_State a[N];
-  double Theta[FLP+BP];
   int *bfst, *blst, *nxt;
   int countPer=0;
   int i;
   clock_t start, end;
   start=clock();
-  FILE *fp;
+  FILE *data;
+  FILE *plot;
   FILE *paramTxt;
-  fp=fopen("sample.dat", "w");
+  FILE *tip;
+  
+  data=fopen("sample.dat", "w");
   paramTxt=fopen("parameters.dat","w");
+  tip=fopen("tip.dat", "w");
+  plot=fopen("plot.dat","w");
 
-  if(fp==NULL){
+  if(data==NULL){
     printf("File opening was failed.\n");
     return -1;
   }
-
   if(paramTxt==NULL){
+    printf("File opening was failed.\n");
+    return -1;
+  }
+  if(tip==NULL){
+    printf("File opening was failed.\n");
+    return -1;
+  }
+  if(plot==NULL){
     printf("File opening was failed.\n");
     return -1;
   }
@@ -73,56 +149,79 @@ int main(void){
   initialization(a, N);
   fprintf(stderr,"check initialization\n");
   fluidParticles(a);
-  fprintf(stderr,"check initialConditions\n");
+  fprintf(stderr,"check fluidParticles\n");
+  airParticles(a);
+  fprintf(stderr,"check airParticles\n");
   wallParticles(a);
   fprintf(stderr,"check wallParitcles\n");
   obstacleBoundaryParticles(a);
-  fprintf(stderr, "check obstacle boundary\n");
+  fprintf(stderr, "check obstacleParticles\n");
+ 
   allocateBucket(&bfst, &blst, &nxt);
   fprintf(stderr,"%d %d %d check allocateBucket\n", nBx, nBy, nBxy);
   checkParticle(a);
-  fprintf(stderr,"check checkParticle");
-
+  fprintf(stderr,"check checkParticle\n");
   makeBucket(bfst, blst, nxt, a);
   fprintf(stderr,"check makeBucket\n");
   
-  fprintf(stderr,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
+  fprintf(stderr,"FLP=%d AirP=%d BP=%d OBP=%d\n", FLP, AirP, BP, OBP);
   fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
-    
-  fprintf(paramTxt,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
+  fprintf(paramTxt,"FLP=%d AirP=%d BP=%d OBP=%d\n", FLP, AirP, BP, OBP);
   fprintf(paramTxt,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
   
-  //calculations for rho0, p0, a0  
+  //calculations for rho0, p0, a0
+  calcInverseParticleVolume(a, bfst, nxt);
   calcDensity(a, bfst, blst, nxt);
   calcPressure(a);
+
   initializeAccel(a);
-  calcInverseParticleVolume(a, bfst, nxt, Theta);
-  calcAccelByPressure(a,bfst,blst, nxt,Theta);
-  calcAccelByViscosity(a,bfst,blst, nxt,Theta);
+  calcAccelByPressure(a,bfst, nxt);
+  calcAccelByViscosity(a,bfst,blst, nxt);
   calcAccelByExternalForces(a,bfst, blst, nxt);
   calcAccelBySurfaceTension(a, bfst, blst, nxt);
+  calcAccelByBoundaryForce(a, bfst, nxt);
+  //calcAccelByAdhesion(a, bfst, nxt);
   
-  printParticles(a,fp);//Here shows parameters at t=0
-  
+  //printParticles(a,data);//Here shows parameters at t=0
+  printBoundaryParticles(a, plot);
+  printFluidParticles(a, plot);
+  printAirParticles(a, plot);
+  printObstacleParticles(a, plot);
+  //tipPosition(a, 0, tip);
+
+  fprintf(stderr,"initial condition completed\n");
+      
   //time development
   for(i=1; i<=T; i++){
     if(i==1){
       leapfrogStart(a);
     }else{
       leapfrogStep(a);
-      //      boundaryCondition(a);
-    }
+      }
+  
+    //rigidBodyCorrection(a, bfst, nxt);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
+    
+    calcInverseParticleVolume(a, bfst, nxt);
     calcDensity(a, bfst, blst, nxt);
     calcPressure(a);
+
     initializeAccel(a);
-    calcInverseParticleVolume(a, bfst, nxt, Theta);
-    calcAccelByPressure(a,bfst,blst, nxt, Theta);
-    calcAccelByViscosity(a,bfst,blst, nxt, Theta);
+    calcAccelByPressure(a,bfst, nxt);
+    calcAccelByViscosity(a,bfst,blst, nxt);
     calcAccelByExternalForces(a,bfst, blst, nxt);
     calcAccelBySurfaceTension(a, bfst, blst, nxt);
-    printParticles(a, fp);//here show paremeters at t=(i*dt)
+    calcAccelByBoundaryForce(a, bfst, nxt);
+    //calcAccelByAdhesion(a, bfst, nxt);
+
+    //printParticles(a,data);
+    //    tipPosition(a, i, tip);
+    if(i%100==0){
+    printFluidParticles(a, plot);//here show paremeters at t=(i*dt)
+    printAirParticles(a, plot);
+    printObstacleParticles(a, plot);
+      }
     percentage(i, &countPer);
   }
 
@@ -130,7 +229,10 @@ int main(void){
   free(bfst);
   free(blst);
   free(nxt);
-  fclose(fp);
+  fclose(data);
+  fclose(paramTxt);
+  fclose(tip);
+  fclose(plot);
   end=clock();
   fprintf(stderr,"Processor time: %fs\n", (double)(end-start)/CLOCKS_PER_SEC);
   return  0;

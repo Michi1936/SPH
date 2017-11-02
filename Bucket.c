@@ -45,6 +45,7 @@ void makeBucket(int *bfst, int *blst, int*nxt, Particle_State p[])//putting part
       int ix = (int)((p[i].px - MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py - MIN_Y)/BktLgth)+1;
       int ib = ix+iy*nBx;//index of backet including ith particle
+      //      fprintf(stderr, "px=%f py=%f ib=%d ",p[i].px, p[i].py,  ib);
       int j = blst[ib];
       blst[ib]=i;//particle i is last particle in backet ib
       if(j==-1){//if ith particle is first particle contained in ibth bucket
@@ -54,7 +55,7 @@ void makeBucket(int *bfst, int *blst, int*nxt, Particle_State p[])//putting part
       }
     }
   }
-  //  fprintf(stderr, "Bucket is allocated\n");
+
 }
 
 
