@@ -10,5 +10,6 @@ GTAGS
 /SPH
 /fluid.txt
 /wall.txt
+/obstacle.txt
 /numbers.h
 /GifAnimations/

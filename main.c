@@ -160,9 +160,9 @@ int main(void){
   calcAccelByPressure(a,bfst,blst, nxt);
   calcAccelByViscosity(a,bfst,blst, nxt);
   calcAccelByExternalForces(a,bfst, blst, nxt);
-  //calcAccelBySurfaceTension(a, bfst, blst, nxt);
+  calcAccelBySurfaceTension(a, bfst, blst, nxt);
   calcAccelByBoundaryForce(a, bfst, nxt);
-  calcAccelByAdhesion(a, bfst, nxt);
+  //calcAccelByAdhesion(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
   printBoundaryParticles(a, plot);
   printFluidParticles(a, plot);
@@ -185,9 +185,9 @@ int main(void){
     calcAccelByPressure(a,bfst,blst, nxt);
     calcAccelByViscosity(a,bfst,blst, nxt);
     calcAccelByExternalForces(a,bfst, blst, nxt);
-    //calcAccelBySurfaceTension(a, bfst, blst, nxt);
+    calcAccelBySurfaceTension(a, bfst, blst, nxt);
     calcAccelByBoundaryForce(a, bfst, nxt);
-    calcAccelByAdhesion(a, bfst, nxt);
+    //calcAccelByAdhesion(a, bfst, nxt);
     //printParticles(a,data);
     tipPosition(a, i, tip);
     if(i%100==0){
