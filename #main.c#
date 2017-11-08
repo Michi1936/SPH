@@ -161,7 +161,6 @@ int main(void){
   calcAccelByViscosity(a,bfst,blst, nxt);
   calcAccelByExternalForces(a,bfst, blst, nxt);
   //calcAccelBySurfaceTension(a, bfst, blst, nxt);
-  rotateRigidBody(a);
   calcAccelByBoundaryForce(a, bfst, nxt);
   //calcAccelByAdhesion(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
@@ -177,6 +176,7 @@ int main(void){
     }else{
       leapfrogStep(a);
       }
+
     rigidBodyCorrection(a, bfst, nxt);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);

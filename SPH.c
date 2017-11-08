@@ -183,7 +183,7 @@ void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[])
           if(j==-1)continue;
           for(;;){
             double rhoij=0;
-            rhoij=m*kernel(p[i], p[j]);
+            rhoij=p[j].mass*kernel(p[i], p[j]);
 
             p[i].rho+=rhoij;
             j = nxt[j];
@@ -208,12 +208,22 @@ void calcPressure(Particle_State p[])
     p[i].p=0;
   }
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<N; i++){
+  for(i=0; i<FLP+BP; i++){
     p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
     if(p[i].p<0){
       p[i].p=0;
     }
   }
+
+  coef=(rho0*0.7*pow(cs,2))/7.0;
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=FLP+BP; i<N; i++){
+    p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
+    if(p[i].p<0){
+      p[i].p=0;
+    }
+  }
+
 
 }
 void initializeAccel(Particle_State p[])
@@ -240,7 +250,7 @@ void calcAccelByExternalForces(Particle_State p[], int bfst[], int blst[], int n
 
 void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[])
 {
-  int i,j;
+  int i;
 #pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<N; i++){  
     if(p[i].inRegion==1){
@@ -255,8 +265,8 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[])
           for(;;){
             double aijx=0;
             double aijy=0;
-            aijx=-m*((p[i].p/pow(p[i].rho,2.0)) + (p[j].p/pow(p[j].rho,2.0)))*gradKernel(p[i], p[j], 0);
-            aijy=-m*((p[i].p/pow(p[i].rho,2.0)) + (p[j].p/pow(p[j].rho,2.0)))*gradKernel(p[i], p[j], 1);
+            aijx=-p[j].mass*((p[i].p/pow(p[i].rho,2.0)) + (p[j].p/pow(p[j].rho,2.0)))*gradKernel(p[i], p[j], 0);
+            aijy=-p[j].mass*((p[i].p/pow(p[i].rho,2.0)) + (p[j].p/pow(p[j].rho,2.0)))*gradKernel(p[i], p[j], 1);
             p[i].ax += aijx;
             p[i].ay += aijy;
             j = nxt[j];
@@ -300,8 +310,8 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[])
             viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
 
             if(dot<0){
-              aijx = -m*viscCoef*gradKernel(p[i], p[j], 0);
-              aijy = -m*viscCoef*gradKernel(p[i], p[j], 1);
+              aijx = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);
+              aijy = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 1);
               //fprintf(stderr, "dot=%f %f %f aijx=%f, aijy=%f\n",dot, viscCoef, gradKernel(p[i], p[j], 0),  aijx, aijy);
             }else if(dot>=0){
               aijx=0; 
@@ -346,7 +356,6 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int n
     ny[i]=0;
   }
 
-#pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<FLP; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
@@ -366,8 +375,8 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int n
             }
             continue;
             }
-            nx[i]+=h*m*gradKernel(p[i],p[j],0)/(p[j].rho+epsilon);
-            ny[i]+=h*m*gradKernel(p[i],p[j],1)/(p[j].rho+epsilon);
+            nx[i]+=h*p[j].mass*gradKernel(p[i],p[j],0)/(p[j].rho+epsilon);
+            ny[i]+=h*p[j].mass*gradKernel(p[i],p[j],1)/(p[j].rho+epsilon);
             
             j=nxt[j];
             if(j==-1)break;
@@ -407,8 +416,8 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int n
             dist = sqrt(dx*dx+dy*dy);
             Kij=2.0*rho0/(p[i].rho+p[j].rho+epsilon);
 
-            aijx=-Kij*gamm*m*(m*surfaceTensionCoefficient(dist)*dx/(dist+epsilon) + (nx[i]-nx[j]));
-            aijx=-Kij*gamm*m*(m*surfaceTensionCoefficient(dist)*dy/(dist+epsilon) + (ny[i]-ny[j]));
+            aijx=-Kij*gamm*p[i].mass*(p[j].mass*surfaceTensionCoefficient(dist)*dx/(dist+epsilon) + (nx[i]-nx[j]));
+            aijx=-Kij*gamm*p[i].mass*(p[j].mass*surfaceTensionCoefficient(dist)*dy/(dist+epsilon) + (ny[i]-ny[j]));
               
             p[i].ax+=aijx;
             p[i].ay+=aijy;
@@ -590,6 +599,31 @@ void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[])
       }
     }
   }
+}
+
+void rotateRigidBody(Particle_State p[])
+{
+  double gx, gy;
+  double anglarVelocity;
+  int i;
+  gx=0, gy=0;
+  anglarVelocity=2.0*M_PI;
+
+
+  for(i=FLP+BP; i<N; i++){//
+    gx+=p[i].px;
+    gy+=p[i].py;
+  }
+
+#pragma omp parallel for schedule(dynamic,64)  
+  for(i=FLP+BP; i<N; i++){
+    double dx=p[i].px-gx;
+    double dy=p[i].py-gy;
+
+    p[i].px+=(-anglarVelocity*dy)*dt;
+    p[i].py+=(anglarVelocity*dx)*dt;
+  }
+  
 }
 
 void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[])

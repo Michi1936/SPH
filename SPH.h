@@ -6,14 +6,14 @@
 #define dt 2.0e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
-#define nu 0.001 //viscosity coefficient
+#define nu 0.0005 //viscosity coefficient
 #define g 9.8//gravitational constant
 #define gamm 1.0//surface tension coefficient
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 30000//time step
+#define T 20000//time step
 
 
 #define interval 0.1
@@ -63,6 +63,7 @@ double boundaryGamma(Particle_State p1, Particle_State p2);
 void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
 double adhesionCoefficient(Particle_State p1, Particle_State p2);
 void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]);
+void rotateRigidBody(Particle_State p[]);
 void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[]);
 void leapfrogStart(Particle_State p[]);
 void leapfrogStep(Particle_State p[]);
