@@ -611,8 +611,8 @@ void rotateRigidBody(Particle_State p[])
 
 
   for(i=FLP+BP; i<N; i++){//
-    gx+=p[i].px;
-    gy+=p[i].py;
+    gx+=p[i].px/OBP;
+    gy+=p[i].py/OBP;
   }
 
 #pragma omp parallel for schedule(dynamic,64)  
@@ -620,12 +620,13 @@ void rotateRigidBody(Particle_State p[])
     double dx=p[i].px-gx;
     double dy=p[i].py-gy;
 
-    p[i].px+=(-anglarVelocity*dy)*dt;
-    p[i].py+=(anglarVelocity*dx)*dt;
+    p[i].vx+=(-anglarVelocity*dy);
+    p[i].vy+=(anglarVelocity*dx);
   }
   
 }
 
+/*
 void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[])
 {
   int i;
@@ -694,7 +695,57 @@ void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[])
     p[i].py=p[i].prepy+ryDashed[i-FLP-BP];
   }
 }
+*/
 
+void rigidBodyCorrection(Particle_State p[]){
+  double gx, gy;
+  double inertia;
+  double qx[OBP], qy[OBP];
+  double Tx, Ty;
+  double Rot;
+  int i;
+
+  gx=0, gy=0;
+  inertia=0;
+  Tx=0, Ty=0;
+  Rot=0;
+  
+  for (i=FLP+BP; i<N; i++){//calculating center of mass
+    gx+=p[i].px/OBP;
+    gy+=p[i].py/OBP;
+  }
+
+  for (i=FLP+BP; i<N; i++){//calculating vector between center of mass
+    qx[i-FLP-BP]=p[i].px-gx;
+    qy[i-FLP-BP]=p[i].py-gy;
+  }
+
+  for(i=FLP+BP; i<N; i++){//calculating inertia
+    inertia+=p[i].mass*(qx[i-FLP-BP]*qx[i-FLP-BP]+qy[i-FLP-BP]*qy[i-FLP-BP]);
+  }
+
+  for(i=FLP+BP; i<N; i++){//calculating translation velocity
+    Tx+=p[i].vx/OBP;
+    Ty+=p[i].vy/OBP;
+  }
+
+  for(i=FLP+BP; i<N; i++){//calculating anglar velocity
+    Rot+=(p[i].vx*qy[i-FLP-BP]-p[i].vy*qx[i-FLP-BP])/(inertia+epsilon);
+  }
+
+  for(i=FLP+BP; i<N; i++){
+    p[i].vx=Tx+qy[i-FLP-BP]*Rot;
+    p[i].vy=Ty-qx[i-FLP-BP]*Rot;
+  }
+
+  for(i=FLP+BP; i<N; i++){
+    p[i].px=p[i].prepx+p[i].vx*dt;
+    p[i].py=p[i].prepy+p[i].vy*dt;
+  }
+
+
+
+}
 
 void leapfrogStart(Particle_State p[])
 {

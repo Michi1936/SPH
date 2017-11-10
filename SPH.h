@@ -19,7 +19,7 @@
 #define interval 0.1
 
 #define MAX_X 25   
-#define MAX_Y 25
+#define MAX_Y 40
 #define MIN_X -10  
 #define MIN_Y -1
 #define BktNum 1.0/BktLgth
@@ -64,7 +64,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
 double adhesionCoefficient(Particle_State p1, Particle_State p2);
 void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]);
 void rotateRigidBody(Particle_State p[]);
-void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[]);
+void rigidBodyCorrection(Particle_State p[]);
 void leapfrogStart(Particle_State p[]);
 void leapfrogStep(Particle_State p[]);
 

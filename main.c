@@ -153,7 +153,7 @@ int main(void){
   fprintf(paramTxt,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
   fprintf(paramTxt,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
   
-  //calculations for rho0, p0, a0  
+  //
   calcDensity(a, bfst, blst, nxt);
   calcPressure(a);
   initializeAccel(a);
@@ -177,7 +177,8 @@ int main(void){
     }else{
       leapfrogStep(a);
       }
-    rigidBodyCorrection(a, bfst, nxt);
+    
+    rigidBodyCorrection(a);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
     calcDensity(a, bfst, blst, nxt);
