@@ -43,7 +43,10 @@ for x in range(size[0]):
         if (r,g,b)==(255,127,127):
             f.write(s)
             iOBP=iOBP+1
-            
+f.close()
+
+s2="//%s\n"%(fileName)
+f2.write(s2)
 s2="#define FLP %d \n"%(iFLP)
 f2.write(s2)
 s2="#define BP %d \n"%(iBP)
@@ -52,5 +55,4 @@ s2="#define OBP %d \n"%(iOBP)
 f2.write(s2)
 s2="#define N %d \n"%(iFLP+iBP+iOBP)
 f2.write(s2)
-f.close()
 f2.close()

@@ -4,7 +4,7 @@
 #include<stdlib.h>
 #include<math.h>
 #include<time.h>
-
+#include <string.h>
 
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
@@ -102,22 +102,51 @@ int main(void){
   int countPer=0;
   int i;
   clock_t start, end;
-  start=clock();
-  FILE *data;
+  //  FILE *data;
   FILE *plot;
-  FILE *paramTxt;
+  FILE *parameters;
   FILE *tip;
-  
-  data=fopen("sample.dat", "w");
-  paramTxt=fopen("parameters.dat","w");
-  tip=fopen("tip.dat", "w");
-  plot=fopen("plot.dat","w");
+  FILE *numbers;
+  FILE *CoM;
+  char srcName[30];
+  char fName[30];
+  char temp;
 
-  if(data==NULL){
-    printf("File opening was failed.\n");
+  start=clock();  
+
+  numbers=fopen("numbers.h","r");
+  if(numbers==NULL){
+    printf("Error!\n");
     return -1;
   }
-  if(paramTxt==NULL){
+  i=0;
+
+  while((temp=fgetc(numbers))!=EOF){
+    if(temp=='.'){
+      break;
+    }
+    if(i>1){
+      srcName[i-2]=temp;
+    }
+    i++;
+  }
+
+  sprintf(fName,"%s_plot.dat",srcName);
+  plot=fopen("plot.dat","w");
+  sprintf(fName,"%s_parameters.dat",srcName);
+  parameters=fopen("parameters.dat","w");
+  sprintf(fName,"%s_tip.dat",srcName);
+  tip=fopen("tip.dat","w");
+  sprintf(fName,"%s_CoM.dat",srcName);
+  CoM=fopen("CoM.dat","w");
+
+
+  /*  if(data==NULL){
+    printf("File opening was failed.\n");
+    return -1;
+    }*/
+
+  if(parameters==NULL){
     printf("File opening was failed.\n");
     return -1;
   }
@@ -150,8 +179,8 @@ int main(void){
   fprintf(stderr,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
   fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
     
-  fprintf(paramTxt,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
-  fprintf(paramTxt,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
+  fprintf(parameters,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
+  fprintf(parameters,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
   
   //
   calcDensity(a, bfst, blst, nxt);
@@ -161,7 +190,7 @@ int main(void){
   calcAccelByViscosity(a,bfst,blst, nxt);
   calcAccelByExternalForces(a,bfst, blst, nxt);
   //calcAccelBySurfaceTension(a, bfst, blst, nxt);
-  rotateRigidBody(a);
+  //  rotateRigidBody(a);
   calcAccelByBoundaryForce(a, bfst, nxt);
   //calcAccelByAdhesion(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
@@ -204,10 +233,11 @@ int main(void){
   free(bfst);
   free(blst);
   free(nxt);
-  fclose(data);
-  fclose(paramTxt);
-  fclose(tip);
+  //  fclose(data);
   fclose(plot);
+  fclose(parameters);
+  fclose(tip);
+  fclose(CoM);
   end=clock();
   fprintf(stderr,"Processor time: %fs\n", (double)(end-start)/CLOCKS_PER_SEC);
   return  0;
