@@ -1,6 +1,8 @@
 #ifndef _SPH_H_
 #define _SPH_H_
 
+#include <stdio.h>
+
 #define h 0.1//smoothing length
 #define k1 1.0 //pressure constant
 #define dt 2.0e-4//time step size
@@ -13,15 +15,15 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 20000//time step
+#define T 10000//time step
 
 
 #define interval 0.1
 
-#define MAX_X 25   
-#define MAX_Y 40
+#define MAX_X 30
+#define MAX_Y 50
 #define MIN_X -10  
-#define MIN_Y -1
+#define MIN_Y -10
 #define BktNum 1.0/BktLgth
 #define BktLgth 0.3
 #define nBx ((int)((MAX_X-MIN_X)/BktLgth)+2 )
@@ -64,7 +66,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
 double adhesionCoefficient(Particle_State p1, Particle_State p2);
 void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]);
 void rotateRigidBody(Particle_State p[]);
-void rigidBodyCorrection(Particle_State p[]);
+void rigidBodyCorrection(Particle_State p[], FILE *fp);
 void leapfrogStart(Particle_State p[]);
 void leapfrogStep(Particle_State p[]);
 
@@ -80,4 +82,11 @@ void freeBucket(int *bfst, int *blst, int*nxt);
 double gradSpikey(Particle_State p1, Particle_State p2, int axis);
 double poly6(Particle_State p1, Particle_State p2);
 
+void printParticles(Particle_State p[], FILE *fp);
+void percentage(int time, int *countPer);
+void printBoundaryParticles(Particle_State p[], FILE *fp);
+void printFluidParticles(Particle_State p[], FILE *fp);
+void printObstacleParticles(Particle_State p[], FILE *fp);
+void tipPosition(Particle_State p[], int time, FILE *tip);
+void makePltFile(char *srcName, double angVel);
 #endif //_SPH

@@ -1,8 +1,8 @@
-#include"SPH.h"
-#include"numbers.h"
 #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
+#include"SPH.h"
+#include"numbers.h"
 
 //Monaghan(2005) cubic spline is used 
 double cubicSpline1(double q)//cubic spline for 0<=q<=1
@@ -697,7 +697,7 @@ void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[])
 }
 */
 
-void rigidBodyCorrection(Particle_State p[]){
+void rigidBodyCorrection(Particle_State p[], FILE *fp){
   double gx, gy;
   double inertia;
   double qx[OBP], qy[OBP];
@@ -743,7 +743,15 @@ void rigidBodyCorrection(Particle_State p[]){
     p[i].py=p[i].prepy+p[i].vy*dt;
   }
 
+  gx=0;
+  gy=0;
 
+  for (i=FLP+BP; i<N; i++){//calculating center of mass
+    gx+=p[i].px/OBP;
+    gy+=p[i].py/OBP;
+  }
+
+  fprintf(fp, "%f %f\n", gx, gy);
 
 }
 
@@ -760,16 +768,16 @@ void leapfrogStart(Particle_State p[])
     p[i].py+=p[i].vyh*dt;
   }
 
-  for(i=FLP+BP; i<N; i++){
-    p[i].vxh=p[i].vx+p[i].ax*dt/2.0;
-    p[i].vyh=p[i].vy+p[i].ay*dt/2.0;
-    p[i].vx+=p[i].ax*dt;
-    p[i].vy+=p[i].ay*dt;
-    p[i].prepx=p[i].px;
-    p[i].prepy=p[i].py;
-    p[i].px+=p[i].vxh*dt;
-    p[i].py+=p[i].vyh*dt;
-  }
+    for(i=FLP+BP; i<N; i++){
+      p[i].vxh=p[i].vx+p[i].ax*dt/2.0;
+      p[i].vyh=p[i].vy+p[i].ay*dt/2.0;
+      p[i].vx+=p[i].ax*dt;
+      p[i].vy+=p[i].ay*dt;
+      p[i].prepx=p[i].px;
+      p[i].prepy=p[i].py;
+      p[i].px+=p[i].vxh*dt;
+      p[i].py+=p[i].vyh*dt;
+    }
 }
 
 void leapfrogStep(Particle_State p[])
@@ -809,5 +817,6 @@ void leapfrogStep(Particle_State p[])
     p[i].py+=p[i].vyh*dt;
     //  fprintf(stderr, "%f %f \n", p[i].px, p[i].py);
   }
+
 }
 

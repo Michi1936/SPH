@@ -1,101 +1,14 @@
-#include"SPH.h"
-#include"numbers.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
 #include<time.h>
 #include <string.h>
-
-void printParticles(Particle_State p[], FILE *fp);
-void percentage(int time, int *countPer);
-void printBoundaryParticles(Particle_State p[], FILE *fp);
-void printFluidParticles(Particle_State p[], FILE *fp);
-void printObstacleParticles(Particle_State p[], FILE *fp);
-void tipPosition(Particle_State p[], int time, FILE *tip);
-
-void printParticles(Particle_State p[], FILE *fp)
-{
-  int i;
-  for(i=0; i<FLP; i++){ 
-    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
-            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
-            p[i].rho, p[i].p, p[i].ax, p[i].ay);
-  }
-  fprintf(fp, "\n\n");
-  for(i=FLP; i<FLP+BP; i++){ 
-    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
-            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
-            p[i].rho, p[i].p, p[i].ax, p[i].ay);
-  }
-  for(i=FLP+BP; i<N; i++){ 
-    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
-            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
-            p[i].rho, p[i].p, p[i].ax, p[i].ay);
-  }
-  fprintf(fp,"\n\n");
-}
+#include"SPH.h"
+#include"numbers.h"
 
 
-void printFluidParticles(Particle_State p[], FILE *fp)
-{
-  int i;
 
-  for(i=0; i<FLP; i++){ 
-    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
-            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
-            p[i].rho, p[i].p, p[i].ax, p[i].ay);
-  }
-  fprintf(fp, "\n\n");
-
-}
-
-void printBoundaryParticles(Particle_State p[], FILE *fp)
-{
-  int i;
-  for(i=FLP; i<FLP+BP; i++){ 
-    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
-            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
-            p[i].rho, p[i].p, p[i].ax, p[i].ay);
-  }
-  fprintf(fp,"\n\n");
-}
-
-
-void printObstacleParticles(Particle_State p[], FILE *fp)
-{
-  int i;
-  for(i=FLP+BP; i<N; i++){ 
-    fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
-            p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
-            p[i].rho, p[i].p, p[i].ax, p[i].ay);
-  }
-  fprintf(fp,"\n\n");
-}
-
-void percentage(int time, int *countPer)
-{
-  double per;
-  per = time/(double)T;
-  per=(int)(per*100);
-  if(per==*countPer){
-    fprintf(stderr,"%d ", (int)per);
-    *countPer=*countPer+1;
-  }
-}
-
-void tipPosition(Particle_State p[], int time, FILE *tip)
-{
-  double max=0;
-  int i;
-  for(i=0; i<FLP; i++){
-    if(p[i].px>max){
-      max=p[i].px;
-    }
-  }
-  fprintf(tip, "%f %f %f %f\n", dt*time, max-0.3, (dt*time)*sqrt(2.0*g/4.0), ((max-0.3)/4.0));
-}
-
-int main(void){
+int main(int argc, char *argv[]){
     
   Particle_State a[N];
   int *bfst, *blst, *nxt;
@@ -108,9 +21,11 @@ int main(void){
   FILE *tip;
   FILE *numbers;
   FILE *CoM;
-  char srcName[30];
-  char fName[30];
-  char temp;
+  char srcName[64];
+  char fName[64];
+  char temp[64];
+
+  double angVel=0;
 
   start=clock();  
 
@@ -121,24 +36,36 @@ int main(void){
   }
   i=0;
 
-  while((temp=fgetc(numbers))!=EOF){
-    if(temp=='.'){
+  fgets(temp, 100, numbers);
+  int charcount=0;
+  for(i=0; i<100; i++){
+    if(temp[i]=='.' && temp[i+1]=='p' && temp[i+2]=='n' && temp[i+3]=='g'){
       break;
     }
-    if(i>1){
-      srcName[i-2]=temp;
+    if(temp[i]=='/'){
+      printf("skipped");
+      continue;
     }
-    i++;
+    if(temp[i]=='.'){
+      printf(". skipped\n");
+continue;}
+    srcName[charcount]=temp[i];
+    charcount++;
   }
 
-  sprintf(fName,"%s_plot.dat",srcName);
-  plot=fopen("plot.dat","w");
-  sprintf(fName,"%s_parameters.dat",srcName);
-  parameters=fopen("parameters.dat","w");
-  sprintf(fName,"%s_tip.dat",srcName);
-  tip=fopen("tip.dat","w");
-  sprintf(fName,"%s_CoM.dat",srcName);
-  CoM=fopen("CoM.dat","w");
+  printf("%s.png\n",srcName);
+  if(argc==2){
+    angVel=atof(argv[1]);
+  }
+
+  sprintf(fName,"%f_%s_plot.dat",angVel,srcName);
+  plot=fopen(fName,"w");
+  sprintf(fName,"%f_%s_parameters.dat",angVel,srcName);
+  parameters=fopen(fName,"w");
+  sprintf(fName,"%f_%s_tip.dat",angVel,srcName);
+  tip=fopen(fName,"w");
+  sprintf(fName,"%f_%s_CoM.dat",angVel,srcName);
+  CoM=fopen(fName,"w");
 
 
   /*  if(data==NULL){
@@ -158,8 +85,11 @@ int main(void){
     printf("File opening was failed.\n");
     return -1;
   }
-
-
+  if(CoM==NULL){
+    printf("File opening was failed. \n");
+    return -1;
+  }
+  
   initialization(a, N);
   fprintf(stderr,"check initialization\n");
   fluidParticles(a);
@@ -178,7 +108,9 @@ int main(void){
   
   fprintf(stderr,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
   fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
-    
+
+  fprintf(parameters,"Source Image %s.png\n",srcName);
+  fprintf(parameters,"Anglar Velocity %f\n", angVel);
   fprintf(parameters,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
   fprintf(parameters,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
   
@@ -207,7 +139,7 @@ int main(void){
       leapfrogStep(a);
       }
     
-    rigidBodyCorrection(a);
+    rigidBodyCorrection(a, CoM);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
     calcDensity(a, bfst, blst, nxt);
@@ -230,6 +162,8 @@ int main(void){
   }
 
   fprintf(stderr,"\n");
+
+  makePltFile(srcName, angVel);
   free(bfst);
   free(blst);
   free(nxt);
@@ -238,6 +172,7 @@ int main(void){
   fclose(parameters);
   fclose(tip);
   fclose(CoM);
+
   end=clock();
   fprintf(stderr,"Processor time: %fs\n", (double)(end-start)/CLOCKS_PER_SEC);
   return  0;
