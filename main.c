@@ -48,7 +48,7 @@ int main(int argc, char *argv[]){
     }
     if(temp[i]=='.'){
       printf(". skipped\n");
-continue;}
+      continue;}
     srcName[charcount]=temp[i];
     charcount++;
   }
@@ -122,7 +122,7 @@ continue;}
   calcAccelByViscosity(a,bfst,blst, nxt);
   calcAccelByExternalForces(a,bfst, blst, nxt);
   //calcAccelBySurfaceTension(a, bfst, blst, nxt);
-  //  rotateRigidBody(a);
+  //  rotateRigidBody(a, angVel);
   calcAccelByBoundaryForce(a, bfst, nxt);
   //calcAccelByAdhesion(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0

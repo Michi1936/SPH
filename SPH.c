@@ -601,13 +601,13 @@ void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[])
   }
 }
 
-void rotateRigidBody(Particle_State p[])
+void rotateRigidBody(Particle_State p[], double angVel)
 {
   double gx, gy;
   double anglarVelocity;
   int i;
   gx=0, gy=0;
-  anglarVelocity=2.0*M_PI;
+  anglarVelocity=angVel;
 
 
   for(i=FLP+BP; i<N; i++){//

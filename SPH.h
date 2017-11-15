@@ -65,7 +65,7 @@ double boundaryGamma(Particle_State p1, Particle_State p2);
 void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
 double adhesionCoefficient(Particle_State p1, Particle_State p2);
 void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]);
-void rotateRigidBody(Particle_State p[]);
+void rotateRigidBody(Particle_State p[], double angVel);
 void rigidBodyCorrection(Particle_State p[], FILE *fp);
 void leapfrogStart(Particle_State p[]);
 void leapfrogStep(Particle_State p[]);
