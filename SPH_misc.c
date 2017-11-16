@@ -96,11 +96,13 @@ void makePltFile(char *srcName, double angVel){
   plt=fopen("rigid_anime.plt","w");
   sprintf(fName, "%f_%s_plot.dat",angVel, srcName);
 
-  sprintf(line,"set xrange[-1:%f]\n",XSIZE*interval);
+  sprintf(line,"set xrange[-1:%f]\n",(XSIZE+10)*interval);
   fprintf(plt,"%s",line);
-  sprintf(line,"set yrange[-1:%f]\n",YSIZE*interval);
+  sprintf(line,"set yrange[-1:%f]\n",(YSIZE+10)*interval);
   fprintf(plt,"%s",line);
-  sprintf(line,"do for[i=1:t:2]{\nprint i\n");
+  sprintf(line,"set size ratio %f 1.0\n",(double)((YSIZE+20)/(XSIZE+20)));
+  fprintf(plt,"%s",line);
+  sprintf(line,"do for[i=1:t:2]{\n");
   fprintf(plt,"%s",line);
   sprintf(line,"plot '%s' index 0 u 2:3 w p lt 5, '%s' index i u 2:3 w p lt 7, '%s' index i+1 u 2:3 w p lt 10\n", fName, fName, fName);
   fprintf(plt,"%s",line);

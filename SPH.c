@@ -607,10 +607,9 @@ void rotateRigidBody(Particle_State p[], double angVel)
   double anglarVelocity;
   int i;
   gx=0, gy=0;
-  anglarVelocity=angVel;
 
 
-  for(i=FLP+BP; i<N; i++){//
+  for(i=FLP+BP; i<N; i++){//calculating center of mass
     gx+=p[i].px/OBP;
     gy+=p[i].py/OBP;
   }
@@ -620,8 +619,8 @@ void rotateRigidBody(Particle_State p[], double angVel)
     double dx=p[i].px-gx;
     double dy=p[i].py-gy;
 
-    p[i].vx+=(-anglarVelocity*dy);
-    p[i].vy+=(anglarVelocity*dx);
+    p[i].vx+=(-angVel*dy);
+    p[i].vy+=(angVel*dx);
   }
   
 }

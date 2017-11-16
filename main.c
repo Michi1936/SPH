@@ -105,7 +105,8 @@ int main(int argc, char *argv[]){
   
   makeBucket(bfst, blst, nxt, a);
   fprintf(stderr,"check makeBucket\n");
-  
+
+  fprintf(stderr,"Parameters:\nanglalrVelocity:%f\n", angVel);
   fprintf(stderr,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
   fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
 
@@ -122,14 +123,14 @@ int main(int argc, char *argv[]){
   calcAccelByViscosity(a,bfst,blst, nxt);
   calcAccelByExternalForces(a,bfst, blst, nxt);
   //calcAccelBySurfaceTension(a, bfst, blst, nxt);
-  //  rotateRigidBody(a, angVel);
+  rotateRigidBody(a, angVel);
   calcAccelByBoundaryForce(a, bfst, nxt);
   //calcAccelByAdhesion(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
   printBoundaryParticles(a, plot);
   printFluidParticles(a, plot);
   printObstacleParticles(a, plot);
-  tipPosition(a, 0, tip);
+  //tipPosition(a, 0, tip);
 
   //time development
   for(i=1; i<=T; i++){
