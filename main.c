@@ -120,7 +120,7 @@ int main(int argc, char *argv[]){
   calcPressure(a);
   initializeAccel(a);
   calcAccelByPressure(a,bfst,blst, nxt);
-  calcAccelByViscosity(a,bfst,blst, nxt);
+  calcAccelByViscosity(a,bfst,blst, nxt,0);
   calcAccelByExternalForces(a,bfst, blst, nxt);
   //calcAccelBySurfaceTension(a, bfst, blst, nxt);
   rotateRigidBody(a, angVel);
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]){
     calcPressure(a);
     initializeAccel(a);
     calcAccelByPressure(a,bfst,blst, nxt);
-    calcAccelByViscosity(a,bfst,blst, nxt);
+    calcAccelByViscosity(a,bfst,blst, nxt,i);
     calcAccelByExternalForces(a,bfst, blst, nxt);
     //calcAccelBySurfaceTension(a, bfst, blst, nxt);
     calcAccelByBoundaryForce(a, bfst, nxt);

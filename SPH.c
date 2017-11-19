@@ -314,7 +314,7 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[])
 }
 
 
-void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[])
+void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[], int time)
     //Muller(2005) Weakly compressible SPH for free surface flow model is used.
 {
   int i;
@@ -343,7 +343,9 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[])
             double dist = dx*dx+dy*dy;
             viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
             viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
-
+	    if(time<10000){
+	      viscCoef=viscCoef*20.0;
+	    }
             if(dot<0){
               aijx = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);
               aijy = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 1);

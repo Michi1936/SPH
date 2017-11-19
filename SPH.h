@@ -9,7 +9,7 @@
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define nu 0.0005 //viscosity coefficient
-#define g 0.0//gravitational constant
+#define g 9.8//gravitational constant
 #define gamm 1.0//surface tension coefficient
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
 #define cs 88.5
@@ -58,7 +58,7 @@ void calcPressure(Particle_State p[]);
 void initializeAccel(Particle_State p[]);
 void calcAccelByExternalForces(Particle_State p[], int bfst[], int blst[], int nxt[]);
 void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[]);
-void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[]);
+void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[], int time);
 double surfaceTensionCoefficient(double r);
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int nxt[]);
 double boundaryGamma(Particle_State p1, Particle_State p2);
