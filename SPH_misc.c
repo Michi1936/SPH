@@ -104,6 +104,8 @@ void makePltFile(char *srcName, double angVel){
   fprintf(plt,"%s",line);
   sprintf(line,"do for[i=1:t:2]{\n");
   fprintf(plt,"%s",line);
+  sprintf(line,"print i\n");
+  fprintf(plt,"%s",line);
   sprintf(line,"plot '%s' index 0 u 2:3 w p lt 5, '%s' index i u 2:3 w p lt 7, '%s' index i+1 u 2:3 w p lt 10\n", fName, fName, fName);
   fprintf(plt,"%s",line);
   sprintf(line,"}\n");

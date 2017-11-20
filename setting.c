@@ -40,7 +40,7 @@ int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt
 
   while((ret=fscanf(fp, "%d %d %d %d %d", &px, &py, &r, &gr, &b))!=EOF){
       p[i].px=(px+1)*interval;
-      p[i].py=(py+1)*0.088;
+      p[i].py=(py+1)*0.084;
       p[i].vy=(gr-127)*0.2;
       i++;
   }
@@ -86,6 +86,7 @@ int obstacleBoundaryParticles(Particle_State p[])
   while((ret = fscanf(fp, "%d %d %*d %*d %*d", &px, &py))!=EOF){
     p[i].px=(px+1)*interval;
     p[i].py=(py+1)*interval;
+    p[i].mass=2.0*m;
     i++;
   }
   

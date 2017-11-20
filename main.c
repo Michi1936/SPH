@@ -115,6 +115,7 @@ int main(int argc, char *argv[]){
   fprintf(parameters,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
   fprintf(parameters,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
   
+  rotateRigidBody(a, angVel);
   //
   calcDensity(a, bfst, blst, nxt);
   calcPressure(a);
@@ -123,7 +124,6 @@ int main(int argc, char *argv[]){
   calcAccelByViscosity(a,bfst,blst, nxt,0);
   calcAccelByExternalForces(a,bfst, blst, nxt);
   //calcAccelBySurfaceTension(a, bfst, blst, nxt);
-  rotateRigidBody(a, angVel);
   calcAccelByBoundaryForce(a, bfst, nxt);
   //calcAccelByAdhesion(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
@@ -136,6 +136,7 @@ int main(int argc, char *argv[]){
   for(i=1; i<=T; i++){
     if(i==1){
       leapfrogStart(a);
+
     }else{
       leapfrogStep(a);
       }
