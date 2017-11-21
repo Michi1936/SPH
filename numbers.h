@@ -1,7 +1,7 @@
-//rigid11.png
-#define FLP 196 
-#define BP 456 
-#define OBP 170 
-#define N 822 
-#define XSIZE 100
-#define YSIZE 100
+//rigid7.png
+#define FLP 12816 
+#define BP 1014 
+#define OBP 80 
+#define N 13910 
+#define XSIZE 150
+#define YSIZE 150

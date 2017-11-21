@@ -84,9 +84,9 @@ int obstacleBoundaryParticles(Particle_State p[])
   }
 
   while((ret = fscanf(fp, "%d %d %*d %*d %*d", &px, &py))!=EOF){
-    p[i].px=(px+1)*interval;
-    p[i].py=(py+1)*interval;
-    p[i].mass=2.0*m;
+    p[i].px=(px+1)*(interval);
+    p[i].py=(py+1)*(interval);
+
     i++;
   }
   

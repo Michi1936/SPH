@@ -207,6 +207,7 @@ void calcPressure(Particle_State p[])
   for(i=0; i<N; i++){
     p[i].p=0;
   }
+  
 #pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<FLP+BP; i++){
     p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
@@ -226,6 +227,7 @@ void calcPressure(Particle_State p[])
 
 
 }
+
 void initializeAccel(Particle_State p[])
 {
   int i;
@@ -298,14 +300,6 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[])
           int j = bfst[jb];
           if(j==-1)continue;
           for(;;){
-            //fprintf(stderr, "%d \n", j);
-	    /*            if(FLP+BP<j){
-              j = nxt[j];
-              if(j==-1){
-                break;
-              }
-              continue;
-	      }*/
 
             double aijx=0;
             double aijy=0;
@@ -327,6 +321,7 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[],
     //Muller(2005) Weakly compressible SPH for free surface flow model is used.
 {
   int i;
+  int threshold=5000;
 #pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<FLP; i++){
     if(p[i].inRegion==1){
@@ -352,7 +347,7 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[],
             double dist = dx*dx+dy*dy;
             viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
             viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
-	    if(time<8000){
+	    if(time<threshold){
 	      viscCoef=viscCoef*20.0;
 	    }
             if(dot<0){
@@ -387,14 +382,6 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[],
           //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
           if(j==-1)continue;
           for(;;){
-	    /*   if(FLP+BP<j){
-              j = nxt[j];
-              if(j==-1){
-                break;
-              }
-              continue;
-	      }*/
-
             double aijx, aijy;
             aijx=0, aijy=0;
             double viscCoef=0;
@@ -406,6 +393,9 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[],
             double dist = dx*dx+dy*dy;
             viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
             viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
+	    if(time<threshold){
+	      viscCoef=viscCoef*20.0;
+	    }
 
             if(dot<0){
               aijx = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);
@@ -609,7 +599,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
           if(j==-1)continue;
           for(;;){
             //fprintf(stderr, "%d \n", j);
-            if(j<FLP || FLP+BP<j){
+            if(j<FLP ){
               j = nxt[j];
               if(j==-1){
                 break;
@@ -765,7 +755,7 @@ void rotateRigidBody(Particle_State p[], double angVel)
 }
 
 /*
-void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[])
+void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[], FILE *fp)
 {
   int i;
   double rgx[2], rgy[2];
@@ -847,6 +837,11 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp){
   inertia=0;
   Tx=0, Ty=0;
   Rot=0;
+
+  for(i=0; i<OBP; i++){
+    qx[i]=0;
+    qy[0]=0;
+  }
   
   for (i=FLP+BP; i<N; i++){//calculating center of mass
     gx+=p[i].px/OBP;
@@ -870,13 +865,18 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp){
   for(i=FLP+BP; i<N; i++){//calculating anglar velocity
     Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vy-qy[i-FLP-BP]*p[i].vx)/(inertia+epsilon);
   }
+  for(i=FLP+BP; i<N; i++){
+    //    fprintf(stderr,"%d gx:%f gy:%f %f %f Tx:%f Ty:%f Rot:%f vx:%f vy:%f\n",i, gx, gy,qx[i-FLP-BP], qy[i-FLP-BP], Tx, Ty, Rot, p[i].vx, p[i].vy);
+  }
 
   for(i=FLP+BP; i<N; i++){
     p[i].vx=Tx-Rot*qy[i-FLP-BP];
     p[i].vy=Ty+Rot*qx[i-FLP-BP];
   }
-
   for(i=FLP+BP; i<N; i++){
+    //    fprintf(stderr,"%d gx:%f gy:%f %f %f Tx:%f Ty:%f Rot:%f vx:%f vy:%f\n",i, gx, gy,qx[i-FLP-BP], qy[i-FLP-BP], Tx, Ty, Rot, p[i].vx, p[i].vy);
+  }
+   for(i=FLP+BP; i<N; i++){
     p[i].px=p[i].prepx+p[i].vx*dt;
     p[i].py=p[i].prepy+p[i].vy*dt;
   }
