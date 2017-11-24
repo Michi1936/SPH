@@ -20,7 +20,7 @@ int main(int argc, char *argv[]){
   FILE *parameters;
   FILE *tip;
   FILE *numbers;
-  FILE *CoM;
+  FILE *rigidBody;
   char srcName[64];
   char fName[64];
   char temp[64];
@@ -64,8 +64,8 @@ int main(int argc, char *argv[]){
   parameters=fopen(fName,"w");
   sprintf(fName,"%f_%s_tip.dat",angVel,srcName);
   tip=fopen(fName,"w");
-  sprintf(fName,"%f_%s_CoM.dat",angVel,srcName);
-  CoM=fopen(fName,"w");
+  sprintf(fName,"%f_%s_rigidBody.dat",angVel,srcName);
+  rigidBody=fopen(fName,"w");
 
 
   /*  if(data==NULL){
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]){
     printf("File opening was failed.\n");
     return -1;
   }
-  if(CoM==NULL){
+  if(rigidBody==NULL){
     printf("File opening was failed. \n");
     return -1;
   }
@@ -117,21 +117,20 @@ int main(int argc, char *argv[]){
   
   rotateRigidBody(a, angVel);
   //
-  calcDensity(a, bfst, blst, nxt);
+  calcDensity(a, bfst, nxt);
   calcPressure(a);
   initializeAccel(a);
-  calcAccelByPressure(a,bfst,blst, nxt);
-  calcAccelByViscosity(a,bfst,blst, nxt,0);
-  calcAccelByExternalForces(a,bfst, blst, nxt);
-  //calcAccelBySurfaceTension(a, bfst, blst, nxt);
+  calcAccelByExternalForces(a);
+  calcAccelByPressure(a,bfst, nxt);
+  calcAccelByViscosity(a,bfst, nxt,0);
   calcAccelByBoundaryForce(a, bfst, nxt);
+  //calcAccelBySurfaceTension(a, bfst nxt);  
   //calcAccelByAdhesion(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
   printBoundaryParticles(a, plot);
   printFluidParticles(a, plot);
   printObstacleParticles(a, plot);
-  //tipPosition(a, 0, tip);
-
+  
   //time development
   for(i=1; i<=T; i++){
     if(i==1){
@@ -141,24 +140,24 @@ int main(int argc, char *argv[]){
       leapfrogStep(a);
       }
     
-    rigidBodyCorrection(a, CoM);
+    rigidBodyCorrection(a, rigidBody, i);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
-    calcDensity(a, bfst, blst, nxt);
+    calcDensity(a, bfst, nxt);
     calcPressure(a);
     initializeAccel(a);
-    calcAccelByPressure(a,bfst,blst, nxt);
-    calcAccelByViscosity(a,bfst,blst, nxt,i);
-    calcAccelByExternalForces(a,bfst, blst, nxt);
-    //calcAccelBySurfaceTension(a, bfst, blst, nxt);
+    calcAccelByExternalForces(a);
+    calcAccelByPressure(a,bfst, nxt);
+    calcAccelByViscosity(a,bfst, nxt,i);
+
+    //calcAccelBySurfaceTension(a, bfst, nxt);
     calcAccelByBoundaryForce(a, bfst, nxt);
     //calcAccelByAdhesion(a, bfst, nxt);
     //printParticles(a,data);
-    tipPosition(a, i, tip);
     if(i%100==0){
-    printFluidParticles(a, plot);//here show paremeters at t=(i*dt)
-    printObstacleParticles(a, plot);
-    // fprintf(stderr,"%d printed\n", i);
+      printFluidParticles(a, plot);//here show paremeters at t=(i*dt)
+      printObstacleParticles(a, plot);
+      // fprintf(stderr,"%d printed\n", i);
     }
     percentage(i, &countPer);
   }
@@ -173,7 +172,7 @@ int main(int argc, char *argv[]){
   fclose(plot);
   fclose(parameters);
   fclose(tip);
-  fclose(CoM);
+  fclose(rigidBody);
 
   end=clock();
   fprintf(stderr,"Processor time: %fs\n", (double)(end-start)/CLOCKS_PER_SEC);

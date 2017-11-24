@@ -31,7 +31,7 @@ int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt
 {
   FILE *fp;
   int i=0;
-  int ret, count=0, px, py, r, gr, b;
+  int ret, px, py, r, gr, b;
   fp=fopen("fluid.txt","r");
   if(fp==NULL){
     printf("fluid.txt cannot be read.");
@@ -40,8 +40,7 @@ int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt
 
   while((ret=fscanf(fp, "%d %d %d %d %d", &px, &py, &r, &gr, &b))!=EOF){
       p[i].px=(px+1)*interval;
-      p[i].py=(py+1)*0.084;
-      p[i].vy=(gr-127)*0.2;
+      p[i].py=(py+1)*interval;
       i++;
   }
   
@@ -54,7 +53,7 @@ int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt
 int wallParticles(Particle_State p[]){
   FILE *fp;
   int i=FLP;
-  int ret, count=0, px,py;
+  int ret, px,py;
   fp=fopen("wall.txt","r");
   if(fp==NULL){
     printf("wall.txt cannot be read.");
@@ -66,7 +65,6 @@ int wallParticles(Particle_State p[]){
     i++;
   }
   
-  fprintf(stderr,"%d\n", count);
   fclose(fp);
   return 0;
 }
@@ -76,7 +74,7 @@ int obstacleBoundaryParticles(Particle_State p[])
 {
   FILE *fp;
   int i=FLP+BP;
-  int ret, count=0, px,py;
+  int ret, px,py;
   fp=fopen("obstacle.txt","r");
   if(fp==NULL){
     printf("obstacle.txt cannot be read.");
@@ -86,11 +84,9 @@ int obstacleBoundaryParticles(Particle_State p[])
   while((ret = fscanf(fp, "%d %d %*d %*d %*d", &px, &py))!=EOF){
     p[i].px=(px+1)*(interval);
     p[i].py=(py+1)*(interval);
-
     i++;
   }
   
-  fprintf(stderr,"%d\n", count);
   fclose(fp);
   return 0;
 }

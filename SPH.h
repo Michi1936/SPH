@@ -5,7 +5,7 @@
 
 #define h 0.1//smoothing length
 #define k1 1.0 //pressure constant
-#define dt 2.0e-4//time step size
+#define dt 1.0e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define nu 0.0005 //viscosity coefficient
@@ -21,11 +21,11 @@
 #define interval 0.1
 
 #define MAX_X 30
-#define MAX_Y 50
-#define MIN_X -10  
-#define MIN_Y -10
-#define BktNum 1.0/BktLgth
+#define MAX_Y 30
+#define MIN_X -5  
+#define MIN_Y -5
 #define BktLgth 0.3
+#define BktNum 1.0/BktLgth
 #define nBx ((int)((MAX_X-MIN_X)/BktLgth)+2 )
 #define nBy ((int)((MAX_Y-MIN_Y)/BktLgth)+2 )
 #define nBxy (nBx*nBy)
@@ -53,20 +53,20 @@ double cubicSpline2(double q);
 double kernel(Particle_State p1, Particle_State p2);
 double gradKernel(Particle_State p1, Particle_State p2, int x_or_y);
 double Laplacian(Particle_State p1, Particle_State p2);
-void calcDensity(Particle_State p[], int bfst[], int blst[], int nxt[]);
+void calcDensity(Particle_State p[], int bfst[], int nxt[]);
 void calcPressure(Particle_State p[]);
 void initializeAccel(Particle_State p[]);
-void calcAccelByExternalForces(Particle_State p[], int bfst[], int blst[], int nxt[]);
-void calcAccelByPressure(Particle_State p[], int bfst[], int blst[], int nxt[]);
-void calcAccelByViscosity(Particle_State p[], int bfst[], int blst[], int nxt[], int time);
+void calcAccelByExternalForces(Particle_State p[]);
+void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[]);
+void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time);
 double surfaceTensionCoefficient(double r);
-void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int blst[], int nxt[]);
+void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[]);
 double boundaryGamma(Particle_State p1, Particle_State p2);
 void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
 double adhesionCoefficient(Particle_State p1, Particle_State p2);
 void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]);
 void rotateRigidBody(Particle_State p[], double angVel);
-void rigidBodyCorrection(Particle_State p[], FILE *fp);
+void rigidBodyCorrection(Particle_State p[], FILE *fp, int time);
 void leapfrogStart(Particle_State p[]);
 void leapfrogStep(Particle_State p[]);
 
