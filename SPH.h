@@ -5,7 +5,7 @@
 
 #define h 0.1//smoothing length
 #define k1 1.0 //pressure constant
-#define dt 1.0e-4//time step size
+#define dt 2.0e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define nu 0.0005 //viscosity coefficient

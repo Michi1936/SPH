@@ -149,12 +149,11 @@ int main(int argc, char *argv[]){
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-
-    //calcAccelBySurfaceTension(a, bfst, nxt);
     calcAccelByBoundaryForce(a, bfst, nxt);
+    //calcAccelBySurfaceTension(a, bfst, nxt);
     //calcAccelByAdhesion(a, bfst, nxt);
     //printParticles(a,data);
-    if(i%100==0){
+    if(i%50==0){
       printFluidParticles(a, plot);//here show paremeters at t=(i*dt)
       printObstacleParticles(a, plot);
       // fprintf(stderr,"%d printed\n", i);

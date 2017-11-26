@@ -880,9 +880,9 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time){
     gx+=p[i].px/OBP;
     gy+=p[i].py/OBP;
   }
-
+  if(time%50==0){
   fprintf(fp, "%f %f %f %f %f %f %f\n", (double)(time*dt), gx, gy, Tx, Ty, Rot, inertia);
-
+  }
 }
 
 void leapfrogStart(Particle_State p[])
