@@ -123,7 +123,7 @@ int main(int argc, char *argv[]){
   calcAccelByExternalForces(a);
   calcAccelByPressure(a,bfst, nxt);
   calcAccelByViscosity(a,bfst, nxt,0);
-  calcAccelByBoundaryForce(a, bfst, nxt);
+   calcAccelByBoundaryForce(a, bfst, nxt);
   //calcAccelBySurfaceTension(a, bfst nxt);  
   //calcAccelByAdhesion(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
@@ -131,9 +131,6 @@ int main(int argc, char *argv[]){
   printFluidParticles(a, plot);
   printObstacleParticles(a, plot);
 
-  for(i=0; i<N; i++){
-    fprintf(stderr, "%d %f   |", i, a[i].mass);
-}
   //time development
   for(i=1; i<=T; i++){
     if(i==1){
@@ -152,7 +149,7 @@ int main(int argc, char *argv[]){
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-    calcAccelByBoundaryForce(a, bfst, nxt);
+     calcAccelByBoundaryForce(a, bfst, nxt);
     //calcAccelBySurfaceTension(a, bfst, nxt);
     //calcAccelByAdhesion(a, bfst, nxt);
     //printParticles(a,data);

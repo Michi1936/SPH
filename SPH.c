@@ -563,9 +563,9 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
             double dist = sqrt(dx*dx+dy*dy);
             aijx=0, aijy=0;
 	    aijx=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dx/(dist+epsilon);
-	    aijx=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dy/(dist+epsilon);
-		    //aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
-		    //aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
+	    aijy=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dy/(dist+epsilon);
+	    //aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
+	    //aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j=nxt[j];
@@ -576,7 +576,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
     }
   }
 
-#pragma omp parallel for schedule(dynamic,64)
+  //#pragma omp parallel for schedule(dynamic,64)
   for(i=FLP+BP; i<N; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
@@ -591,7 +591,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
           if(j==-1)continue;
           for(;;){
             //fprintf(stderr, "%d \n", j);
-            if(j<FLP || j>FLP+BP){
+            if(j<FLP || FLP+BP<=j){
               j = nxt[j];
               if(j==-1){
                 break;
@@ -604,10 +604,9 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
             double dist = sqrt(dx*dx+dy*dy);
             aijx=0, aijy=0;
 	    aijx=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dx/(dist+epsilon);
-	    aijx=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dy/(dist+epsilon);
+	    aijy=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dy/(dist+epsilon);
 		    // aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
 		    // aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
-
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j=nxt[j];

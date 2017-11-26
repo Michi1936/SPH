@@ -15,7 +15,7 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 10000//time step
+#define T 30000//time step
 
 
 #define interval 0.1
