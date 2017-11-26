@@ -39,8 +39,8 @@ int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt
   }
 
   while((ret=fscanf(fp, "%d %d %d %d %d", &px, &py, &r, &gr, &b))!=EOF){
-      p[i].px=(px+1)*interval;
-      p[i].py=(py+1)*interval;
+      p[i].px=(px+1)*0.095;
+      p[i].py=(py+1)*0.095;
       i++;
   }
   

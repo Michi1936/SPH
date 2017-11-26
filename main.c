@@ -130,7 +130,10 @@ int main(int argc, char *argv[]){
   printBoundaryParticles(a, plot);
   printFluidParticles(a, plot);
   printObstacleParticles(a, plot);
-  
+
+  for(i=0; i<N; i++){
+    fprintf(stderr, "%d %f   |", i, a[i].mass);
+}
   //time development
   for(i=1; i<=T; i++){
     if(i==1){
@@ -153,7 +156,7 @@ int main(int argc, char *argv[]){
     //calcAccelBySurfaceTension(a, bfst, nxt);
     //calcAccelByAdhesion(a, bfst, nxt);
     //printParticles(a,data);
-    if(i%50==0){
+    if(i%100==0){
       printFluidParticles(a, plot);//here show paremeters at t=(i*dt)
       printObstacleParticles(a, plot);
       // fprintf(stderr,"%d printed\n", i);

@@ -562,8 +562,10 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
             double dy = p[i].py-p[j].py;
             double dist = sqrt(dx*dx+dy*dy);
             aijx=0, aijy=0;
-            aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
-            aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
+	    aijx=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dx/(dist+epsilon);
+	    aijx=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dy/(dist+epsilon);
+		    //aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
+		    //aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j=nxt[j];
@@ -594,15 +596,18 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
               if(j==-1){
                 break;
               }
-              continue;
+	      continue;
             }
             double aijx, aijy;
             double dx = p[i].px-p[j].px;
             double dy = p[i].py-p[j].py;
             double dist = sqrt(dx*dx+dy*dy);
             aijx=0, aijy=0;
-            aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
-            aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
+	    aijx=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dx/(dist+epsilon);
+	    aijx=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dy/(dist+epsilon);
+		    // aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
+		    // aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
+
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j=nxt[j];

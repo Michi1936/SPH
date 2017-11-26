@@ -5,7 +5,7 @@
 
 #define h 0.1//smoothing length
 #define k1 1.0 //pressure constant
-#define dt 2.0e-4//time step size
+#define dt 1.0e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define nu 0.0005 //viscosity coefficient
@@ -15,7 +15,7 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 40000//time step
+#define T 10000//time step
 
 
 #define interval 0.1
