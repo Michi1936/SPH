@@ -113,6 +113,7 @@ int main(int argc, char *argv[]){
   fprintf(parameters,"Source Image %s.png\n",srcName);
   fprintf(parameters,"Anglar Velocity %f\n", angVel);
   fprintf(parameters,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
+  fprintf(parameters,"XSIZE=%d YSIZE=%d\n", XSIZE, YSIZE);
   fprintf(parameters,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
   
   rotateRigidBody(a, angVel);
@@ -137,10 +138,10 @@ int main(int argc, char *argv[]){
       leapfrogStart(a);
 
     }else{
-      leapfrogStep(a);
+      leapfrogStep(a, i);
       }
     
-    rigidBodyCorrection(a, rigidBody, i);
+    rigidBodyCorrection(a, rigidBody, i, angVel);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
     calcDensity(a, bfst, nxt);

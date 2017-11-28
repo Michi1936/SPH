@@ -15,8 +15,8 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 30000//time step
-
+#define T 20000//time step
+#define DAMPTIME 0
 
 #define interval 0.1
 
@@ -66,9 +66,9 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
 double adhesionCoefficient(Particle_State p1, Particle_State p2);
 void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]);
 void rotateRigidBody(Particle_State p[], double angVel);
-void rigidBodyCorrection(Particle_State p[], FILE *fp, int time);
+void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double angVel);
 void leapfrogStart(Particle_State p[]);
-void leapfrogStep(Particle_State p[]);
+void leapfrogStep(Particle_State p[], int time);
 
 void initialization(Particle_State p[], int particleNumber);
 int fluidParticles(Particle_State p[]);
