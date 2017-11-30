@@ -290,13 +290,6 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
           int j = bfst[jb];
           if(j==-1)continue;
           for(;;){
-          if(j>=FLP+BP){
-            j=nxt[j];
-            if(j==-1){
-              break;
-            }
-            continue;
-          }
             double aijx=0;
             double aijy=0;
             aijx=-p[j].mass*((p[i].p/pow(p[i].rho,2.0)) + (p[j].p/pow(p[j].rho,2.0)))*gradKernel(p[i], p[j], 0);
@@ -379,13 +372,6 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
           //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
           if(j==-1)continue;
           for(;;){
-          if(j>=FLP+BP){
-            j=nxt[j];
-            if(j==-1){
-              break;
-            }
-            continue;
-          }
 
             double aijx, aijy;
             aijx=0, aijy=0;
