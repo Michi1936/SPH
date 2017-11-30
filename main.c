@@ -113,7 +113,7 @@ int main(int argc, char *argv[]){
 
   fprintf(stderr,"Parameters:\nanglalrVelocity:%f\n", angVel);
   fprintf(stderr,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
-  fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
+  fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME);
 
   fprintf(parameters,"Source Image %s.png\n",srcName);
   fprintf(parameters,"Anglar Velocity %f\n", angVel);
