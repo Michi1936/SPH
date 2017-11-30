@@ -15,8 +15,8 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 120000//time step
-#define DAMPTIME 25000
+#define T 20000//time step
+#define DAMPTIME 0
 
 #define interval 0.1
 #define MAX_X 60

@@ -40,9 +40,7 @@ void printFluidParticles(Particle_State p[], FILE *fp)
             p[i].rho, p[i].p, p[i].ax, p[i].ay);
   }
   fprintf(fp, "\n\n");
-
 }
-
 
 void printFluidPositions(Particle_State p[], FILE *fp)
 {
@@ -66,16 +64,15 @@ void printBoundaryParticles(Particle_State p[], FILE *fp)
   fprintf(fp,"\n\n");
 }
 
-
 void printBoundaryPositions(Particle_State p[], FILE *fp)
 {
   int i;
-  for(i=FLP; i<FLP+BP; i++){ 
-    fprintf(fp,"%0.12e %0.12e \n",p[i].px, p[i].py);
-  }
-  fprintf(fp,"\n\n");
-}
 
+  for(i=FLP; i<FLP+BP; i++){ 
+    fprintf(fp,"%0.12e %0.12e\n", p[i].px, p[i].py);
+  }
+  fprintf(fp, "\n\n");
+}
 
 void printObstacleParticles(Particle_State p[], FILE *fp)
 {
@@ -133,11 +130,25 @@ void makePltFile(char *srcName, double angVel){
   fprintf(plt,"%s",line);
   sprintf(line,"set size ratio %f 1.0\n",(double)((YSIZE+20)/(XSIZE+20)));
   fprintf(plt,"%s",line);
-  sprintf(line,"do for[i=1:t:2]{\n");
+  if((int)((DAMPTIME/100)*2-20)<0){ 
+    sprintf(line,"do for[i=0:%d:2]{\n",(int)(T/100));
+  }else{
+    sprintf(line, "do for[i=%d:%d:2]{\n}", (int)((DAMPTIME/100)*2-20), (int)(T/100));
+  }
   fprintf(plt,"%s",line);
   sprintf(line,"print i\n");
   fprintf(plt,"%s",line);
-  sprintf(line,"plot '%s' index 0 u 2:3 w p lt 5, '%s' index i u 1:2 w p lt 7, '%s' index i+1 u 1:2 w p lt 10\n", fName, fName, fName);
+  sprintf(line,"plot '%s' index 0 u 1:2 w p lt 5, '%s' index i u 1:2 w p lt 7, '%s' index i+1 u 1:2 w p lt 10\n", fName, fName, fName);
+  fprintf(plt,"%s",line);
+  sprintf(line,"}\n");
+  fprintf(plt,"%s",line);
+
+  sprintf(fName, "%f_%s_plot_part2.dat",angVel, srcName);
+  sprintf(line,"do for[i=1:t/2:2]{\n");
+  fprintf(plt,"%s",line);
+  sprintf(line,"print i\n");
+  fprintf(plt,"%s",line);
+  sprintf(line,"plot '%s' index 0 u 1:2 w p lt 5, '%s' index i u 1:2 w p lt 7, '%s' index i+1 u 1:2 w p lt 10\n", fName, fName, fName);
   fprintf(plt,"%s",line);
   sprintf(line,"}\n");
   fprintf(plt,"%s",line);

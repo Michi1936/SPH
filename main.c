@@ -18,6 +18,7 @@ int main(int argc, char *argv[]){
   //  FILE *data;
   FILE *data;
   FILE *plot;
+  FILE *plot2;
   FILE *parameters;
   FILE *tip;
   FILE *numbers;
@@ -61,10 +62,15 @@ int main(int argc, char *argv[]){
   if(argc==2){
     angVel=atof(argv[1]);
   }
+  
   sprintf(fName, "%f_%s_data.dat", angVel, srcName);
   data=fopen(fName,"w");
+  
   sprintf(fName,"%f_%s_plot.dat",angVel,srcName);
   plot=fopen(fName,"w");
+  sprintf(fName,"%f_%s_plot_part2.dat",angVel,srcName);
+  plot2=fopen(fName,"w");
+  
   sprintf(fName,"%f_%s_parameters.dat",angVel,srcName);
   parameters=fopen(fName,"w");
   sprintf(fName,"%f_%s_tip.dat",angVel,srcName);
@@ -139,8 +145,10 @@ int main(int argc, char *argv[]){
   printObstacleParticles(a, data);
 
   printBoundaryPositions(a, plot);
+  printBoundaryPositions(a,plot2);
   printFluidPositions(a, plot);
   printObstaclePositions(a,plot);
+
 
   //time development
   for(i=1; i<=T; i++){
@@ -160,15 +168,21 @@ int main(int argc, char *argv[]){
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-     calcAccelByBoundaryForce(a, bfst, nxt);
+    calcAccelByBoundaryForce(a, bfst, nxt);
     //calcAccelBySurfaceTension(a, bfst, nxt);
     //calcAccelByAdhesion(a, bfst, nxt);
     //printParticles(a,data);
     if(i%100==0){
       printFluidParticles(a, data);//here show paremeters at t=(i*dt)
       printObstacleParticles(a, data);
-      printFluidPositions(a,plot);
-      printObstaclePositions(a,plot);
+
+      if(i/100<=(T/100)/2){
+	printFluidPositions(a,plot);
+	printObstaclePositions(a,plot);
+      }else if(i/100 > (int) ((T/100)/2)){
+	printFluidPositions(a,plot2);
+	printObstaclePositions(a,plot2);
+      }
 
       // fprintf(stderr,"%d printed\n", i);
     }
@@ -183,6 +197,7 @@ int main(int argc, char *argv[]){
   free(nxt);
   //  fclose(data);
   fclose(plot);
+  fclose(plot2);
   fclose(parameters);
   fclose(tip);
   fclose(rigidBody);
