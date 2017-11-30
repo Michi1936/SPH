@@ -15,12 +15,12 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 50000//time step
-#define DAMPTIME 17000
+#define T 160000//time step
+#define DAMPTIME 40000
 
 #define interval 0.1
-#define MAX_X 30
-#define MAX_Y 30
+#define MAX_X 60
+#define MAX_Y 60
 #define MIN_X -5  
 #define MIN_Y -5
 #define BktLgth 0.3

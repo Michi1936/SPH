@@ -24,7 +24,10 @@ int main(int argc, char *argv[]){
   char srcName[64];
   char fName[64];
   char temp[64];
-
+  char date[64];
+  time_t t=time(NULL);
+  strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
+  printf("%s\n", date);
   double angVel=0;
 
   start=clock();  
@@ -176,6 +179,9 @@ int main(int argc, char *argv[]){
 
   end=clock();
   fprintf(stderr,"Processor time: %fs\n", (double)(end-start)/CLOCKS_PER_SEC);
+  strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
+  printf("%s\n", date);
+
   return  0;
   
 }
