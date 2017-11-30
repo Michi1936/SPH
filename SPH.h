@@ -15,8 +15,8 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 160000//time step
-#define DAMPTIME 40000
+#define T 20000//time step
+#define DAMPTIME 5000
 
 #define interval 0.1
 #define MAX_X 60
@@ -83,9 +83,11 @@ double poly6(Particle_State p1, Particle_State p2);
 
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
-void printBoundaryParticles(Particle_State p[], FILE *fp);
 void printFluidParticles(Particle_State p[], FILE *fp);
+void printFluidPositions(Particle_State p[], FILE *fp);
+void printBoundaryParticles(Particle_State p[], FILE *fp);
 void printObstacleParticles(Particle_State p[], FILE *fp);
+void printObstaclePositions(Particle_State p[], FILE *fp);
 void tipPosition(Particle_State p[], int time, FILE *tip);
 void makePltFile(char *srcName, double angVel);
 #endif //_SPH

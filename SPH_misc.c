@@ -43,6 +43,18 @@ void printFluidParticles(Particle_State p[], FILE *fp)
 
 }
 
+
+void printFluidPositions(Particle_State p[], FILE *fp)
+{
+  int i;
+
+  for(i=0; i<FLP; i++){ 
+    fprintf(fp,"%0.12e %0.12e\n", p[i].px, p[i].py);
+  }
+  fprintf(fp, "\n\n");
+
+}
+
 void printBoundaryParticles(Particle_State p[], FILE *fp)
 {
   int i;
@@ -62,6 +74,15 @@ void printObstacleParticles(Particle_State p[], FILE *fp)
     fprintf(fp,"%d %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e %0.12e \n",i, p[i].px, p[i].py,
             p[i].vx, p[i].vy, sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy),
             p[i].rho, p[i].p, p[i].ax, p[i].ay);
+  }
+  fprintf(fp,"\n\n");
+}
+
+void printObstaclePositions(Particle_State p[], FILE *fp)
+{
+  int i;
+  for(i=FLP+BP; i<N; i++){ 
+    fprintf(fp,"%0.12e %0.12e\n", p[i].px, p[i].py);
   }
   fprintf(fp,"\n\n");
 }
@@ -106,7 +127,7 @@ void makePltFile(char *srcName, double angVel){
   fprintf(plt,"%s",line);
   sprintf(line,"print i\n");
   fprintf(plt,"%s",line);
-  sprintf(line,"plot '%s' index 0 u 2:3 w p lt 5, '%s' index i u 2:3 w p lt 7, '%s' index i+1 u 2:3 w p lt 10\n", fName, fName, fName);
+  sprintf(line,"plot '%s' index 0 u 2:3 w p lt 5, '%s' index i u 1:2 w p lt 7, '%s' index i+1 u 1:2 w p lt 10\n", fName, fName, fName);
   fprintf(plt,"%s",line);
   sprintf(line,"}\n");
   fprintf(plt,"%s",line);

@@ -16,6 +16,7 @@ int main(int argc, char *argv[]){
   int i;
   clock_t start, end;
   //  FILE *data;
+  FILE *data;
   FILE *plot;
   FILE *parameters;
   FILE *tip;
@@ -60,7 +61,8 @@ int main(int argc, char *argv[]){
   if(argc==2){
     angVel=atof(argv[1]);
   }
-
+  sprintf(fName, "%f_%s_data.dat", angVel, srcName);
+  data=fopen(fName,"w");
   sprintf(fName,"%f_%s_plot.dat",angVel,srcName);
   plot=fopen(fName,"w");
   sprintf(fName,"%f_%s_parameters.dat",angVel,srcName);
@@ -71,10 +73,10 @@ int main(int argc, char *argv[]){
   rigidBody=fopen(fName,"w");
 
 
-  /*  if(data==NULL){
+  if(data==NULL){
     printf("File opening was failed.\n");
     return -1;
-    }*/
+  }
 
   if(parameters==NULL){
     printf("File opening was failed.\n");
@@ -131,9 +133,14 @@ int main(int argc, char *argv[]){
   //calcAccelBySurfaceTension(a, bfst nxt);  
   //calcAccelByAdhesion(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
-  printBoundaryParticles(a, plot);
-  printFluidParticles(a, plot);
-  printObstacleParticles(a, plot);
+
+  printBoundaryParticles(a, data);
+  printFluidParticles(a, data);
+  printObstacleParticles(a, data);
+
+  printBoundaryParticles(a,plot);
+  printFluidPositions(a, plot);
+  printObstaclePositions(a,plot);
 
   //time development
   for(i=1; i<=T; i++){
@@ -158,8 +165,11 @@ int main(int argc, char *argv[]){
     //calcAccelByAdhesion(a, bfst, nxt);
     //printParticles(a,data);
     if(i%100==0){
-      printFluidParticles(a, plot);//here show paremeters at t=(i*dt)
-      printObstacleParticles(a, plot);
+      printFluidParticles(a, data);//here show paremeters at t=(i*dt)
+      printObstacleParticles(a, data);
+      printFluidPositions(a,plot);
+      printObstaclePositions(a,plot);
+
       // fprintf(stderr,"%d printed\n", i);
     }
     percentage(i, &countPer);
@@ -176,7 +186,7 @@ int main(int argc, char *argv[]){
   fclose(parameters);
   fclose(tip);
   fclose(rigidBody);
-
+  fclose(data);
   end=clock();
   fprintf(stderr,"Processor time: %fs\n", (double)(end-start)/CLOCKS_PER_SEC);
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
