@@ -67,6 +67,16 @@ void printBoundaryParticles(Particle_State p[], FILE *fp)
 }
 
 
+void printBoundaryPositions(Particle_State p[], FILE *fp)
+{
+  int i;
+  for(i=FLP; i<FLP+BP; i++){ 
+    fprintf(fp,"%0.12e %0.12e \n",p[i].px, p[i].py);
+  }
+  fprintf(fp,"\n\n");
+}
+
+
 void printObstacleParticles(Particle_State p[], FILE *fp)
 {
   int i;

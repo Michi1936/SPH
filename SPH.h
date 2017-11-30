@@ -86,6 +86,7 @@ void percentage(int time, int *countPer);
 void printFluidParticles(Particle_State p[], FILE *fp);
 void printFluidPositions(Particle_State p[], FILE *fp);
 void printBoundaryParticles(Particle_State p[], FILE *fp);
+void printBoundaryPositions(Particle_State p[], FILE *fp);
 void printObstacleParticles(Particle_State p[], FILE *fp);
 void printObstaclePositions(Particle_State p[], FILE *fp);
 void tipPosition(Particle_State p[], int time, FILE *tip);

@@ -138,7 +138,7 @@ int main(int argc, char *argv[]){
   printFluidParticles(a, data);
   printObstacleParticles(a, data);
 
-  printBoundaryParticles(a,plot);
+  printBoundaryPositions(a, plot);
   printFluidPositions(a, plot);
   printObstaclePositions(a,plot);
 
@@ -189,6 +189,7 @@ int main(int argc, char *argv[]){
   fclose(data);
   end=clock();
   fprintf(stderr,"Processor time: %fs\n", (double)(end-start)/CLOCKS_PER_SEC);
+
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
   printf("%s\n", date);
 
