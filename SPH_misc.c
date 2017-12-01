@@ -32,6 +32,16 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
   }
 
 }
+void makeDatFileName(char fName[], char type[], char srcName[], double angVel)
+{
+  if(angVel>=0){
+  sprintf(fName, "angvel%f_dt%f_%s_%s.dat", angVel, dt, srcName, type);
+  }else if(angVel<0){
+  sprintf(fName, "angvelmin%f_dt%f_%s_%s.dat", -angVel, dt, srcName, type);
+  }
+
+}
+
 void printParticles(Particle_State p[], FILE *fp)
 {
   int i;

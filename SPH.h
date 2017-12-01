@@ -84,6 +84,7 @@ double gradSpikey(Particle_State p1, Particle_State p2, int axis);
 double poly6(Particle_State p1, Particle_State p2);
 
 void getSourceImageName(FILE *fp, char srcName[]);
+void makeDatFileName(char fName[], char type[], char srcName[], double angvel);
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
 void printFluidParticles(Particle_State p[], FILE *fp);

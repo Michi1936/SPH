@@ -15,7 +15,6 @@ int main(int argc, char *argv[]){
   int countPer=0;
   int i;
   clock_t start, end;
-  //  FILE *data;
   FILE *data;
   FILE *plot;
   FILE *parameters;
@@ -24,6 +23,7 @@ int main(int argc, char *argv[]){
   char srcName[64];
   char fName[64];
   char date[64];
+  char type[64];
   time_t t=time(NULL);
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
   printf("%s\n", date);
@@ -36,75 +36,31 @@ int main(int argc, char *argv[]){
     printf("Error!\n");
     return -1;
   }
-  i=0;
 
   getSourceImageName(numbers, srcName);
-  /*  fgets(temp, 100, numbers);
-  int charcount=0;
-  for(i=0; i<100; i++){
-    if(temp[i]=='.' && temp[i+1]=='p' && temp[i+2]=='n' && temp[i+3]=='g'){
-      break;
-    }
-    if(temp[i]=='/'){
-      printf("skipped");
-      continue;
-    }
-    if(temp[i]=='.'){
-      printf(". skipped\n");
-      continue;}
-    srcName[charcount]=temp[i];
-    charcount++;
-    }*/
 
   printf("%s.png\n",srcName);
   if(argc==2){
     angVel=atof(argv[1]);
   }
 
-  if(angVel>=0){
-  sprintf(fName, "%f_%s_data.dat", angVel, srcName);
-  }else if(angVel<0){
-  sprintf(fName, "min%f_%s_data.dat", -angVel, srcName);
-  }
-  data=fopen(fName,"w");
-  if(data==NULL){
-    printf("File opening was failed.\n");
-    return -1;
-  }
-
-  if(angVel>=0){
-  sprintf(fName, "%f_%s_plot.dat", angVel, srcName);
-  }else if(angVel<0){
-  sprintf(fName, "min%f_%s_plot.dat", -angVel, srcName);
-  }
+  sprintf(type, "plot");
+  makeDatFileName(fName, type, srcName, angVel);
   plot=fopen(fName,"w");
-  if(plot==NULL){
-    printf("File opening was failed.\n");
-    return -1;
-  }
 
-  if(angVel>=0){
-  sprintf(fName, "%f_%s_parameters.dat", angVel, srcName);
-  }else if(angVel<0){
-  sprintf(fName, "min%f_%s_parameters.dat", -angVel, srcName);
-  }
+  sprintf(type, "data");
+  makeDatFileName(fName, type, srcName, angVel);
+  data=fopen(fName,"w");
+
+  sprintf(type, "parameters");
+  makeDatFileName(fName, type, srcName, angVel);
   parameters=fopen(fName,"w");
-  if(parameters==NULL){
-    printf("File opening was failed.\n");
-    return -1;
-  }
 
-  if(angVel>=0){
-  sprintf(fName, "%f_%s_rigidBody.dat", angVel, srcName);
-  }else if(angVel<0){
-  sprintf(fName, "min%f_%s_rigidBody.dat", -angVel, srcName);
-  }
+  sprintf(type, "rigidBody");
+  makeDatFileName(fName, type, srcName, angVel);
   rigidBody=fopen(fName,"w");
-  if(rigidBody==NULL){
-    printf("File opening was failed. \n");
-    return -1;
-  }
   
+
   initialization(a, N);
   fprintf(stderr,"check initialization\n");
   fluidParticles(a);
@@ -115,22 +71,21 @@ int main(int argc, char *argv[]){
   fprintf(stderr, "Obstacke Particles are placed\n");
   allocateBucket(&bfst, &blst, &nxt);
   fprintf(stderr,"%d %d %d Bucket allocated\n", nBx, nBy, nBxy);
-  checkParticle(a);
-  
-  
+  checkParticle(a);  
   makeBucket(bfst, blst, nxt, a);
   fprintf(stderr," makeBucket\n\n");
 
+  //printint parameters-------------------
   fprintf(stderr,"Parameters:\nanglalrVelocity:%f\n", angVel);
   fprintf(stderr,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
   fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME);
-
   fprintf(parameters,"Source Image %s.png\n",srcName);
   fprintf(parameters,"Anglar Velocity %f\n", angVel);
   fprintf(parameters,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
   fprintf(parameters,"XSIZE=%d YSIZE=%d\n", XSIZE, YSIZE);
   fprintf(parameters,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME);
-  
+
+  //calculating initial state
   rotateRigidBody(a, angVel);
 
   calcDensity(a, bfst, nxt);
@@ -142,10 +97,8 @@ int main(int argc, char *argv[]){
   //  calcInterfacialForce(a, bfst, nxt);
   calcAccelByBoundaryForce(a, bfst, nxt);
 
-  //calcAccelBySurfaceTension(a, bfst nxt);  
-  //calcAccelByAdhesion(a, bfst, nxt);
-  //printParticles(a,data);//Here shows parameters at t=0
 
+  //printParticles(a,data);//Here shows parameters at t=0
   printBoundaryParticles(a, data);
   printFluidParticles(a, data);
   printObstacleParticles(a, data);
@@ -173,10 +126,8 @@ int main(int argc, char *argv[]){
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-    calcInterfacialForce(a, bfst, nxt);
+    //    calcInterfacialForce(a, bfst, nxt);
     calcAccelByBoundaryForce(a, bfst, nxt);
-    //calcAccelBySurfaceTension(a, bfst, nxt);
-    //calcAccelByAdhesion(a, bfst, nxt);
     
     if(i%100==0){
       printFluidParticles(a, data);//here show paremeters at t=(i*dt)
