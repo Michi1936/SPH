@@ -32,6 +32,7 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
   }
 
 }
+
 void makeDatFileName(char fName[], char type[], char srcName[], double angVel)
 {
   if(angVel>=0){
@@ -158,9 +159,9 @@ void makePltFile(char *srcName, double angVel){
   char line[256];
   plt=fopen("rigid_anime.plt","w");
   if(angVel>=0){
-    sprintf(fName, "%f_%s_plot.dat", angVel, srcName);
+    sprintf(fName, "angvel%f_dt%f_%s_plot.dat", angVel, dt, srcName);
   }else if(angVel<0){
-    sprintf(fName, "min%f_%s_plot.dat", -angVel, srcName);
+    sprintf(fName, "angvelmin%f_dt%f_%s_plot.dat", -angVel, dt,srcName);
   }
 
   sprintf(line,"set xrange[-1:%f]\n",(XSIZE+10)*interval);

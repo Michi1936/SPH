@@ -39,9 +39,9 @@ int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt
     return -1;
   }
 
-  while((ret=fscanf(fp, "%d %d %d %d %d", &px, &py, &r, &gr, &b))!=EOF){
+  while((ret=fscanf(fp, "%d %d %*d %*d %*d", &px, &py))!=EOF){
       p[i].px=(px+1)*interval;
-      p[i].py=(py+1)*0.090;//0.088 is used for exp2.png
+      p[i].py=(py+1)*0.088;//0.088 is used for exp2.png
       i++;
   }
   
@@ -65,9 +65,9 @@ int wallParticles(Particle_State p[]){
     p[i].px=(px+1)*interval;
     p[i].py=(py+1)*interval;
     if(green==255){
-      p[i].color=1;
+      p[i].color=1;//hydrophilic
     }else if(green==0){
-      p[i].color=2;
+      p[i].color=2;//hydrophobic
     }
     i++;
   }
