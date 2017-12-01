@@ -18,14 +18,11 @@ int main(int argc, char *argv[]){
   //  FILE *data;
   FILE *data;
   FILE *plot;
-  FILE *plot2;
   FILE *parameters;
-  FILE *tip;
   FILE *numbers;
   FILE *rigidBody;
   char srcName[64];
   char fName[64];
-  char temp[64];
   char date[64];
   time_t t=time(NULL);
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
@@ -41,7 +38,8 @@ int main(int argc, char *argv[]){
   }
   i=0;
 
-  fgets(temp, 100, numbers);
+  getSourceImageName(numbers, srcName);
+  /*  fgets(temp, 100, numbers);
   int charcount=0;
   for(i=0; i<100; i++){
     if(temp[i]=='.' && temp[i+1]=='p' && temp[i+2]=='n' && temp[i+3]=='g'){
@@ -56,46 +54,52 @@ int main(int argc, char *argv[]){
       continue;}
     srcName[charcount]=temp[i];
     charcount++;
-  }
+    }*/
 
   printf("%s.png\n",srcName);
   if(argc==2){
     angVel=atof(argv[1]);
   }
-  
+
+  if(angVel>=0){
   sprintf(fName, "%f_%s_data.dat", angVel, srcName);
+  }else if(angVel<0){
+  sprintf(fName, "min%f_%s_data.dat", -angVel, srcName);
+  }
   data=fopen(fName,"w");
-  
-  sprintf(fName,"%f_%s_plot.dat",angVel,srcName);
-  plot=fopen(fName,"w");
-  sprintf(fName,"%f_%s_plot_part2.dat",angVel,srcName);
-  plot2=fopen(fName,"w");
-  
-  sprintf(fName,"%f_%s_parameters.dat",angVel,srcName);
-  parameters=fopen(fName,"w");
-  sprintf(fName,"%f_%s_tip.dat",angVel,srcName);
-  tip=fopen(fName,"w");
-  sprintf(fName,"%f_%s_rigidBody.dat",angVel,srcName);
-  rigidBody=fopen(fName,"w");
-
-
   if(data==NULL){
     printf("File opening was failed.\n");
     return -1;
   }
 
-  if(parameters==NULL){
-    printf("File opening was failed.\n");
-    return -1;
+  if(angVel>=0){
+  sprintf(fName, "%f_%s_plot.dat", angVel, srcName);
+  }else if(angVel<0){
+  sprintf(fName, "min%f_%s_plot.dat", -angVel, srcName);
   }
-  if(tip==NULL){
-    printf("File opening was failed.\n");
-    return -1;
-  }
+  plot=fopen(fName,"w");
   if(plot==NULL){
     printf("File opening was failed.\n");
     return -1;
   }
+
+  if(angVel>=0){
+  sprintf(fName, "%f_%s_parameters.dat", angVel, srcName);
+  }else if(angVel<0){
+  sprintf(fName, "min%f_%s_parameters.dat", -angVel, srcName);
+  }
+  parameters=fopen(fName,"w");
+  if(parameters==NULL){
+    printf("File opening was failed.\n");
+    return -1;
+  }
+
+  if(angVel>=0){
+  sprintf(fName, "%f_%s_rigidBody.dat", angVel, srcName);
+  }else if(angVel<0){
+  sprintf(fName, "min%f_%s_rigidBody.dat", -angVel, srcName);
+  }
+  rigidBody=fopen(fName,"w");
   if(rigidBody==NULL){
     printf("File opening was failed. \n");
     return -1;
@@ -104,18 +108,18 @@ int main(int argc, char *argv[]){
   initialization(a, N);
   fprintf(stderr,"check initialization\n");
   fluidParticles(a);
-  fprintf(stderr,"check initialConditions\n");
+  fprintf(stderr,"fluid Particles placed\n");
   wallParticles(a);
-  fprintf(stderr,"check wallParitcles\n");
+  fprintf(stderr,"Boundary Particles are placed\n");
   obstacleBoundaryParticles(a);
-  fprintf(stderr, "check obstacle boundary\n");
+  fprintf(stderr, "Obstacke Particles are placed\n");
   allocateBucket(&bfst, &blst, &nxt);
-  fprintf(stderr,"%d %d %d check allocateBucket\n", nBx, nBy, nBxy);
+  fprintf(stderr,"%d %d %d Bucket allocated\n", nBx, nBy, nBxy);
   checkParticle(a);
   
   
   makeBucket(bfst, blst, nxt, a);
-  fprintf(stderr,"check makeBucket\n");
+  fprintf(stderr," makeBucket\n\n");
 
   fprintf(stderr,"Parameters:\nanglalrVelocity:%f\n", angVel);
   fprintf(stderr,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
@@ -125,17 +129,19 @@ int main(int argc, char *argv[]){
   fprintf(parameters,"Anglar Velocity %f\n", angVel);
   fprintf(parameters,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
   fprintf(parameters,"XSIZE=%d YSIZE=%d\n", XSIZE, YSIZE);
-  fprintf(parameters,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T);
+  fprintf(parameters,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME);
   
   rotateRigidBody(a, angVel);
-  //
+
   calcDensity(a, bfst, nxt);
   calcPressure(a);
   initializeAccel(a);
   calcAccelByExternalForces(a);
   calcAccelByPressure(a,bfst, nxt);
   calcAccelByViscosity(a,bfst, nxt,0);
-   calcAccelByBoundaryForce(a, bfst, nxt);
+  //  calcInterfacialForce(a, bfst, nxt);
+  calcAccelByBoundaryForce(a, bfst, nxt);
+
   //calcAccelBySurfaceTension(a, bfst nxt);  
   //calcAccelByAdhesion(a, bfst, nxt);
   //printParticles(a,data);//Here shows parameters at t=0
@@ -145,7 +151,6 @@ int main(int argc, char *argv[]){
   printObstacleParticles(a, data);
 
   printBoundaryPositions(a, plot);
-  printBoundaryPositions(a,plot2);
   printFluidPositions(a, plot);
   printObstaclePositions(a,plot);
 
@@ -168,23 +173,23 @@ int main(int argc, char *argv[]){
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
+    calcInterfacialForce(a, bfst, nxt);
     calcAccelByBoundaryForce(a, bfst, nxt);
     //calcAccelBySurfaceTension(a, bfst, nxt);
     //calcAccelByAdhesion(a, bfst, nxt);
-    //printParticles(a,data);
+    
     if(i%100==0){
       printFluidParticles(a, data);//here show paremeters at t=(i*dt)
       printObstacleParticles(a, data);
+      
+      //      if(i/100<=(T/100)/2){
+      printFluidPositions(a,plot);
+      printObstaclePositions(a,plot);
+        //}else if(i/100 > (int) ((T/100)/2)){
+        //	printFluidPositions(a,plot2);
+        //	printObstaclePositions(a,plot2);
+        //      }
 
-      if(i/100<=(T/100)/2){
-	printFluidPositions(a,plot);
-	printObstaclePositions(a,plot);
-      }else if(i/100 > (int) ((T/100)/2)){
-	printFluidPositions(a,plot2);
-	printObstaclePositions(a,plot2);
-      }
-
-      // fprintf(stderr,"%d printed\n", i);
     }
     percentage(i, &countPer);
   }
@@ -192,16 +197,16 @@ int main(int argc, char *argv[]){
   fprintf(stderr,"\n");
 
   makePltFile(srcName, angVel);
+
   free(bfst);
   free(blst);
   free(nxt);
-  //  fclose(data);
-  fclose(plot);
-  fclose(plot2);
-  fclose(parameters);
-  fclose(tip);
-  fclose(rigidBody);
+
   fclose(data);
+  fclose(plot);
+  fclose(parameters);
+  fclose(rigidBody);
+
   end=clock();
   fprintf(stderr,"Processor time: %fs\n", (double)(end-start)/CLOCKS_PER_SEC);
 

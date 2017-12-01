@@ -18,9 +18,10 @@ for x in range(size[0]):
     for y in range(size[1]):
         r,g,b=rgb_im2.getpixel((x,y))
         s="%d %d %d %d %d \n"%(x,y,r,g,b)
-        if (r,g,b)==(127,127,127):
+        if (r,b)==(127,127):
             f.write(s)
             iBP=iBP+1
+
 f.close()            
 f=open("fluid.txt","w")
 for x in range(size[0]):
@@ -40,7 +41,7 @@ for x in range(size[0]):
     for y in range(size[1]):
         r,g,b=rgb_im2.getpixel((x,y))
         s="%d %d %d %d %d \n"%(x,y,r,g,b)
-        if (r,g,b)==(255,127,127):
+        if (r,b)==(255,127):
             f.write(s)
             iOBP=iOBP+1
 f.close()

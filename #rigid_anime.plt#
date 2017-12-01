@@ -1,0 +1,7 @@
+set xrange[-1:11.000000]
+set yrange[-1:11.000000]
+set size ratio 1.000000 1.0
+do for[i=0:600:2]{
+print i
+plot '0.000000_rigid5_plot.dat' index 0 u 1:2 w p pt 2, '0.000000_rigid5_plot.dat' index i u 1:2 w p pt 3, '0.000000_rigid5_plot.dat' index i+1 u 1:2 w p pt 4
+}

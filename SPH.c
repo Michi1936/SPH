@@ -423,6 +423,61 @@ double surfaceTensionCoefficient(double r)//caluculating cohesion term
   }
 }
 
+//Based on Versatile Interactions at Interfaces for SPHbased SImulations(2016)
+void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
+{
+  int i;
+
+#pragma omp parallel for schedule(dynamic, 64)
+  for(i=0; i<FLP; i++){
+    int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+    int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+    
+    int jx, jy;
+    for(jx=ix-1; jx<=ix+1; jx++){
+      for(jy=iy-1; jy<=iy+1; jy++){
+        int jb = jx + jy*nBx;
+        int j = bfst[jb];
+        if(j==-1){
+          continue;
+        }
+        for(;;){
+          double aijx, aijy;
+          double interCoeff=0;
+          double enl=1.4;//enlargement coefficient
+          aijx=0, aijy=0;
+          if(j<FLP){
+            interCoeff=1.0*pow(10,1);
+          }else{//interaction between water and solid
+            if(p[j].color==1){
+              interCoeff=0.1*10;
+            }else if(p[j].color==2){
+              interCoeff=-0.8*10;
+            }
+            else if(p[j].color==0){
+            interCoeff=0.8*pow(10,1);
+            }
+          }
+          double dx = (p[i].px-p[j].px);
+          double dy = (p[i].py-p[j].py);
+          double dist = dx*dx+dy*dy;
+          
+          if(dist<=enl*h){
+            aijx=interCoeff*p[i].mass*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h))*dx/(dist+epsilon);
+            aijy=interCoeff*p[i].mass*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h))*dy/(dist+epsilon);
+          }else{
+            aijx=0;
+            aijy=0;
+          }
+          p[i].ax+=aijx;
+          p[i].ay+=aijy;
+          j = nxt[j];
+          if(j==-1)break;
+        }
+      }
+    }
+  }
+}
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
 {
   int i;
@@ -886,7 +941,8 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double angVel){
      p[i].px=p[i].prepx+p[i].vxh*dt;
      p[i].py=p[i].prepy+p[i].vyh*dt;
   }
-
+  //until here correction of position is complete
+  //------------------------------------------------------
   gx=0;
   gy=0;
 
