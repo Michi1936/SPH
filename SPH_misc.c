@@ -173,7 +173,7 @@ void makePltFile(char *srcName, double angVel){
   if((int)((DAMPTIME/100)*2-20)<0){ 
     sprintf(line,"do for[i=0:t:2]{\n");
   }else{
-    sprintf(line, "do for[i=%d:t:2]{\n}", (int)((DAMPTIME/100)*2-20));
+    sprintf(line, "do for[i=%d:t:2]{\n", (int)((DAMPTIME/100)*2-20));
   }
   fprintf(plt,"%s",line);
   sprintf(line,"print i\n");

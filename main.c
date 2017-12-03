@@ -14,7 +14,6 @@ int main(int argc, char *argv[]){
   int *bfst, *blst, *nxt;
   int countPer=0;
   int i;
-  clock_t start, end;
   FILE *data;
   FILE *plot;
   FILE *parameters;
@@ -24,13 +23,14 @@ int main(int argc, char *argv[]){
   char fName[64];
   char date[64];
   char type[64];
-  time_t t=time(NULL);
-  strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
-  printf("%s\n", date);
   double angVel=0;
 
-  start=clock();  
 
+  time_t t=time(NULL);
+  strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
+  printf("Calculation started:%s\n", date);
+
+  //open numbers.h
   numbers=fopen("numbers.h","r");
   if(numbers==NULL){
     printf("Error!\n");
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
   makeDatFileName(fName, type, srcName, angVel);
   rigidBody=fopen(fName,"w");
   
-
+  //placing particles
   initialization(a, N);
   fprintf(stderr,"check initialization\n");
   fluidParticles(a);
@@ -69,6 +69,8 @@ int main(int argc, char *argv[]){
   fprintf(stderr,"Boundary Particles are placed\n");
   obstacleBoundaryParticles(a);
   fprintf(stderr, "Obstacke Particles are placed\n");
+
+  //allocating bucket
   allocateBucket(&bfst, &blst, &nxt);
   fprintf(stderr,"%d %d %d Bucket allocated\n", nBx, nBy, nBxy);
   checkParticle(a);  
@@ -84,10 +86,10 @@ int main(int argc, char *argv[]){
   fprintf(parameters,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
   fprintf(parameters,"XSIZE=%d YSIZE=%d\n", XSIZE, YSIZE);
   fprintf(parameters,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME);
+  fprintf(parameters, "Calculation started%s\n", date);
 
   //calculating initial state
   rotateRigidBody(a, angVel);
-
   calcDensity(a, bfst, nxt);
   calcPressure(a);
   initializeAccel(a);
@@ -120,6 +122,7 @@ int main(int argc, char *argv[]){
     rigidBodyCorrection(a, rigidBody, i, angVel);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
+
     calcDensity(a, bfst, nxt);
     calcPressure(a);
     initializeAccel(a);
@@ -153,16 +156,15 @@ int main(int argc, char *argv[]){
   free(blst);
   free(nxt);
 
+  t=time(NULL);
+  strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
+  printf("Calculation ended:%s\n", date);
+  fprintf(parameters, "Calculation ended%s\n", date);
+
   fclose(data);
   fclose(plot);
   fclose(parameters);
   fclose(rigidBody);
-
-  end=clock();
-  fprintf(stderr,"Processor time: %fs\n", (double)(end-start)/CLOCKS_PER_SEC);
-
-  strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
-  printf("%s\n", date);
 
   return  0;
   
