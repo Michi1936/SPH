@@ -155,9 +155,18 @@ void tipPosition(Particle_State p[], int time, FILE *tip)
 
 void makePltFile(char *srcName, double angVel){
   FILE *plt;
+  FILE *plt2;
   char fName[40];
   char line[256];
   plt=fopen("rigid_anime.plt","w");
+  if(plt==NULL){
+    printf("open plt error\n");
+  }
+  plt2=fopen("plot.plt","w");
+  if(plt2==NULL){
+    printf("open plt2 error\n");
+  }
+  
   if(angVel>=0){
     sprintf(fName, "angvel%f_dt%f_%s_plot.dat", angVel, dt, srcName);
   }else if(angVel<0){
@@ -166,10 +175,13 @@ void makePltFile(char *srcName, double angVel){
 
   sprintf(line,"set xrange[-1:%f]\n",(XSIZE+10)*interval);
   fprintf(plt,"%s",line);
+  fprintf(plt2,"%s",line);
   sprintf(line,"set yrange[-1:%f]\n",(YSIZE+10)*interval);
   fprintf(plt,"%s",line);
+  fprintf(plt2,"%s",line);
   sprintf(line,"set size ratio %f 1.0\n",(double)((YSIZE+20)/(XSIZE+20)));
   fprintf(plt,"%s",line);
+  fprintf(plt2,"%s",line);
   if((int)((DAMPTIME/100)*2-20)<0){ 
     sprintf(line,"do for[i=0:t:2]{\n");
   }else{
@@ -183,15 +195,9 @@ void makePltFile(char *srcName, double angVel){
   sprintf(line,"}\n");
   fprintf(plt,"%s",line);
 
-  /* sprintf(fName, "%f_%s_plot_part2.dat",angVel, srcName);
-  sprintf(line,"do for[i=1:t/2:2]{\n");
-  fprintf(plt,"%s",line);
-  sprintf(line,"print i\n");
-  fprintf(plt,"%s",line);
-  sprintf(line,"plot '%s' index 0 u 1:2 w p lt 5, '%s' index i u 1:2 w p lt 7, '%s' index i+1 u 1:2 w p lt 10\n", fName, fName, fName);
-  fprintf(plt,"%s",line);
-  sprintf(line,"}\n");
-  fprintf(plt,"%s",line);*/
-  
+  sprintf(line, "plot '%s' index 0 u 1:2 w p pt 35, '%s' index (t*200) u 1:2 w p pt 18, '%s' index (t*200+1) u 1:2 w p pt 22\n"), fName, fName, fName;
+  fprintf(plt2, "%s", line);
+
   fclose(plt);
+  fclose(plt2);
 }

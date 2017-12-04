@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
 
   time_t t=time(NULL);
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
-  printf("Calculation started:%s\n", date);
+  printf("\n\nCalculation started:%s\n", date);
 
   //open numbers.h
   numbers=fopen("numbers.h","r");
@@ -38,8 +38,8 @@ int main(int argc, char *argv[]){
   }
 
   getSourceImageName(numbers, srcName);
-
   printf("%s.png\n",srcName);
+  
   if(argc==2){
     angVel=atof(argv[1]);
   }
