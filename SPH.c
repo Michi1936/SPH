@@ -805,78 +805,8 @@ void rotateRigidBody(Particle_State p[], double angVel)
   fprintf(stderr,"%f Rigid body is rotated.\n",angVel);
 }
 
-/*
-void rigidBodyCorrection(Particle_State p[], int bfst[], int nxt[], FILE *fp)
-{
-  int i;
-  double rgx[2], rgy[2];
-  double rgxDashed, rgyDashed;
-  double rxDashed[OBP], ryDashed[OBP];
-  double inertia;
-  double theta;
-  rgx[0]=0;
-  rgy[0]=0;
-  rgx[1]=0;
-  rgy[1]=0;
-  rgxDashed=0;
-  rgyDashed=0;
-  inertia=0;
-  theta=0;
-  for(i=0; i<OBP; i++){
-    rxDashed[i]=0;
-    ryDashed[i]=0;
-  }
-  
-  for(i=FLP+BP; i<N; i++){//center of mass before time development
-    rgx[0]+=p[i].prepx/(double)OBP;
-    rgy[0]+=p[i].prepy/(double)OBP;
-  }
 
-  for(i=FLP+BP; i<N; i++){//center of mass after time development
-    rgx[1]+=p[i].px/(double)OBP;
-    rgy[1]+=p[i].py/(double)OBP;
-  }
-
-  for(i=FLP+BP; i<N; i++){//moment of inertia before time development
-    double dx = fabs(p[i].px-rgx[0]);
-    double dy = fabs(p[i].py-rgy[0]);
-    double dist = sqrt(dx*dx+dy*dy);
-    inertia+=p[i].mass*dist*dist;
-  }
-
-  for(i=FLP+BP; i<N; i++){//difference of position during time development
-    rxDashed[i-FLP-BP]=p[i].px-p[i].prepx;
-    ryDashed[i-FLP-BP]=p[i].py-p[i].prepy;
-  }
-
-  for(i=0; i<OBP; i++){
-    rgxDashed+=rxDashed[i]/(double)OBP;
-    rgyDashed+=ryDashed[i]/(double)OBP;
-}
-  
-  for(i=FLP+BP; i<N; i++){//calculating rotation angle theta
-    theta+=p[i].mass*( rxDashed[i-FLP-BP]*(p[i].prepy-rgy[1])-ryDashed[i-FLP-BP]*(p[i].prepx-rgx[1]))
-           /(inertia+epsilon);
-  }
-  
-  for(i=FLP+BP; i<N; i++){
-    rxDashed[i-FLP-BP]=rgxDashed+(cos(theta)-1)*(p[i].prepx-rgx[1])+sin(theta)*(p[i].prepy-rgy[1]);
-    ryDashed[i-FLP-BP]=rgyDashed+(-sin(theta))*(p[i].prepx-rgx[1])+(cos(theta)-1)*(p[i].prepy-rgy[1]);
-  }
-
-  for(i=FLP+BP; i<N; i++){
-    p[i].vx=rxDashed[i-FLP-BP]/dt;
-    p[i].vy=ryDashed[i-FLP-BP]/dt;
-  }
-
-  for(i=FLP+BP; i<N; i++){
-    p[i].px=p[i].prepx+rxDashed[i-FLP-BP];
-    p[i].py=p[i].prepy+ryDashed[i-FLP-BP];
-  }
-}
-*/
-
-void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double angVel){
+void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double angVel, double com[]){
   double gx, gy;
   double inertia;
   double qx[OBP], qy[OBP];
@@ -890,97 +820,98 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double angVel){
   Rot=0;
   int threshold=0;
 
-  for(i=0; i<OBP; i++){
-    qx[i]=0;
-    qy[i]=0;
-  }
-  
-  for (i=FLP+BP; i<N; i++){//calculating center of mass
-    gx+=p[i].px/OBP;
-    gy+=p[i].py/OBP;
-  }
-
-  for (i=FLP+BP; i<N; i++){//calculating vector between center of mass and ith particle
-    qx[i-FLP-BP]=p[i].px-gx;
-    qy[i-FLP-BP]=p[i].py-gy;
-  }
-
-  for(i=FLP+BP; i<N; i++){//calculating inertia
-    inertia+=p[i].mass*(qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP]);
-  }
-
-  for(i=FLP+BP; i<N; i++){//calculating translation velocity
-    Tx+=p[i].vxh/OBP;
-    Ty+=p[i].vyh/OBP;
-  }
-
-
-  if(time>threshold){
-    for(i=FLP+BP; i<N; i++){//calculating anglar velocity
-      Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vyh-qy[i-FLP-BP]*p[i].vxh)/(inertia+epsilon);
+  if(time>DAMPTIME || time==1){
+    for(i=0; i<OBP; i++){
+      qx[i]=0;
+      qy[i]=0;
     }
-  }else if(time<=threshold){
-    Rot=angVel;
-  }
-
-
-  //  for(i=FLP+BP; i<N; i++){
-    //     fprintf(stderr,"%d gx:%f gy:%f %f %f Tx:%f Ty:%f Rot:%f vx:%f vy:%f\n",i, gx, gy,qx[i-FLP-BP], qy[i-FLP-BP], Tx, Ty, Rot, p[i].vx, p[i].vy);
-  //}
-
-  for(i=FLP+BP; i<N; i++){
-    p[i].vxh=Tx-Rot*qy[i-FLP-BP];
-    p[i].vyh=Ty+Rot*qx[i-FLP-BP];
-  }
-
-  for(i=FLP+BP; i<N; i++){
-    //    fprintf(stderr,"%d gx:%f gy:%f %f %f Tx:%f Ty:%f Rot:%f vx:%f vy:%f\n",i, gx, gy,qx[i-FLP-BP], qy[i-FLP-BP], Tx, Ty, Rot, p[i].vx, p[i].vy);
-  }
-
-  for(i=FLP+BP; i<N; i++){
-     p[i].px=p[i].prepx+p[i].vxh*dt;
-     p[i].py=p[i].prepy+p[i].vyh*dt;
-  }
-  //until here correction of position is complete
-  //------------------------------------------------------
-  gx=0;
-  gy=0;
-
-  for (i=FLP+BP; i<N; i++){//calculating center of mass
-    gx+=p[i].px/OBP;
-    gy+=p[i].py/OBP;
-  }
   
-  for (i=FLP+BP; i<N; i++){//calculating vector between center of mass and ith particle
-    qx[i-FLP-BP]=p[i].px-gx;
-    qy[i-FLP-BP]=p[i].py-gy;
-  }
-
-  for(i=FLP+BP; i<N; i++){//calculating inertia
-    inertia+=p[i].mass*(qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP]);
-  }
-
-  for(i=FLP+BP; i<N; i++){//calculating translation velocity
-    Tx+=p[i].vx/OBP;
-    Ty+=p[i].vy/OBP;
-  }
-
-  if(time>threshold){
-    for(i=FLP+BP; i<N; i++){//calculating anglar velocity
-      Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vy-qy[i-FLP-BP]*p[i].vx)/(inertia+epsilon);
+    for (i=FLP+BP; i<N; i++){//calculating center of mass
+      gx+=p[i].prepx/OBP;
+      gy+=p[i].prepy/OBP;
     }
-  }else if(time<=threshold){
-    Rot=angVel;
-  }
 
-  for(i=FLP+BP; i<N; i++){
-    p[i].vx=Tx-Rot*qy[i-FLP-BP];
-    p[i].vy=Ty+Rot*qx[i-FLP-BP];
+    for (i=FLP+BP; i<N; i++){//calculating vector between center of mass and ith particle
+      qx[i-FLP-BP]=p[i].prepx-gx;
+      qy[i-FLP-BP]=p[i].prepy-gy;
+    }
+
+    for(i=FLP+BP; i<N; i++){//calculating inertia
+      inertia+=p[i].mass*(qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP]);
+    }
+
+    for(i=FLP+BP; i<N; i++){//calculating translation velocity
+      Tx+=p[i].vxh/OBP;
+      Ty+=p[i].vyh/OBP;
+    }
+
+
+    if(time>threshold){
+      for(i=FLP+BP; i<N; i++){//calculating anglar velocity
+        Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vyh-qy[i-FLP-BP]*p[i].vxh)/(inertia+epsilon);
+      }
+    }
+
+    for(i=FLP+BP; i<N; i++){
+      p[i].vxh=Tx-Rot*qy[i-FLP-BP];
+      p[i].vyh=Ty+Rot*qx[i-FLP-BP];
+    }
+
+    for(i=FLP+BP; i<N; i++){
+      p[i].px=p[i].prepx+p[i].vxh*dt;
+      p[i].py=p[i].prepy+p[i].vyh*dt;
+    }
+    //until here correction of position is complete
+    //------------------------------------------------------
+    gx=0;
+    gy=0;
+
+    for (i=FLP+BP; i<N; i++){//calculating center of mass
+      gx+=p[i].px/OBP;
+      gy+=p[i].py/OBP;
+    }
+  
+    for (i=FLP+BP; i<N; i++){//calculating vector between center of mass and ith particle
+      qx[i-FLP-BP]=p[i].px-gx;
+      qy[i-FLP-BP]=p[i].py-gy;
+    }
+
+    for(i=FLP+BP; i<N; i++){//calculating inertia
+      inertia+=p[i].mass*(qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP]);
+    }
+
+    for(i=FLP+BP; i<N; i++){//calculating translation velocity
+      Tx+=p[i].vx/OBP;
+      Ty+=p[i].vy/OBP;
+    }
+
+    if(time>threshold){
+      for(i=FLP+BP; i<N; i++){//calculating anglar velocity
+        Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vy-qy[i-FLP-BP]*p[i].vx)/(inertia+epsilon);
+      }
+    }else if(time<=threshold){
+      Rot=angVel;
+    }
+
+    for(i=FLP+BP; i<N; i++){
+      p[i].vx=Tx-Rot*qy[i-FLP-BP];
+      p[i].vy=Ty+Rot*qx[i-FLP-BP];
+    }
   }
+    gx=0;
+    gy=0;
+
+    for (i=FLP+BP; i<N; i++){//calculating center of mass
+      gx+=p[i].px/OBP;
+      gy+=p[i].py/OBP;
+    }
   
   if(time%50==0){
   fprintf(fp, "%f %f %f %f %f %f %f\n", (double)(time*dt), gx, gy, Tx, Ty, Rot, inertia);
   }
+  //outputting center of mass
+  com[0]=gx;
+  com[1]=gy;
 }
 
 void leapfrogStart(Particle_State p[])
@@ -1006,6 +937,7 @@ void leapfrogStart(Particle_State p[])
       p[i].px+=p[i].vxh*dt;
       p[i].py+=p[i].vyh*dt;
     }
+    
 }
 
 void leapfrogStep(Particle_State p[], int time)
@@ -1042,10 +974,8 @@ void leapfrogStep(Particle_State p[], int time)
       }
       p[i].prepx=p[i].px;
       p[i].prepy=p[i].py;
-      //    fprintf(stderr, "%f %f ", p[i].px, p[i].py);
       p[i].px+=p[i].vxh*dt;
       p[i].py+=p[i].vyh*dt;
-      //  fprintf(stderr, "%f %f \n", p[i].px, p[i].py);
     }
   }
 }

@@ -36,9 +36,9 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
 void makeDatFileName(char fName[], char type[], char srcName[], double angVel)
 {
   if(angVel>=0){
-  sprintf(fName, "angvel%f_dt%f_%s_%s.dat", angVel, dt, srcName, type);
+  sprintf(fName, "angvel%.2f_dt%.5f_%s_%s.dat", angVel, dt, srcName, type);
   }else if(angVel<0){
-  sprintf(fName, "angvelmin%f_dt%f_%s_%s.dat", -angVel, dt, srcName, type);
+  sprintf(fName, "angvelmin%.2f_dt%.5f_%s_%s.dat", -angVel, dt, srcName, type);
   }
 
 }
@@ -83,7 +83,7 @@ void printFluidPositions(Particle_State p[], FILE *fp)
   int i;
 
   for(i=0; i<FLP; i++){ 
-    fprintf(fp,"%0.12e %0.12e\n", p[i].px, p[i].py);
+    fprintf(fp,"%.3f %.3fe\n", p[i].px, p[i].py);
   }
   fprintf(fp, "\n\n");
 
@@ -105,7 +105,7 @@ void printBoundaryPositions(Particle_State p[], FILE *fp)
   int i;
 
   for(i=FLP; i<FLP+BP; i++){ 
-    fprintf(fp,"%0.12e %0.12e\n", p[i].px, p[i].py);
+    fprintf(fp,"%.3f %.3f\n", p[i].px, p[i].py);
   }
   fprintf(fp, "\n\n");
 }
@@ -125,9 +125,30 @@ void printObstaclePositions(Particle_State p[], FILE *fp)
 {
   int i;
   for(i=FLP+BP; i<N; i++){ 
-    fprintf(fp,"%0.12e %0.12e\n", p[i].px, p[i].py);
+    fprintf(fp,"%.3fe %.3f\n", p[i].px, p[i].py);
   }
   fprintf(fp,"\n\n");
+}
+
+void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[])
+{
+  int i;
+  double xrange=1.5;
+  double yrange=1.5;
+  double gx=com[0];
+  double gy=com[1];
+  for(i=0; i<FLP; i++){
+    if(p[i].px>=gx-xrange && p[i].px<=gx+xrange){
+      if(p[i].py>=gy-yrange-5.0 && p[i].py<=gy+yrange){
+        fprintf(fp, "%.3f %.3f\n", p[i].px, p[i].py);
+      }
+    }
+  }
+  fprintf(fp, "\n\n");
+  for(i=FLP+BP; i<N; i++){
+    fprintf(fp, "%.3f %.3f\n", p[i].px, p[i].py);
+  }
+  fprintf(fp, "\n\n");
 }
 
 void percentage(int time, int *countPer)
@@ -156,6 +177,7 @@ void tipPosition(Particle_State p[], int time, FILE *tip)
 void makePltFile(char *srcName, double angVel){
   FILE *plt;
   FILE *plt2;
+  FILE *partPlot;
   char fName[40];
   char line[256];
   plt=fopen("rigid_anime.plt","w");
@@ -166,37 +188,67 @@ void makePltFile(char *srcName, double angVel){
   if(plt2==NULL){
     printf("open plt2 error\n");
   }
+  partPlot=fopen("partPlot.plt","w");
+  if(plt2==NULL){
+    printf("open plt2 error\n");
+  }
   
   if(angVel>=0){
-    sprintf(fName, "angvel%f_dt%f_%s_plot.dat", angVel, dt, srcName);
+    sprintf(fName, "angvel%.2f_dt%.5f_%s_plot.dat", angVel, dt, srcName);
   }else if(angVel<0){
-    sprintf(fName, "angvelmin%f_dt%f_%s_plot.dat", -angVel, dt,srcName);
+    sprintf(fName, "angvelmin%.2f_dt%.5f_%s_plot.dat", -angVel, dt,srcName);
   }
 
-  sprintf(line,"set xrange[-1:%f]\n",(XSIZE+10)*interval);
+  sprintf(line,"set xrange[-1:%.1f]\n",(XSIZE+10)*interval);
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
-  sprintf(line,"set yrange[-1:%f]\n",(YSIZE+10)*interval);
+  sprintf(line,"set yrange[-1:%.1f]\n",(YSIZE+10)*interval);
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
-  sprintf(line,"set size ratio %f 1.0\n",(double)((YSIZE+20)/(XSIZE+20)));
+  sprintf(line,"set size ratio %.2f 1.0\n",(double)((YSIZE+20)/(XSIZE+20)));
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
   if((int)((DAMPTIME/100)*2-20)<0){ 
-    sprintf(line,"do for[i=0:t:2]{\n");
+    sprintf(line,"do for[i=1:t:2]{\n");
   }else{
-    sprintf(line, "do for[i=%d:t:2]{\n", (int)((DAMPTIME/100)*2-20));
+    sprintf(line, "do for[i=%d:t:2]{\n", (int)((DAMPTIME/100)*2-20+1));
   }
   fprintf(plt,"%s",line);
   sprintf(line,"print i\n");
   fprintf(plt,"%s",line);
-  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 2, '%s' index i u 1:2 w p pt 3, '%s' index i+1 u 1:2 w p pt 4\n", fName, fName, fName);
+  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 35, '%s' index i u 1:2 w p pt 22, '%s' index i+1 u 1:2 w p pt 18\n", fName, fName, fName);
   fprintf(plt,"%s",line);
   sprintf(line,"}\n");
   fprintf(plt,"%s",line);
 
-  sprintf(line, "plot '%s' index 0 u 1:2 w p pt 35, '%s' index (t*200) u 1:2 w p pt 18, '%s' index (t*200+1) u 1:2 w p pt 22\n"), fName, fName, fName;
+  sprintf(line, "plot '%s' index 0 u 1:2 w p pt 35, '%s' index (t*200) u 1:2 w p pt 18, '%s' index (t*200+1) u 1:2 w p pt 22\n", fName, fName, fName);
   fprintf(plt2, "%s", line);
+
+  
+  if(angVel>=0){
+    sprintf(fName, "angvel%.2f_dt%.5f_%s_partPlot.dat", angVel, dt, srcName);
+  }else if(angVel<0){
+    sprintf(fName, "angvelmin%.2f_dt%.5f_%s_partPlot.dat", -angVel, dt,srcName);
+  }
+
+  sprintf(line,"set xrange[-1:%.1f]\n",(XSIZE+10)*interval);
+  fprintf(partPlot,"%s",line);
+  sprintf(line,"set yrange[-1:%.1f]\n",(YSIZE+10)*interval);
+  fprintf(partPlot,"%s",line);
+  sprintf(line,"set size ratio %.3f 1.0\n",(double)((YSIZE+20)/(XSIZE+20)));
+  fprintf(partPlot,"%s",line);
+  if((int)((DAMPTIME/100)*2-20)<0){ 
+    sprintf(line,"do for[i=1:t:2]{\n");
+  }else{
+    sprintf(line, "do for[i=%d:t:2]{\n", (int)((DAMPTIME/100)*2-20+1));
+  }
+  fprintf(partPlot,"%s",line);
+  sprintf(line,"print i\n");
+  fprintf(partPlot,"%s",line);
+  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 35, '%s' index i u 1:2 w p pt 22, '%s' index i+1 u 1:2 w p pt 18\n", fName, fName, fName);
+  fprintf(partPlot,"%s",line);
+  sprintf(line,"}\n");
+  fprintf(partPlot,"%s",line);
 
   fclose(plt);
   fclose(plt2);

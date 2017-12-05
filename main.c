@@ -11,11 +11,13 @@
 int main(int argc, char *argv[]){
     
   Particle_State a[N];
+  double com[2];
   int *bfst, *blst, *nxt;
   int countPer=0;
   int i;
   FILE *data;
   FILE *plot;
+  FILE *partPlot;
   FILE *parameters;
   FILE *numbers;
   FILE *rigidBody;
@@ -59,6 +61,10 @@ int main(int argc, char *argv[]){
   sprintf(type, "rigidBody");
   makeDatFileName(fName, type, srcName, angVel);
   rigidBody=fopen(fName,"w");
+
+  sprintf(type, "partPlot");
+  makeDatFileName(fName, type, srcName, angVel);
+  partPlot=fopen(fName,"w");
   
   //placing particles
   initialization(a, N);
@@ -70,12 +76,13 @@ int main(int argc, char *argv[]){
   obstacleBoundaryParticles(a);
   fprintf(stderr, "Obstacke Particles are placed\n");
 
+
   //allocating bucket
   allocateBucket(&bfst, &blst, &nxt);
   fprintf(stderr,"%d %d %d Bucket allocated\n", nBx, nBy, nBxy);
   checkParticle(a);  
   makeBucket(bfst, blst, nxt, a);
-  fprintf(stderr," makeBucket\n\n");
+  fprintf(stderr,"makeBucket\n\n");
 
   //printint parameters-------------------
   fprintf(stderr,"Parameters:\nanglalrVelocity:%f\n", angVel);
@@ -109,17 +116,24 @@ int main(int argc, char *argv[]){
   printFluidPositions(a, plot);
   printObstaclePositions(a,plot);
 
+  for(i=FLP+BP; i<N; i++){
+    com[0]+=a[i].px/OBP;
+    com[1]+=a[i].py/OBP;
+  }
+
+  printBoundaryPositions(a, partPlot);
+  printParticlesAroundObstacle(a, partPlot, com);
+
 
   //time development
   for(i=1; i<=T; i++){
     if(i==1){
       leapfrogStart(a);
-
     }else{
       leapfrogStep(a, i);
       }
-    
-    rigidBodyCorrection(a, rigidBody, i, angVel);
+
+    rigidBodyCorrection(a, rigidBody, i, angVel, com);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
 
@@ -135,15 +149,11 @@ int main(int argc, char *argv[]){
     if(i%100==0){
       printFluidParticles(a, data);//here show paremeters at t=(i*dt)
       printObstacleParticles(a, data);
-      
-      //      if(i/100<=(T/100)/2){
+
       printFluidPositions(a,plot);
       printObstaclePositions(a,plot);
-        //}else if(i/100 > (int) ((T/100)/2)){
-        //	printFluidPositions(a,plot2);
-        //	printObstaclePositions(a,plot2);
-        //      }
-
+      
+      printParticlesAroundObstacle(a, partPlot, com);
     }
     percentage(i, &countPer);
   }
@@ -163,6 +173,7 @@ int main(int argc, char *argv[]){
 
   fclose(data);
   fclose(plot);
+  fclose(partPlot);
   fclose(parameters);
   fclose(rigidBody);
 
