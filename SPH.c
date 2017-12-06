@@ -818,7 +818,6 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double angVel, 
   inertia=0;
   Tx=0, Ty=0;
   Rot=0;
-  int threshold=0;
 
   if(time>DAMPTIME || time==1){
     for(i=0; i<OBP; i++){
@@ -846,10 +845,8 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double angVel, 
     }
 
 
-    if(time>threshold){
-      for(i=FLP+BP; i<N; i++){//calculating anglar velocity
-        Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vyh-qy[i-FLP-BP]*p[i].vxh)/(inertia+epsilon);
-      }
+    for(i=FLP+BP; i<N; i++){//calculating anglar velocity
+      Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vyh-qy[i-FLP-BP]*p[i].vxh)/(inertia+epsilon);
     }
 
     for(i=FLP+BP; i<N; i++){
@@ -885,19 +882,35 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double angVel, 
       Ty+=p[i].vy/OBP;
     }
 
-    if(time>threshold){
-      for(i=FLP+BP; i<N; i++){//calculating anglar velocity
-        Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vy-qy[i-FLP-BP]*p[i].vx)/(inertia+epsilon);
-      }
-    }else if(time<=threshold){
-      Rot=angVel;
+    for(i=FLP+BP; i<N; i++){//calculating anglar velocity
+      Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vy-qy[i-FLP-BP]*p[i].vx)/(inertia+epsilon);
     }
 
     for(i=FLP+BP; i<N; i++){
       p[i].vx=Tx-Rot*qy[i-FLP-BP];
       p[i].vy=Ty+Rot*qx[i-FLP-BP];
     }
+  }else if(time > 1 && time <=DAMPTIME){
+    for(i=0; i<OBP; i++){
+      qx[i]=0;
+      qy[i]=0;
+    }
+  
+    for (i=FLP+BP; i<N; i++){//calculating center of mass
+      gx+=p[i].prepx/OBP;
+      gy+=p[i].prepy/OBP;
+    }
+
+    for (i=FLP+BP; i<N; i++){//calculating vector between center of mass and ith particle
+      qx[i-FLP-BP]=p[i].prepx-gx;
+      qy[i-FLP-BP]=p[i].prepy-gy;
+    }
+
+    for(i=FLP+BP; i<N; i++){//calculating inertia
+      inertia+=p[i].mass*(qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP]);
+    }
   }
+
     gx=0;
     gy=0;
 
@@ -906,13 +919,16 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double angVel, 
       gy+=p[i].py/OBP;
     }
   
-  if(time%50==0){
-  fprintf(fp, "%f %f %f %f %f %f %f\n", (double)(time*dt), gx, gy, Tx, Ty, Rot, inertia);
-  }
-  //outputting center of mass
-  com[0]=gx;
-  com[1]=gy;
+    if(time%50==0){
+      fprintf(fp, "%f %f %f %f %f %f %f\n", (double)(time*dt), gx, gy, Tx, Ty, Rot, inertia);
+    }
+    //outputting center of mass
+    com[0]=gx;
+    com[1]=gy;
 }
+
+
+
 
 void leapfrogStart(Particle_State p[])
 {

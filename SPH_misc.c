@@ -15,7 +15,7 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
 
   fgets(temp, 64, fp);
 
-  for(i=0; i<N; i++){
+  for(i=0; i<64; i++){
     if(temp[i]=='.' && temp[i+1]=='p' && temp[i+2]=='n' && temp[i+3]=='g'){
       break;
     }
@@ -35,10 +35,13 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
 
 void makeDatFileName(char fName[], char type[], char srcName[], double angVel)
 {
+  char directory[128];
+
+  sprintf(directory, "./Source_%s/", srcName);
   if(angVel>=0){
-  sprintf(fName, "angvel%.2f_dt%.5f_%s_%s.dat", angVel, dt, srcName, type);
+    sprintf(fName, "%sangvel%.2f_dt%.5f_%s_%s.dat", directory, angVel, dt, srcName, type);
   }else if(angVel<0){
-  sprintf(fName, "angvelmin%.2f_dt%.5f_%s_%s.dat", -angVel, dt, srcName, type);
+    sprintf(fName, "%sangvelmin%.2f_dt%.5f_%s_%s.dat", directory, -angVel, dt, srcName, type);
   }
 
 }
@@ -133,13 +136,15 @@ void printObstaclePositions(Particle_State p[], FILE *fp)
 void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[])
 {
   int i;
-  double xrange=1.5;
-  double yrange=1.5;
+  double xrange=3.0;
+  double yrange=3.0;
   double gx=com[0];
   double gy=com[1];
-  for(i=0; i<FLP; i++){
+
+  fprintf(fp, "%.3f %.3f\n", p[0].px, p[0].py);
+  for(i=1; i<FLP; i++){
     if(p[i].px>=gx-xrange && p[i].px<=gx+xrange){
-      if(p[i].py>=gy-yrange-5.0 && p[i].py<=gy+yrange){
+      if(p[i].py>=gy-yrange && p[i].py<=gy+yrange){
         fprintf(fp, "%.3f %.3f\n", p[i].px, p[i].py);
       }
     }
@@ -174,21 +179,55 @@ void tipPosition(Particle_State p[], int time, FILE *tip)
   fprintf(tip, "%f %f %f %f\n", dt*time, max-0.3, (dt*time)*sqrt(2.0*g/4.0), ((max-0.3)/4.0));
 }
 
-void makePltFile(char *srcName, double angVel){
+void getCalculationRegion(double range[], Particle_State p[])
+{
+  int i;
+  double xmin, xmax, ymin, ymax;
+  xmin=(XSIZE*interval)/2.0;
+  xmax=(XSIZE*interval)/2.0;
+  ymin=(YSIZE*interval)/2.0;
+
+  for(i=FLP; i<FLP+BP; i++){
+    if(p[i].px<xmin){
+      xmin=p[i].px;
+    }
+    if(p[i].px>xmax){
+      xmax=p[i].px;
+    }
+    if(p[i].py<ymin){
+      ymin=p[i].py;
+    }
+  }
+
+  range[0]=xmin;
+  range[1]=xmax;
+  range[2]=ymin;
+
+}
+
+void makePltFile(char *srcName, double angVel, Particle_State p[]){
   FILE *plt;
   FILE *plt2;
   FILE *partPlot;
-  char fName[40];
+
+  char directory[128];
+  char fName[128];
   char line[256];
-  plt=fopen("rigid_anime.plt","w");
+  double range[3];
+  getCalculationRegion(range, p);
+  sprintf(directory, "./Source_%s/rigid_anime.plt", srcName);
+
+  plt=fopen(directory,"w");
   if(plt==NULL){
     printf("open plt error\n");
   }
-  plt2=fopen("plot.plt","w");
+  sprintf(directory, "./Source_%s/plot.plt", srcName);
+  plt2=fopen(directory, "w");
   if(plt2==NULL){
     printf("open plt2 error\n");
   }
-  partPlot=fopen("partPlot.plt","w");
+  sprintf(directory, "./Source_%s/partPlot.plt", srcName);
+  partPlot=fopen(directory,"w");
   if(plt2==NULL){
     printf("open plt2 error\n");
   }
@@ -199,13 +238,13 @@ void makePltFile(char *srcName, double angVel){
     sprintf(fName, "angvelmin%.2f_dt%.5f_%s_plot.dat", -angVel, dt,srcName);
   }
 
-  sprintf(line,"set xrange[-1:%.1f]\n",(XSIZE+10)*interval);
+  sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
-  sprintf(line,"set yrange[-1:%.1f]\n",(YSIZE+10)*interval);
+  sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
-  sprintf(line,"set size ratio %.2f 1.0\n",(double)((YSIZE+20)/(XSIZE+20)));
+  sprintf(line,"set size ratio 1.0 1.0\n");
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
   if((int)((DAMPTIME/100)*2-20)<0){ 
@@ -231,9 +270,9 @@ void makePltFile(char *srcName, double angVel){
     sprintf(fName, "angvelmin%.2f_dt%.5f_%s_partPlot.dat", -angVel, dt,srcName);
   }
 
-  sprintf(line,"set xrange[-1:%.1f]\n",(XSIZE+10)*interval);
+  sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
   fprintf(partPlot,"%s",line);
-  sprintf(line,"set yrange[-1:%.1f]\n",(YSIZE+10)*interval);
+  sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
   fprintf(partPlot,"%s",line);
   sprintf(line,"set size ratio %.3f 1.0\n",(double)((YSIZE+20)/(XSIZE+20)));
   fprintf(partPlot,"%s",line);
@@ -252,4 +291,5 @@ void makePltFile(char *srcName, double angVel){
 
   fclose(plt);
   fclose(plt2);
+  fclose(partPlot);
 }

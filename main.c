@@ -21,10 +21,12 @@ int main(int argc, char *argv[]){
   FILE *parameters;
   FILE *numbers;
   FILE *rigidBody;
-  char srcName[64];
-  char fName[64];
-  char date[64];
-  char type[64];
+  FILE *newFIle;
+  char srcName[128];
+  char fName[128];
+  char date[128];
+  char type[128];
+  char direct[128];
   double angVel=0;
 
 
@@ -35,7 +37,7 @@ int main(int argc, char *argv[]){
   //open numbers.h
   numbers=fopen("numbers.h","r");
   if(numbers==NULL){
-    printf("Error!\n");
+    printf("numbers.h cannot be opened!\n");
     return -1;
   }
 
@@ -48,23 +50,54 @@ int main(int argc, char *argv[]){
 
   sprintf(type, "plot");
   makeDatFileName(fName, type, srcName, angVel);
+  if((newFIle=fopen(fName, "r"))!=NULL){
+    int bool;
+    fprintf(stderr, "\nWarning!\n");
+    fprintf(stderr, "File %s is already exists.\nWould you like to overwrite this file?\n", fName);
+    fprintf(stderr, "Yes:1   No:0\n");
+    scanf("%d", &bool);
+    if(bool==0){
+      return -1;
+    }
+}
+
   plot=fopen(fName,"w");
+  if(plot==NULL){
+    printf("plot cannot be opened!\n");
+    return -1;
+  }
 
   sprintf(type, "data");
   makeDatFileName(fName, type, srcName, angVel);
   data=fopen(fName,"w");
+  if(data==NULL){
+    printf("data cannot be opened!\n");
+    return -1;
+  }
 
   sprintf(type, "parameters");
   makeDatFileName(fName, type, srcName, angVel);
   parameters=fopen(fName,"w");
+  if(parameters==NULL){
+    printf("parameters cannot be opened!\n");
+    return -1;
+  }
 
   sprintf(type, "rigidBody");
   makeDatFileName(fName, type, srcName, angVel);
   rigidBody=fopen(fName,"w");
+  if(rigidBody==NULL){
+    printf("rigidBody cannot be opened!\n");
+    return -1;
+  }
 
   sprintf(type, "partPlot");
   makeDatFileName(fName, type, srcName, angVel);
   partPlot=fopen(fName,"w");
+  if(partPlot==NULL){
+    printf("partPlot cannot be opened!\n");
+    return -1;
+  }
   
   //placing particles
   initialization(a, N);
@@ -160,7 +193,7 @@ int main(int argc, char *argv[]){
 
   fprintf(stderr,"\n");
 
-  makePltFile(srcName, angVel);
+  makePltFile(srcName, angVel, a);
 
   free(bfst);
   free(blst);

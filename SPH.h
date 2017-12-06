@@ -5,7 +5,7 @@
 
 #define h 0.1//smoothing length
 #define k1 1.0 //pressure constant
-#define dt 5.0e-5//time step size
+#define dt 1.0e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define nu 0.005 //viscosity coefficient
@@ -15,7 +15,7 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 60000//time step
+#define T 30000//time step
 #define DAMPTIME 5000
 
 #define interval 0.1
@@ -95,5 +95,6 @@ void printObstacleParticles(Particle_State p[], FILE *fp);
 void printObstaclePositions(Particle_State p[], FILE *fp);
 void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[]);
 void tipPosition(Particle_State p[], int time, FILE *tip);
-void makePltFile(char *srcName, double angVel);
+void getCalculationRegion(double range[], Particle_State p[]);
+void makePltFile(char *srcName, double angVel, Particle_State p[]);
 #endif //_SPH

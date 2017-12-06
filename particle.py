@@ -1,6 +1,8 @@
 from PIL import Image
+import os
 
 fileName=input("Enter file name.:")
+imgName=fileName
 fileName=fileName+".png"
 im=Image.open(fileName)#image file name for initial condition
 
@@ -62,3 +64,14 @@ s2="#define YSIZE %d\n"%(size[1])
 f2.write(s2)
 
 f2.close()
+
+s2='Source_%s'%(imgName)
+print(s2)
+try:
+    os.mkdir(s2)
+except OSError as exc:
+    if exc.errno!=errno.EEXIST:
+        raise
+    pass
+
+
