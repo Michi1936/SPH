@@ -5,7 +5,7 @@
 
 #define h 0.1//smoothing length
 #define k1 1.0 //pressure constant
-#define dt 1.0e-4//time step size
+#define dt 1e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define nu 0.005 //viscosity coefficient
@@ -15,8 +15,8 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 30000//time step
-#define DAMPTIME 5000
+#define T 100000//time step
+#define DAMPTIME 25000
 
 #define interval 0.1
 #define MAX_X 60
@@ -67,7 +67,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
 double adhesionCoefficient(Particle_State p1, Particle_State p2);
 void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]);
 void rotateRigidBody(Particle_State p[], double angVel);
-void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double angVel, double com[]);
+void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]);
 void leapfrogStart(Particle_State p[]);
 void leapfrogStep(Particle_State p[], int time);
 

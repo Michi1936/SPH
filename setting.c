@@ -32,7 +32,7 @@ int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt
 {
   FILE *fp;
   int i=0;
-  int ret, px, py, r, gr, b;
+  int ret, px, py;
   fp=fopen("fluid.txt","r");
   if(fp==NULL){
     printf("fluid.txt cannot be read.");

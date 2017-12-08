@@ -26,7 +26,6 @@ int main(int argc, char *argv[]){
   char fName[128];
   char date[128];
   char type[128];
-  char direct[128];
   double angVel=0;
 
 
@@ -47,7 +46,7 @@ int main(int argc, char *argv[]){
   if(argc==2){
     angVel=atof(argv[1]);
   }
-
+ 
   sprintf(type, "plot");
   makeDatFileName(fName, type, srcName, angVel);
   if((newFIle=fopen(fName, "r"))!=NULL){
@@ -57,14 +56,16 @@ int main(int argc, char *argv[]){
     fprintf(stderr, "Yes:1   No:0\n");
     scanf("%d", &bool);
     if(bool==0){
-      return -1;
+      exit(EXIT_FAILURE);
     }
-}
+  }
+
+  fprintf(stderr,"%s\n", fName);
 
   plot=fopen(fName,"w");
   if(plot==NULL){
     printf("plot cannot be opened!\n");
-    return -1;
+    exit(EXIT_FAILURE);
   }
 
   sprintf(type, "data");
@@ -72,7 +73,7 @@ int main(int argc, char *argv[]){
   data=fopen(fName,"w");
   if(data==NULL){
     printf("data cannot be opened!\n");
-    return -1;
+    exit(EXIT_FAILURE);
   }
 
   sprintf(type, "parameters");
@@ -80,7 +81,7 @@ int main(int argc, char *argv[]){
   parameters=fopen(fName,"w");
   if(parameters==NULL){
     printf("parameters cannot be opened!\n");
-    return -1;
+    exit(EXIT_FAILURE);
   }
 
   sprintf(type, "rigidBody");
@@ -88,7 +89,7 @@ int main(int argc, char *argv[]){
   rigidBody=fopen(fName,"w");
   if(rigidBody==NULL){
     printf("rigidBody cannot be opened!\n");
-    return -1;
+    exit(EXIT_FAILURE);
   }
 
   sprintf(type, "partPlot");
@@ -96,7 +97,7 @@ int main(int argc, char *argv[]){
   partPlot=fopen(fName,"w");
   if(partPlot==NULL){
     printf("partPlot cannot be opened!\n");
-    return -1;
+    exit(EXIT_FAILURE);
   }
   
   //placing particles
@@ -166,7 +167,7 @@ int main(int argc, char *argv[]){
       leapfrogStep(a, i);
       }
 
-    rigidBodyCorrection(a, rigidBody, i, angVel, com);
+    rigidBodyCorrection(a, rigidBody, i, com);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
 

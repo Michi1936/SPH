@@ -785,9 +785,11 @@ void rotateRigidBody(Particle_State p[], double angVel)
 {
   double gx, gy;
   int i;
+  double inertia;
+  double qx[OBP], qy[OBP];
+  double Rot;
+
   gx=0, gy=0;
-
-
   for(i=FLP+BP; i<N; i++){//calculating center of mass
     gx+=p[i].px/OBP;
     gy+=p[i].py/OBP;
@@ -802,11 +804,31 @@ void rotateRigidBody(Particle_State p[], double angVel)
     p[i].vy+=(angVel*dx);
   }
 
-  fprintf(stderr,"%f Rigid body is rotated.\n",angVel);
+    for(i=0; i<OBP; i++){
+      qx[i]=0;
+      qy[i]=0;
+    }
+
+    for (i=FLP+BP; i<N; i++){//calculating vector between center of mass and ith particle
+      qx[i-FLP-BP]=p[i].px-gx;
+      qy[i-FLP-BP]=p[i].py-gy;
+    }
+
+    for(i=FLP+BP; i<N; i++){//calculating inertia
+      inertia+=p[i].mass*(qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP]);
+    }
+
+    for(i=FLP+BP; i<N; i++){//calculating anglar velocity
+      Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vy-qy[i-FLP-BP]*p[i].vx)/(inertia+epsilon);
+    }
+
+    fprintf(stderr, "angvel=%f inertia=%F Rot=%f\n\n", angVel, inertia, Rot);
+
+    fprintf(stderr,"%.2f Rigid body is rotated.\n",angVel);
 }
 
 
-void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double angVel, double com[]){
+void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
   double gx, gy;
   double inertia;
   double qx[OBP], qy[OBP];
@@ -862,6 +884,10 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double angVel, 
     //------------------------------------------------------
     gx=0;
     gy=0;
+    inertia=0;
+    Rot=0;
+    Tx=0;
+    Ty=0;
 
     for (i=FLP+BP; i<N; i++){//calculating center of mass
       gx+=p[i].px/OBP;

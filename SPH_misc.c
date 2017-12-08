@@ -16,7 +16,7 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
   fgets(temp, 64, fp);
 
   for(i=0; i<64; i++){
-    if(temp[i]=='.' && temp[i+1]=='p' && temp[i+2]=='n' && temp[i+3]=='g'){
+    if(temp[i]=='.'){
       break;
     }
     if(temp[i]=='/'){
@@ -28,8 +28,10 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
       continue;
     }
     srcName[charCount]=temp[i];
+    fprintf(stderr ,"%c ", srcName[charCount]);
     charCount++;
   }
+  printf("\n");
 
 }
 
@@ -38,12 +40,13 @@ void makeDatFileName(char fName[], char type[], char srcName[], double angVel)
   char directory[128];
 
   sprintf(directory, "./Source_%s/", srcName);
+  fprintf(stderr, "%s\n", directory);
   if(angVel>=0){
-    sprintf(fName, "%sangvel%.2f_dt%.5f_%s_%s.dat", directory, angVel, dt, srcName, type);
+    sprintf(fName, "%sangvel%.2f_dt%.6f_%s_%s.dat", directory, angVel, dt, srcName, type);
   }else if(angVel<0){
-    sprintf(fName, "%sangvelmin%.2f_dt%.5f_%s_%s.dat", directory, -angVel, dt, srcName, type);
+    sprintf(fName, "%sangvelmin%.2f_dt%.6f_%s_%s.dat", directory, -angVel, dt, srcName, type);
   }
-
+  fprintf(stderr, "%s\n", fName);
 }
 
 void printParticles(Particle_State p[], FILE *fp)
@@ -182,7 +185,7 @@ void tipPosition(Particle_State p[], int time, FILE *tip)
 void getCalculationRegion(double range[], Particle_State p[])
 {
   int i;
-  double xmin, xmax, ymin, ymax;
+  double xmin, xmax, ymin;
   xmin=(XSIZE*interval)/2.0;
   xmax=(XSIZE*interval)/2.0;
   ymin=(YSIZE*interval)/2.0;
@@ -233,18 +236,15 @@ void makePltFile(char *srcName, double angVel, Particle_State p[]){
   }
   
   if(angVel>=0){
-    sprintf(fName, "angvel%.2f_dt%.5f_%s_plot.dat", angVel, dt, srcName);
+    sprintf(fName, "angvel%.2f_dt%.6f_%s_plot.dat", angVel, dt, srcName);
   }else if(angVel<0){
-    sprintf(fName, "angvelmin%.2f_dt%.5f_%s_plot.dat", -angVel, dt,srcName);
+    sprintf(fName, "angvelmin%.2f_dt%.6f_%s_plot.dat", -angVel, dt,srcName);
   }
 
   sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
   sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
-  fprintf(plt,"%s",line);
-  fprintf(plt2,"%s",line);
-  sprintf(line,"set size ratio 1.0 1.0\n");
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
   if((int)((DAMPTIME/100)*2-20)<0){ 
@@ -265,16 +265,14 @@ void makePltFile(char *srcName, double angVel, Particle_State p[]){
 
   
   if(angVel>=0){
-    sprintf(fName, "angvel%.2f_dt%.5f_%s_partPlot.dat", angVel, dt, srcName);
+    sprintf(fName, "angvel%.2f_dt%.6f_%s_partPlot.dat", angVel, dt, srcName);
   }else if(angVel<0){
-    sprintf(fName, "angvelmin%.2f_dt%.5f_%s_partPlot.dat", -angVel, dt,srcName);
+    sprintf(fName, "angvelmin%.2f_dt%.6f_%s_partPlot.dat", -angVel, dt,srcName);
   }
 
   sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
   fprintf(partPlot,"%s",line);
   sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
-  fprintf(partPlot,"%s",line);
-  sprintf(line,"set size ratio %.3f 1.0\n",(double)((YSIZE+20)/(XSIZE+20)));
   fprintf(partPlot,"%s",line);
   if((int)((DAMPTIME/100)*2-20)<0){ 
     sprintf(line,"do for[i=1:t:2]{\n");
