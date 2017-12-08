@@ -447,15 +447,17 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
           double enl=1.4;//enlargement coefficient
           aijx=0, aijy=0;
           if(j<FLP){
-            interCoeff=1.0*pow(10,1);
-          }else{//interaction between water and solid
+            //interaction between fluid particles
+            interCoeff=FLUID_INTERACTION;
+          }else{//interaction between fluid and boundary particles
+            //1 means surface is hydrophily, 2 means surface is hydrophoby
             if(p[j].color==1){
-              interCoeff=0.1*10;
+              interCoeff=HPHILY_INTERACTION;
             }else if(p[j].color==2){
-              interCoeff=-0.8*10;
+              interCoeff=HPHOBY_INTERACTION;
             }
             else if(p[j].color==0){
-            interCoeff=0.8*pow(10,1);
+              interCoeff=10.0/14.0;
             }
           }
           double dx = (p[i].px-p[j].px);
@@ -797,32 +799,20 @@ void rotateRigidBody(Particle_State p[], double angVel)
 
   //#pragma omp parallel for schedule(dynamic,64)  
     for(i=FLP+BP; i<N; i++){
-    double dx=p[i].px-gx;
-    double dy=p[i].py-gy;
+    double dx=p[i].prepx-gx;
+    double dy=p[i].prepy-gy;
 
-    p[i].vx+=(-angVel*dy);
-    p[i].vy+=(angVel*dx);
+    p[i].vxh+=(-angVel*dy);
+    p[i].vyh+=(angVel*dx);
   }
 
-    for(i=0; i<OBP; i++){
-      qx[i]=0;
-      qy[i]=0;
-    }
+    for(i=FLP+BP; i<N; i++){
+      double dx=p[i].px-gx;
+      double dy=p[i].py-gy;
 
-    for (i=FLP+BP; i<N; i++){//calculating vector between center of mass and ith particle
-      qx[i-FLP-BP]=p[i].px-gx;
-      qy[i-FLP-BP]=p[i].py-gy;
-    }
-
-    for(i=FLP+BP; i<N; i++){//calculating inertia
-      inertia+=p[i].mass*(qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP]);
-    }
-
-    for(i=FLP+BP; i<N; i++){//calculating anglar velocity
-      Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vy-qy[i-FLP-BP]*p[i].vx)/(inertia+epsilon);
-    }
-
-    fprintf(stderr, "angvel=%f inertia=%F Rot=%f\n\n", angVel, inertia, Rot);
+      p[i].vx+=(-angVel*dy);
+      p[i].vy+=(angVel*dx);
+  }
 
     fprintf(stderr,"%.2f Rigid body is rotated.\n",angVel);
 }

@@ -21,11 +21,11 @@ int main(int argc, char *argv[]){
   FILE *parameters;
   FILE *numbers;
   FILE *rigidBody;
-  FILE *newFIle;
-  char srcName[128];
-  char fName[128];
-  char date[128];
-  char type[128];
+  char srcName[256];
+  char fName[256];
+  char fNamePrefix[256];
+  char date[256];
+  char type[256];
   double angVel=0;
 
 
@@ -46,54 +46,53 @@ int main(int argc, char *argv[]){
   if(argc==2){
     angVel=atof(argv[1]);
   }
- 
-  sprintf(type, "plot");
-  makeDatFileName(fName, type, srcName, angVel);
-  if((newFIle=fopen(fName, "r"))!=NULL){
-    int bool;
-    fprintf(stderr, "\nWarning!\n");
-    fprintf(stderr, "File %s is already exists.\nWould you like to overwrite this file?\n", fName);
-    fprintf(stderr, "Yes:1   No:0\n");
-    scanf("%d", &bool);
-    if(bool==0){
-      exit(EXIT_FAILURE);
-    }
-  }
 
-  fprintf(stderr,"%s\n", fName);
+  makeFileNamePrefix(fNamePrefix, srcName, angVel);
+  fprintf(stderr, "%s\n", fNamePrefix);
+  fprintf(stderr, "\n\nprefix and suffix test\n./Source_%s/%s_plot.dat\n", srcName, fNamePrefix);
+  /* sprintf(type, "plot");
+     makeDatFileName(fName, type, srcName, angVel);
+     if((newFIle=fopen(fName, "r"))!=NULL){
+     int bool;
+     fprintf(stderr, "\nWarning!\n");
+     fprintf(stderr, "File %s already exists.\nWould you like to overwrite this file?\n", fName);
+     fprintf(stderr, "Yes:1   No:0\n");
+     scanf("%d", &bool);
+     if(bool!=1){
+     exit(EXIT_FAILURE);
+     }
+     }*/
 
+
+  sprintf(fName, "./Source_%s/%s_plot.dat", srcName, fNamePrefix);
   plot=fopen(fName,"w");
   if(plot==NULL){
     printf("plot cannot be opened!\n");
     exit(EXIT_FAILURE);
   }
-
-  sprintf(type, "data");
-  makeDatFileName(fName, type, srcName, angVel);
+   
+  sprintf(fName, "./Source_%s/%s_data.dat", srcName, fNamePrefix);
   data=fopen(fName,"w");
   if(data==NULL){
     printf("data cannot be opened!\n");
     exit(EXIT_FAILURE);
   }
 
-  sprintf(type, "parameters");
-  makeDatFileName(fName, type, srcName, angVel);
+  sprintf(fName, "./Source_%s/%s_parameters.dat", srcName, fNamePrefix);
   parameters=fopen(fName,"w");
   if(parameters==NULL){
     printf("parameters cannot be opened!\n");
     exit(EXIT_FAILURE);
   }
 
-  sprintf(type, "rigidBody");
-  makeDatFileName(fName, type, srcName, angVel);
+  sprintf(fName, "./Source_%s/%s_rigidBody.dat", srcName, fNamePrefix);
   rigidBody=fopen(fName,"w");
   if(rigidBody==NULL){
     printf("rigidBody cannot be opened!\n");
     exit(EXIT_FAILURE);
   }
 
-  sprintf(type, "partPlot");
-  makeDatFileName(fName, type, srcName, angVel);
+  sprintf(fName, "./Source_%s/%s_partPlot.dat", srcName, fNamePrefix);
   partPlot=fopen(fName,"w");
   if(partPlot==NULL){
     printf("partPlot cannot be opened!\n");
@@ -119,25 +118,17 @@ int main(int argc, char *argv[]){
   fprintf(stderr,"makeBucket\n\n");
 
   //printint parameters-------------------
-  fprintf(stderr,"Parameters:\nanglalrVelocity:%f\n", angVel);
-  fprintf(stderr,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
-  fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME);
-  fprintf(parameters,"Source Image %s.png\n",srcName);
-  fprintf(parameters,"Anglar Velocity %f\n", angVel);
-  fprintf(parameters,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
-  fprintf(parameters,"XSIZE=%d YSIZE=%d\n", XSIZE, YSIZE);
-  fprintf(parameters,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME);
-  fprintf(parameters, "Calculation started%s\n", date);
+  printParameters(parameters, angVel, srcName, date);
 
+  
   //calculating initial state
-  rotateRigidBody(a, angVel);
   calcDensity(a, bfst, nxt);
   calcPressure(a);
   initializeAccel(a);
   calcAccelByExternalForces(a);
   calcAccelByPressure(a,bfst, nxt);
   calcAccelByViscosity(a,bfst, nxt,0);
-  //  calcInterfacialForce(a, bfst, nxt);
+  calcInterfacialForce(a, bfst, nxt);
   calcAccelByBoundaryForce(a, bfst, nxt);
 
 
@@ -165,7 +156,10 @@ int main(int argc, char *argv[]){
       leapfrogStart(a);
     }else{
       leapfrogStep(a, i);
+      if(i==ROTSTARTTIME){
+        rotateRigidBody(a, angVel);
       }
+    }
 
     rigidBodyCorrection(a, rigidBody, i, com);
     checkParticle(a);
@@ -177,7 +171,7 @@ int main(int argc, char *argv[]){
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-    //    calcInterfacialForce(a, bfst, nxt);
+    calcInterfacialForce(a, bfst, nxt);
     calcAccelByBoundaryForce(a, bfst, nxt);
     
     if(i%100==0){

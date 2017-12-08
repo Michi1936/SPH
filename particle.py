@@ -1,5 +1,6 @@
 from PIL import Image
 import os
+import errno
 
 fileName=input("Enter file name.:")
 imgName=fileName
@@ -69,9 +70,12 @@ s2='Source_%s'%(imgName)
 print(s2)
 try:
     os.mkdir(s2)
-except OSError as exc:
-    if exc.errno!=errno.EEXIST:
+except OSError as e:
+    if e.errno==errno.EEXIST:
+        print("Directory already exists")
+    else:
         raise
-    pass
+
+
 
 

@@ -8,6 +8,7 @@
 
 
 void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
+    //extracting source image name on 1st line of numbers.h
 {
   char temp[64];
   int charCount=0;
@@ -23,16 +24,54 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
       printf("skipped ");
       continue;
     }
-    if(temp[i]=='.'){
-      printf (". skipped ");
-      continue;
-    }
     srcName[charCount]=temp[i];
     fprintf(stderr ,"%c ", srcName[charCount]);
     charCount++;
   }
+  fprintf(stderr, "%d\n", charCount);
+  srcName[charCount]='\0';
+  fprintf(stderr, "\nsrcName is %s\n", srcName);
   printf("\n");
+}
 
+
+void makeFileNamePrefix(char fNamePrefix[], char srcName[], double angVel)
+{
+  char prefix[256];
+  char tempFileName[256];
+  char suffix[64];
+  FILE *dammyPLOT;
+  
+  if(angVel>=0){
+    sprintf(prefix, "angvel%.2f_dt%.6f_%s",  angVel, dt, srcName);
+  }else if(angVel<0){
+    sprintf(prefix, "angvelmin%.2f_dt%.6f_%s",  -angVel, dt, srcName);
+  }
+
+  sprintf(tempFileName,"./Source_%s/%s_plot.dat", srcName,prefix);
+  sprintf(fNamePrefix, "%s", prefix);
+  if((dammyPLOT=fopen(tempFileName,"r"))!=NULL){
+    int bool;
+    fprintf(stderr, "\nWarning!\n");
+    fprintf(stderr, "File %s already exists.\n", tempFileName);
+    fprintf(stderr,"1:Overwrite this file\n");
+    fprintf(stderr,"2:Rename this file\n");
+    fprintf(stderr, "0:Stop this programm\n");
+    scanf("%d", &bool);
+    if(bool==1){
+      sprintf(fNamePrefix, "%s", prefix);
+      fprintf(stderr, "bool=%d\n", bool);
+    }else if(bool==2){
+      fprintf(stderr,"Enter suffix\n");
+      scanf("%s", suffix);
+      sprintf(fNamePrefix, "%s_%s", prefix, suffix);
+    }else{
+      fprintf(stderr, "Program ended\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  fprintf(stderr, "makeFileName ended\n");
 }
 
 void makeDatFileName(char fName[], char type[], char srcName[], double angVel)
@@ -49,6 +88,9 @@ void makeDatFileName(char fName[], char type[], char srcName[], double angVel)
   fprintf(stderr, "%s\n", fName);
 }
 
+void checkFileName(char fName[], char type[], char srcName[], char suffix[], double angvel){
+
+}
 void printParticles(Particle_State p[], FILE *fp)
 {
   int i;
@@ -159,6 +201,21 @@ void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[])
   fprintf(fp, "\n\n");
 }
 
+void printParameters(FILE *fp, double angVel, char srcName[], char date[])
+{
+  fprintf(stderr,"Parameters:\nanglalrVelocity:%f\n", angVel);
+  fprintf(stderr,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
+  fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME);
+  fprintf(fp,"Source Image %s.png\n",srcName);
+  fprintf(fp,"Anglar Velocity %f\n", angVel);
+  fprintf(fp,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
+  fprintf(fp,"XSIZE=%d YSIZE=%d\n", XSIZE, YSIZE);
+  fprintf(fp, "FLUID_INTERACTION=%f HPHILY_INTERACTION=%F HPHOBY_INTERACTION=%F", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
+  fprintf(fp,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d ROTSTARTTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME, ROTSTARTTIME);
+
+  fprintf(fp, "Calculation started%s\n", date);
+}
+
 void percentage(int time, int *countPer)
 {
   double per;
@@ -247,6 +304,10 @@ void makePltFile(char *srcName, double angVel, Particle_State p[]){
   sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
+  sprintf(line,"set size ratio %f\n",(range[1]-range[0]+2)/(((YSIZE+10)*interval)-(range[2]-1)));
+  fprintf(plt,"%s",line);
+  fprintf(plt2,"%s",line);
+
   if((int)((DAMPTIME/100)*2-20)<0){ 
     sprintf(line,"do for[i=1:t:2]{\n");
   }else{
