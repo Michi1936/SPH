@@ -23,9 +23,8 @@ int main(int argc, char *argv[]){
   FILE *rigidBody;
   char srcName[256];
   char fName[256];
-  char fNamePrefix[256];
+  char fileNamePrefix[256];
   char date[256];
-  char type[256];
   double angVel=0;
 
 
@@ -47,52 +46,39 @@ int main(int argc, char *argv[]){
     angVel=atof(argv[1]);
   }
 
-  makeFileNamePrefix(fNamePrefix, srcName, angVel);
-  fprintf(stderr, "%s\n", fNamePrefix);
-  fprintf(stderr, "\n\nprefix and suffix test\n./Source_%s/%s_plot.dat\n", srcName, fNamePrefix);
-  /* sprintf(type, "plot");
-     makeDatFileName(fName, type, srcName, angVel);
-     if((newFIle=fopen(fName, "r"))!=NULL){
-     int bool;
-     fprintf(stderr, "\nWarning!\n");
-     fprintf(stderr, "File %s already exists.\nWould you like to overwrite this file?\n", fName);
-     fprintf(stderr, "Yes:1   No:0\n");
-     scanf("%d", &bool);
-     if(bool!=1){
-     exit(EXIT_FAILURE);
-     }
-     }*/
+  makeFileNamePrefix(fileNamePrefix, srcName, angVel);
+  fprintf(stderr, "\n\nprefix and suffix test\n./Source_%s/%s_plot.dat\n", srcName, fileNamePrefix);
 
-
-  sprintf(fName, "./Source_%s/%s_plot.dat", srcName, fNamePrefix);
+  
+  sprintf(fName, "./Source_%s/%s_plot.dat", srcName, fileNamePrefix);
   plot=fopen(fName,"w");
   if(plot==NULL){
     printf("plot cannot be opened!\n");
     exit(EXIT_FAILURE);
   }
    
-  sprintf(fName, "./Source_%s/%s_data.dat", srcName, fNamePrefix);
+  sprintf(fName, "./Source_%s/%s_data.dat", srcName, fileNamePrefix);
   data=fopen(fName,"w");
   if(data==NULL){
     printf("data cannot be opened!\n");
     exit(EXIT_FAILURE);
   }
 
-  sprintf(fName, "./Source_%s/%s_parameters.dat", srcName, fNamePrefix);
+  sprintf(fName, "./Source_%s/%s_parameters.dat", srcName, fileNamePrefix);
   parameters=fopen(fName,"w");
   if(parameters==NULL){
     printf("parameters cannot be opened!\n");
     exit(EXIT_FAILURE);
   }
 
-  sprintf(fName, "./Source_%s/%s_rigidBody.dat", srcName, fNamePrefix);
+  sprintf(fName, "./Source_%s/%s_rigidBody.dat", srcName, fileNamePrefix);
   rigidBody=fopen(fName,"w");
   if(rigidBody==NULL){
     printf("rigidBody cannot be opened!\n");
     exit(EXIT_FAILURE);
   }
 
-  sprintf(fName, "./Source_%s/%s_partPlot.dat", srcName, fNamePrefix);
+  sprintf(fName, "./Source_%s/%s_partPlot.dat", srcName, fileNamePrefix);
   partPlot=fopen(fName,"w");
   if(partPlot==NULL){
     printf("partPlot cannot be opened!\n");
@@ -131,7 +117,6 @@ int main(int argc, char *argv[]){
   calcInterfacialForce(a, bfst, nxt);
   calcAccelByBoundaryForce(a, bfst, nxt);
 
-
   //printParticles(a,data);//Here shows parameters at t=0
   printBoundaryParticles(a, data);
   printFluidParticles(a, data);
@@ -149,7 +134,11 @@ int main(int argc, char *argv[]){
   printBoundaryPositions(a, partPlot);
   printParticlesAroundObstacle(a, partPlot, com);
 
-
+  if(ROTSTARTTIME==0){
+    fprintf(stderr, "At 0 rigid body is rotated\n");
+    rotateRigidBody(a, angVel);
+  }
+  
   //time development
   for(i=1; i<=T; i++){
     if(i==1){
@@ -157,6 +146,7 @@ int main(int argc, char *argv[]){
     }else{
       leapfrogStep(a, i);
       if(i==ROTSTARTTIME){
+        fprintf(stderr, "At %d rigid body is rotated\n", i);
         rotateRigidBody(a, angVel);
       }
     }
@@ -188,16 +178,17 @@ int main(int argc, char *argv[]){
 
   fprintf(stderr,"\n");
 
-  makePltFile(srcName, angVel, a);
+  makePltFile(srcName, a, fileNamePrefix);
 
   free(bfst);
   free(blst);
   free(nxt);
+  fprintf(stderr,"Bucket is freed\n");
 
   t=time(NULL);
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
   printf("Calculation ended:%s\n", date);
-  fprintf(parameters, "Calculation ended%s\n", date);
+  fprintf(parameters, "Calculation ended:%s\n", date);
 
   fclose(data);
   fclose(plot);

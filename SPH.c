@@ -457,7 +457,7 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
               interCoeff=HPHOBY_INTERACTION;
             }
             else if(p[j].color==0){
-              interCoeff=10.0/14.0;
+              interCoeff=0;
             }
           }
           double dx = (p[i].px-p[j].px);
@@ -814,9 +814,8 @@ void rotateRigidBody(Particle_State p[], double angVel)
       p[i].vy+=(angVel*dx);
   }
 
-    fprintf(stderr,"%.2f Rigid body is rotated.\n",angVel);
+    fprintf(stderr,"\n%.2f Rigid body is rotated.\n",angVel);
 }
-
 
 void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
   double gx, gy;

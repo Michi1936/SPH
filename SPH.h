@@ -5,7 +5,7 @@
 
 #define h 0.1//smoothing length
 #define k1 1.0 //pressure constant
-#define dt 1e-4//time step size
+#define dt 0.1e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define nu 0.005 //viscosity coefficient
@@ -15,12 +15,12 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 10000//time step
+#define T 300000//time step
 #define DAMPTIME 10
 #define ROTSTARTTIME 10
-#define FLUID_INTERACTION 10.0
-#define HPHILY_INTERACTION 5.0
-#define HPHOBY_INTERACTION -5.0
+#define FLUID_INTERACTION 5.0
+#define HPHILY_INTERACTION 2.5
+#define HPHOBY_INTERACTION -2.5//negative value
 
 #define interval 0.1
 #define MAX_X 60
@@ -88,7 +88,6 @@ double gradSpikey(Particle_State p1, Particle_State p2, int axis);
 double poly6(Particle_State p1, Particle_State p2);
 
 void getSourceImageName(FILE *fp, char srcName[]);
-void makeDatFileName(char fName[], char type[], char srcName[], double angvel);
 void makeFileNamePrefix(char fNamePrefix[], char srcName[], double angVel);
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
@@ -102,5 +101,5 @@ void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[]);
 void printParameters(FILE *fp, double angVel, char srcName[], char date[]);
 void tipPosition(Particle_State p[], int time, FILE *tip);
 void getCalculationRegion(double range[], Particle_State p[]);
-void makePltFile(char *srcName, double angVel, Particle_State p[]);
+void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix);
 #endif //_SPH

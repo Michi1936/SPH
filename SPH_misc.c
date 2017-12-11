@@ -35,7 +35,7 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
 }
 
 
-void makeFileNamePrefix(char fNamePrefix[], char srcName[], double angVel)
+void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double angVel)
 {
   char prefix[256];
   char tempFileName[256];
@@ -49,7 +49,7 @@ void makeFileNamePrefix(char fNamePrefix[], char srcName[], double angVel)
   }
 
   sprintf(tempFileName,"./Source_%s/%s_plot.dat", srcName,prefix);
-  sprintf(fNamePrefix, "%s", prefix);
+  sprintf(fileNamePrefix, "%s", prefix);
   if((dammyPLOT=fopen(tempFileName,"r"))!=NULL){
     int bool;
     fprintf(stderr, "\nWarning!\n");
@@ -59,12 +59,12 @@ void makeFileNamePrefix(char fNamePrefix[], char srcName[], double angVel)
     fprintf(stderr, "0:Stop this programm\n");
     scanf("%d", &bool);
     if(bool==1){
-      sprintf(fNamePrefix, "%s", prefix);
+      sprintf(fileNamePrefix, "%s", prefix);
       fprintf(stderr, "bool=%d\n", bool);
     }else if(bool==2){
       fprintf(stderr,"Enter suffix\n");
       scanf("%s", suffix);
-      sprintf(fNamePrefix, "%s_%s", prefix, suffix);
+      sprintf(fileNamePrefix, "%s_%s", prefix, suffix);
     }else{
       fprintf(stderr, "Program ended\n");
       exit(EXIT_FAILURE);
@@ -74,23 +74,6 @@ void makeFileNamePrefix(char fNamePrefix[], char srcName[], double angVel)
   fprintf(stderr, "makeFileName ended\n");
 }
 
-void makeDatFileName(char fName[], char type[], char srcName[], double angVel)
-{
-  char directory[128];
-
-  sprintf(directory, "./Source_%s/", srcName);
-  fprintf(stderr, "%s\n", directory);
-  if(angVel>=0){
-    sprintf(fName, "%sangvel%.2f_dt%.6f_%s_%s.dat", directory, angVel, dt, srcName, type);
-  }else if(angVel<0){
-    sprintf(fName, "%sangvelmin%.2f_dt%.6f_%s_%s.dat", directory, -angVel, dt, srcName, type);
-  }
-  fprintf(stderr, "%s\n", fName);
-}
-
-void checkFileName(char fName[], char type[], char srcName[], char suffix[], double angvel){
-
-}
 void printParticles(Particle_State p[], FILE *fp)
 {
   int i;
@@ -194,26 +177,35 @@ void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[])
       }
     }
   }
+  
   fprintf(fp, "\n\n");
+
   for(i=FLP+BP; i<N; i++){
     fprintf(fp, "%.3f %.3f\n", p[i].px, p[i].py);
   }
+
   fprintf(fp, "\n\n");
 }
 
 void printParameters(FILE *fp, double angVel, char srcName[], char date[])
 {
-  fprintf(stderr,"Parameters:\nanglalrVelocity:%f\n", angVel);
+  fprintf(stderr, "Parameters:\n");
+  fprintf(stderr,"Source Image %s.png\n",srcName);
+  fprintf(stderr,"Anglar Velocity %f\n", angVel);
   fprintf(stderr,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
-  fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME);
+  fprintf(stderr,"XSIZE=%d YSIZE=%d\n", XSIZE, YSIZE);
+  fprintf(stderr, "FLUID_INTERACTION=%f HPHILY_INTERACTION=%F HPHOBY_INTERACTION=%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
+  fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d ROTSTARTTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME, ROTSTARTTIME);
+  fprintf(stderr, "Calculation started:%s\n", date);
+  
   fprintf(fp,"Source Image %s.png\n",srcName);
   fprintf(fp,"Anglar Velocity %f\n", angVel);
   fprintf(fp,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
   fprintf(fp,"XSIZE=%d YSIZE=%d\n", XSIZE, YSIZE);
-  fprintf(fp, "FLUID_INTERACTION=%f HPHILY_INTERACTION=%F HPHOBY_INTERACTION=%F", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
+  fprintf(fp, "FLUID_INTERACTION=%f HPHILY_INTERACTION=%F HPHOBY_INTERACTION=%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
   fprintf(fp,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d ROTSTARTTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME, ROTSTARTTIME);
 
-  fprintf(fp, "Calculation started%s\n", date);
+  fprintf(fp, "Calculation started:%s\n", date);
 }
 
 void percentage(int time, int *countPer)
@@ -265,7 +257,8 @@ void getCalculationRegion(double range[], Particle_State p[])
 
 }
 
-void makePltFile(char *srcName, double angVel, Particle_State p[]){
+void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
+{
   FILE *plt;
   FILE *plt2;
   FILE *partPlot;
@@ -274,40 +267,41 @@ void makePltFile(char *srcName, double angVel, Particle_State p[]){
   char fName[128];
   char line[256];
   double range[3];
+  double ratio=0;
   getCalculationRegion(range, p);
+  ratio=(((YSIZE+10)*interval)-(range[2]-1))/(range[1]-range[0]+2);
   sprintf(directory, "./Source_%s/rigid_anime.plt", srcName);
 
   plt=fopen(directory,"w");
   if(plt==NULL){
     printf("open plt error\n");
   }
+
   sprintf(directory, "./Source_%s/plot.plt", srcName);
   plt2=fopen(directory, "w");
   if(plt2==NULL){
     printf("open plt2 error\n");
   }
+
   sprintf(directory, "./Source_%s/partPlot.plt", srcName);
   partPlot=fopen(directory,"w");
   if(plt2==NULL){
     printf("open plt2 error\n");
   }
   
-  if(angVel>=0){
-    sprintf(fName, "angvel%.2f_dt%.6f_%s_plot.dat", angVel, dt, srcName);
-  }else if(angVel<0){
-    sprintf(fName, "angvelmin%.2f_dt%.6f_%s_plot.dat", -angVel, dt,srcName);
-  }
-
+  sprintf(fName, "%s_plot.dat", fileNamePrefix);
+  
   sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
   sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
-  sprintf(line,"set size ratio %f\n",(range[1]-range[0]+2)/(((YSIZE+10)*interval)-(range[2]-1)));
+  sprintf(line,"set size ratio %f\n",ratio);
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
 
+  //writing in rigid_anime.plt
   if((int)((DAMPTIME/100)*2-20)<0){ 
     sprintf(line,"do for[i=1:t:2]{\n");
   }else{
@@ -320,17 +314,18 @@ void makePltFile(char *srcName, double angVel, Particle_State p[]){
   fprintf(plt,"%s",line);
   sprintf(line,"}\n");
   fprintf(plt,"%s",line);
+  sprintf(line,"print %.2f\n", ratio);
+  fprintf(plt,"%s",line);
 
+  //writing in plot.plt
   sprintf(line, "plot '%s' index 0 u 1:2 w p pt 35, '%s' index (t*200) u 1:2 w p pt 18, '%s' index (t*200+1) u 1:2 w p pt 22\n", fName, fName, fName);
   fprintf(plt2, "%s", line);
+  sprintf(line,"print %.2f\n", ratio);
+  fprintf(plt2,"%s",line);
 
-  
-  if(angVel>=0){
-    sprintf(fName, "angvel%.2f_dt%.6f_%s_partPlot.dat", angVel, dt, srcName);
-  }else if(angVel<0){
-    sprintf(fName, "angvelmin%.2f_dt%.6f_%s_partPlot.dat", -angVel, dt,srcName);
-  }
 
+  //writing in partPlot.plt
+  sprintf(fName, "%s_partPlot.dat", fName);
   sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
   fprintf(partPlot,"%s",line);
   sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
@@ -343,12 +338,95 @@ void makePltFile(char *srcName, double angVel, Particle_State p[]){
   fprintf(partPlot,"%s",line);
   sprintf(line,"print i\n");
   fprintf(partPlot,"%s",line);
-  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 35, '%s' index i u 1:2 w p pt 22, '%s' index i+1 u 1:2 w p pt 18\n", fName, fName, fName);
+  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 35, '%s' index i u 1:2 w p pt 22, '%s' index i+1 u 1:2 w p pt 18\n", fName, fName,fName);
   fprintf(partPlot,"%s",line);
   sprintf(line,"}\n");
+  fprintf(partPlot,"%s",line);
+  sprintf(line,"print %.2f\n", ratio);
   fprintf(partPlot,"%s",line);
 
   fclose(plt);
   fclose(plt2);
   fclose(partPlot);
+  fprintf(stderr, "plot files are made\n");
+  
+
+  //from here plt files are make in current derectory
+  sprintf(directory, "./rigid_anime.plt");
+  sprintf(fName, "./Source_%s/%s_plot.dat", srcName, fileNamePrefix);
+  plt=fopen(directory,"w");
+  if(plt==NULL){
+    printf("open plt error\n");
+  }
+
+  sprintf(directory, "./plot.plt");
+  plt2=fopen(directory, "w");
+  if(plt2==NULL){
+    printf("open plt2 error\n");
+  }
+
+  sprintf(directory, "./partPlot.plt");
+  partPlot=fopen(directory,"w");
+  if(plt2==NULL){
+    printf("open plt2 error\n");
+  }
+  
+  sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
+  fprintf(plt,"%s",line);
+  fprintf(plt2,"%s",line);
+  sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
+  fprintf(plt,"%s",line);
+  fprintf(plt2,"%s",line);
+  sprintf(line,"set size ratio %f\n",ratio);
+  fprintf(plt,"%s",line);
+  fprintf(plt2,"%s",line);
+
+  //writing in rigid_anime.plt
+  if((int)((DAMPTIME/100)*2-20)<0){ 
+    sprintf(line,"do for[i=1:t:2]{\n");
+  }else{
+    sprintf(line, "do for[i=%d:t:2]{\n", (int)((DAMPTIME/100)*2-20+1));
+  }
+  fprintf(plt,"%s",line);
+  sprintf(line,"print i\n");
+  fprintf(plt,"%s",line);
+  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 35, '%s' index i u 1:2 w p pt 22, '%s' index i+1 u 1:2 w p pt 18\n", fName, fName, fName);
+  fprintf(plt,"%s",line);
+  sprintf(line,"}\n");
+  fprintf(plt,"%s",line);
+  sprintf(line,"print %.2f\n", ratio);
+  fprintf(plt,"%s",line);
+
+  //writing in plot.plt
+  sprintf(line, "plot '%s' index 0 u 1:2 w p pt 35, '%s' index (t*200) u 1:2 w p pt 18, '%s' index (t*200+1) u 1:2 w p pt 22\n", fName, fName, fName);
+  fprintf(plt2, "%s", line);
+  sprintf(line,"print %.2f\n", ratio);
+  fprintf(plt2,"%s",line);
+
+
+  //writing in partPlot.plt
+  sprintf(fName, "./Source_%s/%s_partPlot.dat", srcName, fileNamePrefix);
+  sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
+  fprintf(partPlot,"%s",line);
+  sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
+  fprintf(partPlot,"%s",line);
+  if((int)((DAMPTIME/100)*2-20)<0){ 
+    sprintf(line,"do for[i=1:t:2]{\n");
+  }else{
+    sprintf(line, "do for[i=%d:t:2]{\n", (int)((DAMPTIME/100)*2-20+1));
+  }
+  fprintf(partPlot,"%s",line);
+  sprintf(line,"print i\n");
+  fprintf(partPlot,"%s",line);
+  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 35, '%s' index i u 1:2 w p pt 22, '%s' index i+1 u 1:2 w p pt 18\n", fName, fName,fName);
+  fprintf(partPlot,"%s",line);
+  sprintf(line,"}\n");
+  fprintf(partPlot,"%s",line);
+  sprintf(line,"print %.2f\n", ratio);
+  fprintf(partPlot,"%s",line);
+
+  fclose(plt);
+  fclose(plt2);
+  fclose(partPlot);
+  fprintf(stderr, "plot files are made in current derectory\n");
 }
