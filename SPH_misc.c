@@ -325,7 +325,7 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
 
 
   //writing in partPlot.plt
-  sprintf(fName, "%s_partPlot.dat", fName);
+  sprintf(fName, "%s_partPlot.dat", fileNamePrefix);
   sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
   fprintf(partPlot,"%s",line);
   sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);

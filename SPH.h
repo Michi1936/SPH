@@ -5,7 +5,7 @@
 
 #define h 0.1//smoothing length
 #define k1 1.0 //pressure constant
-#define dt 0.1e-4//time step size
+#define dt 0.5e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define nu 0.005 //viscosity coefficient
@@ -15,12 +15,12 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 300000//time step
-#define DAMPTIME 10
-#define ROTSTARTTIME 10
-#define FLUID_INTERACTION 5.0
-#define HPHILY_INTERACTION 2.5
-#define HPHOBY_INTERACTION -2.5//negative value
+#define T 200000//time step
+#define DAMPTIME 50000//2.5sec
+#define ROTSTARTTIME 76000//at 3.9sec impact happens
+#define FLUID_INTERACTION 0.0
+#define HPHILY_INTERACTION 0.0
+#define HPHOBY_INTERACTION 0.0//negative value
 
 #define interval 0.1
 #define MAX_X 60
