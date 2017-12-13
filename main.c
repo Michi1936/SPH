@@ -14,6 +14,7 @@ int main(int argc, char *argv[]){
   double com[2];
   int *bfst, *blst, *nxt;
   int countPer=0;
+  double spinParam=0;
   int i;
   FILE *data;
   FILE *plot;
@@ -32,6 +33,32 @@ int main(int argc, char *argv[]){
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
   printf("\n\nCalculation started:%s\n", date);
 
+  //defining anglar velocity
+  if(argc==2){
+    angVel=atof(argv[1]);
+  }
+
+  //placing particles
+  initialization(a, N);
+  fprintf(stderr,"check initialization\n");
+  fluidParticles(a);
+  fprintf(stderr,"fluid Particles placed\n");
+  wallParticles(a);
+  fprintf(stderr,"Boundary Particles are placed\n");
+  obstacleBoundaryParticles(a);
+  fprintf(stderr, "Obstacke Particles are placed\n");
+  setInitialVelocity(a);
+  fprintf(stderr, "Initial velocity is set");
+
+  //allocating bucket
+  allocateBucket(&bfst, &blst, &nxt);
+  fprintf(stderr,"%d %d %d Bucket allocated\n", nBx, nBy, nBxy);
+  checkParticle(a);  
+  makeBucket(bfst, blst, nxt, a);
+  fprintf(stderr,"makeBucket\n\n");
+
+  spinParam=fabs(calcRadius(a)*angVel/(IMPACT_VELOCITY+epsilon));
+  fprintf(stderr, "spin parameter:%f\n", spinParam);
   //open numbers.h
   numbers=fopen("numbers.h","r");
   if(numbers==NULL){
@@ -42,11 +69,7 @@ int main(int argc, char *argv[]){
   getSourceImageName(numbers, srcName);
   printf("%s.png\n",srcName);
   
-  if(argc==2){
-    angVel=atof(argv[1]);
-  }
-
-  makeFileNamePrefix(fileNamePrefix, srcName, angVel);
+  makeFileNamePrefix(fileNamePrefix, srcName, angVel, spinParam);
   fprintf(stderr, "\n\nprefix and suffix test\n./Source_%s/%s_plot.dat\n", srcName, fileNamePrefix);
 
   
@@ -84,27 +107,11 @@ int main(int argc, char *argv[]){
     printf("partPlot cannot be opened!\n");
     exit(EXIT_FAILURE);
   }
-  
-  //placing particles
-  initialization(a, N);
-  fprintf(stderr,"check initialization\n");
-  fluidParticles(a);
-  fprintf(stderr,"fluid Particles placed\n");
-  wallParticles(a);
-  fprintf(stderr,"Boundary Particles are placed\n");
-  obstacleBoundaryParticles(a);
-  fprintf(stderr, "Obstacke Particles are placed\n");
 
-
-  //allocating bucket
-  allocateBucket(&bfst, &blst, &nxt);
-  fprintf(stderr,"%d %d %d Bucket allocated\n", nBx, nBy, nBxy);
-  checkParticle(a);  
-  makeBucket(bfst, blst, nxt, a);
-  fprintf(stderr,"makeBucket\n\n");
+    
 
   //printint parameters-------------------
-  printParameters(parameters, angVel, srcName, date);
+  printParameters(parameters, angVel, srcName, date, spinParam);
 
   
   //calculating initial state
@@ -114,7 +121,7 @@ int main(int argc, char *argv[]){
   calcAccelByExternalForces(a);
   calcAccelByPressure(a,bfst, nxt);
   calcAccelByViscosity(a,bfst, nxt,0);
-  //calcInterfacialForce(a, bfst, nxt);
+  calcInterfacialForce(a, bfst, nxt);
   calcAccelByBoundaryForce(a, bfst, nxt);
 
   //printParticles(a,data);//Here shows parameters at t=0
@@ -161,7 +168,7 @@ int main(int argc, char *argv[]){
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-    //    calcInterfacialForce(a, bfst, nxt);
+    calcInterfacialForce(a, bfst, nxt);
     calcAccelByBoundaryForce(a, bfst, nxt);
     
     if(i%100==0){

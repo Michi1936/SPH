@@ -34,18 +34,53 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
   printf("\n");
 }
 
+double calcRadius(Particle_State p[])
+{
+  double gx, gy;
+  double qx[OBP], qy[OBP];
+  double radius;
+  int i;
+  gx=0, gy=0;
+  for(i=0; i<OBP; i++){
+    qx[i]=0;
+    qy[i]=0;
+  }
+  
+  for (i=FLP+BP; i<N; i++){//calculating center of mass
+    gx+=p[i].px/OBP;
+    gy+=p[i].py/OBP;
+  }
+  
+  for (i=FLP+BP; i<N; i++){//calculating vector between center of mass and ith particle
+    qx[i-FLP-BP]=p[i].px-gx;
+    qy[i-FLP-BP]=p[i].py-gy;
+  }
 
-void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double angVel)
+  for(i=0; i<OBP; i++){
+    fprintf(stderr, "%f %f\n", qx[i], qy[i]);
+}
+  for(i=FLP+BP; i<N; i++){//calculating inertia
+    double dist=sqrt(qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP]);
+    if(dist>radius){
+      radius=dist;
+    }
+  }
+  fprintf(stderr, "radius=%f\n", radius);
+  return radius;
+
+}
+
+void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double angVel, double spinParam)
 {
   char prefix[256];
   char tempFileName[256];
   char suffix[64];
   FILE *dammyPLOT;
-  
+
   if(angVel>=0){
-    sprintf(prefix, "angvel%.2f_dt%.6f_%s",  angVel, dt, srcName);
+    sprintf(prefix, "angvel%.2f_dt%.6f_sp%.3f_%s",  angVel, dt, spinParam,srcName);
   }else if(angVel<0){
-    sprintf(prefix, "angvelmin%.2f_dt%.6f_%s",  -angVel, dt, srcName);
+    sprintf(prefix, "angvelmin%.2f_dt%.6f_sp%.3f_%s",  -angVel, dt, spinParam,srcName);
   }
 
   sprintf(tempFileName,"./Source_%s/%s_plot.dat", srcName,prefix);
@@ -187,23 +222,23 @@ void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[])
   fprintf(fp, "\n\n");
 }
 
-void printParameters(FILE *fp, double angVel, char srcName[], char date[])
+void printParameters(FILE *fp, double angVel, char srcName[], char date[], double spinParam)
 {
   fprintf(stderr, "Parameters:\n");
   fprintf(stderr,"Source Image %s.png\n",srcName);
-  fprintf(stderr,"Anglar Velocity %f\n", angVel);
-  fprintf(stderr,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
-  fprintf(stderr,"XSIZE=%d YSIZE=%d\n", XSIZE, YSIZE);
-  fprintf(stderr, "FLUID_INTERACTION=%f HPHILY_INTERACTION=%F HPHOBY_INTERACTION=%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
-  fprintf(stderr,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d ROTSTARTTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME, ROTSTARTTIME);
+  fprintf(stderr,"Anglar Velocity:%f Impact Velocity:%f Spin Parameter;%f\n", angVel, IMPACT_VELOCITY, spinParam);
+  fprintf(stderr,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
+  fprintf(stderr,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
+  fprintf(stderr, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
+  fprintf(stderr,"m:%f h:%f rho0:%f dt:%f nu:%f g:%f gamm:%f T:%d DAMPTIME:%d ROTSTARTTIME:%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME, ROTSTARTTIME);
   fprintf(stderr, "Calculation started:%s\n", date);
   
   fprintf(fp,"Source Image %s.png\n",srcName);
-  fprintf(fp,"Anglar Velocity %f\n", angVel);
-  fprintf(fp,"FLP=%d BP=%d OBP=%d\n", FLP, BP, OBP);
-  fprintf(fp,"XSIZE=%d YSIZE=%d\n", XSIZE, YSIZE);
-  fprintf(fp, "FLUID_INTERACTION=%f HPHILY_INTERACTION=%F HPHOBY_INTERACTION=%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
-  fprintf(fp,"m=%f h=%f rho0=%f dt=%f nu=%f g=%f gamm=%f T=%d DAMPTIME=%d ROTSTARTTIME=%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME, ROTSTARTTIME);
+  fprintf(fp,"Anglar Velocity:%f Impact Velocity:%f Spin Parameter;%f\n", angVel, IMPACT_VELOCITY, spinParam);
+  fprintf(fp,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
+  fprintf(fp,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
+  fprintf(fp, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
+  fprintf(fp,"m:%f h:%f rho0:%f dt:%f nu:%f g:%f gamm:%f T:%d DAMPTIME:%d ROTSTARTTIME:%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME, ROTSTARTTIME);
 
   fprintf(fp, "Calculation started:%s\n", date);
 }
@@ -329,6 +364,8 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
   sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
   fprintf(partPlot,"%s",line);
   sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
+  fprintf(partPlot,"%s",line);
+  sprintf(line,"set size ratio %f\n",ratio);
   fprintf(partPlot,"%s",line);
   if((int)((DAMPTIME/100)*2-20)<0){ 
     sprintf(line,"do for[i=1:t:2]{\n");

@@ -787,9 +787,6 @@ void rotateRigidBody(Particle_State p[], double angVel)
 {
   double gx, gy;
   int i;
-  double inertia;
-  double qx[OBP], qy[OBP];
-  double Rot;
 
   gx=0, gy=0;
   for(i=FLP+BP; i<N; i++){//calculating center of mass
@@ -823,13 +820,14 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
   double qx[OBP], qy[OBP];
   double Tx, Ty;
   double Rot;
+  double radius;
   int i;
 
   gx=0, gy=0;
   inertia=0;
   Tx=0, Ty=0;
   Rot=0;
-
+  radius=0;
   if(time>DAMPTIME || time==1){
     for(i=0; i<OBP; i++){
       qx[i]=0;
@@ -847,7 +845,8 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
     }
 
     for(i=FLP+BP; i<N; i++){//calculating inertia
-      inertia+=p[i].mass*(qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP]);
+      double dist=qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP];
+      inertia+=p[i].mass*(dist);
     }
 
     for(i=FLP+BP; i<N; i++){//calculating translation velocity
@@ -889,7 +888,8 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
     }
 
     for(i=FLP+BP; i<N; i++){//calculating inertia
-      inertia+=p[i].mass*(qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP]);
+      double dist=qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP];
+      inertia+=p[i].mass*(dist);
     }
 
     for(i=FLP+BP; i<N; i++){//calculating translation velocity
@@ -922,7 +922,8 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
     }
 
     for(i=FLP+BP; i<N; i++){//calculating inertia
-      inertia+=p[i].mass*(qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP]);
+      double dist=qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP];
+      inertia+=p[i].mass*(dist);
     }
   }
 
@@ -933,9 +934,16 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
       gx+=p[i].px/OBP;
       gy+=p[i].py/OBP;
     }
-  
+
+    for(i=FLP+BP;i<N; i++)  {
+      double dist=qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP];
+      if(dist>radius){
+        radius=dist;
+      }
+    }
+
     if(time%50==0){
-      fprintf(fp, "%f %f %f %f %f %f %f\n", (double)(time*dt), gx, gy, Tx, Ty, Rot, inertia);
+      fprintf(fp, "%f %f %f %f %f %f %f %f %f\n", (double)(time*dt), gx, gy, Tx, Ty, Rot, inertia, radius, radius*Rot/(Ty+epsilon));
     }
     //outputting center of mass
     com[0]=gx;

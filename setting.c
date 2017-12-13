@@ -102,3 +102,12 @@ int obstacleBoundaryParticles(Particle_State p[])
   fclose(fp);
   return 0;
 }
+
+void setInitialVelocity(Particle_State p[])
+{
+  int i;
+  for(i=FLP+BP; i<N; i++){
+    p[i].vy=IMPACT_VELOCITY;
+  }
+
+}

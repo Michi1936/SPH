@@ -15,12 +15,13 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 200000//time step
-#define DAMPTIME 50000//2.5sec
-#define ROTSTARTTIME 76000//at 3.9sec impact happens
+#define T 40000//time step
+#define DAMPTIME 5000//2.5sec for exp2
+#define ROTSTARTTIME 5001//at 3.9sec impact happens for exp2
 #define FLUID_INTERACTION 0.0
 #define HPHILY_INTERACTION 0.0
 #define HPHOBY_INTERACTION 0.0//negative value
+#define IMPACT_VELOCITY -10.0
 
 #define interval 0.1
 #define MAX_X 60
@@ -79,6 +80,7 @@ void initialization(Particle_State p[], int particleNumber);
 int fluidParticles(Particle_State p[]);
 int wallParticles(Particle_State p[]);
 int obstacleBoundaryParticles(Particle_State p[]);
+void setInitialVelocity(Particle_State p[]);
 
 void allocateBucket(int **bfst, int **blst, int **nxt);
 void checkParticle(Particle_State p[]);
@@ -88,7 +90,8 @@ double gradSpikey(Particle_State p1, Particle_State p2, int axis);
 double poly6(Particle_State p1, Particle_State p2);
 
 void getSourceImageName(FILE *fp, char srcName[]);
-void makeFileNamePrefix(char fNamePrefix[], char srcName[], double angVel);
+double calcRadius(Particle_State p[]);
+void makeFileNamePrefix(char fNamePrefix[], char srcName[], double angVel, double spinParam);
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
 void printFluidParticles(Particle_State p[], FILE *fp);
@@ -98,7 +101,7 @@ void printBoundaryPositions(Particle_State p[], FILE *fp);
 void printObstacleParticles(Particle_State p[], FILE *fp);
 void printObstaclePositions(Particle_State p[], FILE *fp);
 void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[]);
-void printParameters(FILE *fp, double angVel, char srcName[], char date[]);
+void printParameters(FILE *fp, double angVel, char srcName[], char date[], double spinParam);
 void tipPosition(Particle_State p[], int time, FILE *tip);
 void getCalculationRegion(double range[], Particle_State p[]);
 void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix);
