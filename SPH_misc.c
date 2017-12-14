@@ -300,7 +300,7 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
 
   char directory[128];
   char fName[128];
-  char line[256];
+  char line[1024];
   double range[3];
   double ratio=0;
   getCalculationRegion(range, p);
@@ -320,7 +320,7 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
 
   sprintf(directory, "./Source_%s/partPlot.plt", srcName);
   partPlot=fopen(directory,"w");
-  if(plt2==NULL){
+  if(partPlot==NULL){
     printf("open plt2 error\n");
   }
   
@@ -404,7 +404,7 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
 
   sprintf(directory, "./partPlot.plt");
   partPlot=fopen(directory,"w");
-  if(plt2==NULL){
+  if(partPlot==NULL){
     printf("open plt2 error\n");
   }
   

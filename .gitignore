@@ -8,6 +8,7 @@ GPATH
 GRTAGS
 GSYMS
 GTAGS
+/output.log
 /SPH
 /fluid.txt
 /wall.txt

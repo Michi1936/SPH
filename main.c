@@ -185,17 +185,19 @@ int main(int argc, char *argv[]){
 
   fprintf(stderr,"\n");
 
+  t=time(NULL);
+  strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
+  printf("Calculation ended:%s\n", date);
+  fprintf(parameters, "Calculation ended:%s\n", date);
+
   makePltFile(srcName, a, fileNamePrefix);
+  printf("plt files are created.\n");
 
   free(bfst);
   free(blst);
   free(nxt);
   fprintf(stderr,"Bucket is freed\n");
 
-  t=time(NULL);
-  strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
-  printf("Calculation ended:%s\n", date);
-  fprintf(parameters, "Calculation ended:%s\n", date);
 
   fclose(data);
   fclose(plot);

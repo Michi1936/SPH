@@ -15,13 +15,13 @@
 #define cs 88.5
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 40000//time step
+#define T 100//time step
 #define DAMPTIME 5000//2.5sec for exp2
 #define ROTSTARTTIME 5001//at 3.9sec impact happens for exp2
 #define FLUID_INTERACTION 0.0
 #define HPHILY_INTERACTION 0.0
-#define HPHOBY_INTERACTION 0.0//negative value
-#define IMPACT_VELOCITY -10.0
+#define HPHOBY_INTERACTION -0.0//negative value
+#define IMPACT_VELOCITY 10.0
 
 #define interval 0.1
 #define MAX_X 60
