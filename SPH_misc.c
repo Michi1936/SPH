@@ -41,6 +41,7 @@ double calcRadius(Particle_State p[])
   double radius;
   int i;
   gx=0, gy=0;
+
   for(i=0; i<OBP; i++){
     qx[i]=0;
     qy[i]=0;
@@ -56,9 +57,6 @@ double calcRadius(Particle_State p[])
     qy[i-FLP-BP]=p[i].py-gy;
   }
 
-  for(i=0; i<OBP; i++){
-    fprintf(stderr, "%f %f\n", qx[i], qy[i]);
-}
   for(i=FLP+BP; i<N; i++){//calculating inertia
     double dist=sqrt(qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP]);
     if(dist>radius){
@@ -78,9 +76,9 @@ void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double angVel, do
   FILE *dammyPLOT;
 
   if(angVel>=0){
-    sprintf(prefix, "angvel%.2f_dt%.6f_sp%.3f_%s",  angVel, dt, spinParam,srcName);
+    sprintf(prefix, "angvel%.2f_dt%.6f_sp%.3f_nu%.5f_%s",  angVel, dt, spinParam,nu, srcName);
   }else if(angVel<0){
-    sprintf(prefix, "angvelmin%.2f_dt%.6f_sp%.3f_%s",  -angVel, dt, spinParam,srcName);
+    sprintf(prefix, "angvelmin%.2f_dt%.6f_sp%.3f_nu%.5f_%s",  -angVel, dt, spinParam,nu,srcName);
   }
 
   sprintf(tempFileName,"./Source_%s/%s_plot.dat", srcName,prefix);
@@ -226,19 +224,19 @@ void printParameters(FILE *fp, double angVel, char srcName[], char date[], doubl
 {
   fprintf(stderr, "Parameters:\n");
   fprintf(stderr,"Source Image %s.png\n",srcName);
-  fprintf(stderr,"Anglar Velocity:%f Impact Velocity:%f Spin Parameter;%f\n", angVel, IMPACT_VELOCITY, spinParam);
+  fprintf(stderr,"Anglar Velocity:%f Impact Velocity:%f Angle of Incident:%f Spin Parameter;%f\n", angVel, IMPACT_VELOCITY, ANGLE_OF_INCIDENT, spinParam);
   fprintf(stderr,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
   fprintf(stderr,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(stderr, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
-  fprintf(stderr,"m:%f h:%f rho0:%f dt:%f nu:%f g:%f gamm:%f T:%d DAMPTIME:%d ROTSTARTTIME:%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME, ROTSTARTTIME);
+  fprintf(stderr,"m:%f h:%f rho0:%f dt:%f nu:%f g:%f T:%d DAMPTIME:%d ROTSTARTTIME:%d\n\n\n",m,h,rho0,dt,nu,g,T, DAMPTIME, ROTSTARTTIME);
   fprintf(stderr, "Calculation started:%s\n", date);
   
   fprintf(fp,"Source Image %s.png\n",srcName);
-  fprintf(fp,"Anglar Velocity:%f Impact Velocity:%f Spin Parameter;%f\n", angVel, IMPACT_VELOCITY, spinParam);
+  fprintf(fp,"Anglar Velocity:%f Impact Velocity:%f Angle of Incident:%f Spin Parameter;%f\n", angVel, IMPACT_VELOCITY, ANGLE_OF_INCIDENT, spinParam);
   fprintf(fp,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
   fprintf(fp,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(fp, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
-  fprintf(fp,"m:%f h:%f rho0:%f dt:%f nu:%f g:%f gamm:%f T:%d DAMPTIME:%d ROTSTARTTIME:%d\n\n\n",m,h,rho0,dt,nu,g,(double)gamm,T, DAMPTIME, ROTSTARTTIME);
+  fprintf(fp,"m:%f h:%f rho0:%f dt:%f nu:%f g:%f T:%d DAMPTIME:%d ROTSTARTTIME:%d\n\n\n",m,h,rho0,dt,nu,g,T, DAMPTIME, ROTSTARTTIME);
 
   fprintf(fp, "Calculation started:%s\n", date);
 }

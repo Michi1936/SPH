@@ -48,7 +48,7 @@ int main(int argc, char *argv[]){
   obstacleBoundaryParticles(a);
   fprintf(stderr, "Obstacke Particles are placed\n");
   setInitialVelocity(a);
-  fprintf(stderr, "Initial velocity is set");
+  fprintf(stderr, "Initial velocity is set\n");
 
   //allocating bucket
   allocateBucket(&bfst, &blst, &nxt);
