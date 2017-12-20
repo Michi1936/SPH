@@ -338,7 +338,7 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
             viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
             viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
 	    if(time<DAMPTIME){
-	      viscCoef=viscCoef*30.0;
+	      viscCoef=viscCoef*35.0;
 	    }
             if(dot<0){
               aijx = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);

@@ -108,8 +108,8 @@ void setInitialVelocity(Particle_State p[])
   int i;
   double angle=ANGLE_OF_INCIDENT;
   for(i=FLP+BP; i<N; i++){
-    p[i].vx=IMPACT_VELOCITY*cos(angle);
-    p[i].vy=-IMPACT_VELOCITY*sin(angle);
+    p[i].vxh+=IMPACT_VELOCITY*cos(angle);
+    p[i].vyh+=-IMPACT_VELOCITY*sin(angle);
   }
 
 }

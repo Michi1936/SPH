@@ -47,8 +47,6 @@ int main(int argc, char *argv[]){
   fprintf(stderr,"Boundary Particles are placed\n");
   obstacleBoundaryParticles(a);
   fprintf(stderr, "Obstacke Particles are placed\n");
-  setInitialVelocity(a);
-  fprintf(stderr, "Initial velocity is set\n");
 
   //allocating bucket
   allocateBucket(&bfst, &blst, &nxt);
@@ -155,6 +153,8 @@ int main(int argc, char *argv[]){
       if(i==ROTSTARTTIME){
         fprintf(stderr, "At %d rigid body is rotated\n", i);
         rotateRigidBody(a, angVel);
+        setInitialVelocity(a);
+        fprintf(stderr, "Rigid Body Velocity is set\n");
       }
     }
 

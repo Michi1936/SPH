@@ -224,7 +224,7 @@ void printParameters(FILE *fp, double angVel, char srcName[], char date[], doubl
 {
   fprintf(stderr, "Parameters:\n");
   fprintf(stderr,"Source Image %s.png\n",srcName);
-  fprintf(stderr,"Anglar Velocity:%f Impact Velocity:%f Angle of Incident:%f Spin Parameter;%f\n", angVel, IMPACT_VELOCITY, ANGLE_OF_INCIDENT, spinParam);
+  fprintf(stderr,"Anglar Velocity:%f Impact Velocity:%f Angle of Incident:%f Spin Parameter:%f\n", angVel, IMPACT_VELOCITY, ANGLE_OF_INCIDENT, spinParam);
   fprintf(stderr,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
   fprintf(stderr,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(stderr, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
@@ -232,7 +232,7 @@ void printParameters(FILE *fp, double angVel, char srcName[], char date[], doubl
   fprintf(stderr, "Calculation started:%s\n", date);
   
   fprintf(fp,"Source Image %s.png\n",srcName);
-  fprintf(fp,"Anglar Velocity:%f Impact Velocity:%f Angle of Incident:%f Spin Parameter;%f\n", angVel, IMPACT_VELOCITY, ANGLE_OF_INCIDENT, spinParam);
+  fprintf(fp,"Anglar Velocity:%f Impact Velocity:%f Angle of Incident:%f Spin Parameter:%f\n", angVel, IMPACT_VELOCITY, ANGLE_OF_INCIDENT, spinParam);
   fprintf(fp,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
   fprintf(fp,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(fp, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
@@ -425,7 +425,7 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
   fprintf(plt,"%s",line);
   sprintf(line,"print i\n");
   fprintf(plt,"%s",line);
-  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 35, '%s' index i u 1:2 w p pt 22, '%s' index i+1 u 1:2 w p pt 18\n", fName, fName, fName);
+  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 3, '%s' index i u 1:2 w p pt 4, '%s' index i+1 u 1:2 w p pt 5\n", fName, fName, fName);
   fprintf(plt,"%s",line);
   sprintf(line,"}\n");
   fprintf(plt,"%s",line);
@@ -453,7 +453,7 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
   fprintf(partPlot,"%s",line);
   sprintf(line,"print i\n");
   fprintf(partPlot,"%s",line);
-  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 35, '%s' index i u 1:2 w p pt 22, '%s' index i+1 u 1:2 w p pt 18\n", fName, fName,fName);
+  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 3, '%s' index i u 1:2 w p pt 4, '%s' index i+1 u 1:2 w p pt 5\n", fName, fName,fName);
   fprintf(partPlot,"%s",line);
   sprintf(line,"}\n");
   fprintf(partPlot,"%s",line);
