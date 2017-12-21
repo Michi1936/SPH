@@ -1,0 +1,5 @@
+set xrange[1.7:8.7]
+set yrange[-0.5:16.0]
+set size ratio 2.357143
+plot 'angvel30.00_dt0.000050_sp0.990_nu0.00100_inWater3_data.dat' index 0 u 2:3 w p pt 35, 'angvel30.00_dt0.000050_sp0.990_nu0.00100_inWater3_data.dat' index (t*200) u 2:3 w p pt 18, 'angvel30.00_dt0.000050_sp0.990_nu0.00100_inWater3_data.dat' index (t*200+1) u 2:3:5 w p pt 22 lc palette
+print 2.36

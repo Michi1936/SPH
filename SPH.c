@@ -607,7 +607,6 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
 
           if(j==-1)continue;
           for(;;){
-            //fprintf(stderr, "%d \n", j);
             if(j<FLP){
               j = nxt[j];
               if(j==-1){
@@ -615,6 +614,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
               }
               continue;
             }
+
             double aijx, aijy;
             double dx = p[i].px-p[j].px;
             double dy = p[i].py-p[j].py;
@@ -622,8 +622,6 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
             aijx=0, aijy=0;
 	    aijx=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dx/(dist+epsilon);
 	    aijy=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dy/(dist+epsilon);
-	    //aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
-	    //aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j=nxt[j];
@@ -649,7 +647,6 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
 
           if(j==-1)continue;
           for(;;){
-            //fprintf(stderr, "%d \n", j);
             if(j<FLP || FLP+BP<=j){
               j = nxt[j];
               if(j==-1){
@@ -664,8 +661,6 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
             aijx=0, aijy=0;
 	    aijx=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dx/(dist+epsilon);
 	    aijy=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dy/(dist+epsilon);
-		    // aijx=boundaryGamma(p[i], p[j])*dx/(2.0*dist+epsilon);
-		    // aijy=boundaryGamma(p[i], p[j])*dy/(2.0*dist+epsilon);
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j=nxt[j];

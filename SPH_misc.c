@@ -17,7 +17,7 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
   fgets(temp, 64, fp);
 
   for(i=0; i<64; i++){
-    if(temp[i]=='.'){
+    if(temp[i]=='.' && temp[i+1]=='p' && temp[i+2]=='n' && temp[i+3]=='g'){
       break;
     }
     if(temp[i]=='/'){
@@ -70,9 +70,9 @@ double calcRadius(Particle_State p[])
 
 void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double angVel, double spinParam)
 {
-  char prefix[256];
-  char tempFileName[256];
-  char suffix[64];
+  char prefix[512];
+  char tempFileName[512];
+  char suffix[128];
   FILE *dammyPLOT;
 
   if(angVel>=0){
@@ -228,6 +228,7 @@ void printParameters(FILE *fp, double angVel, char srcName[], char date[], doubl
   fprintf(stderr,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
   fprintf(stderr,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(stderr, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
+  fprintf(stderr, "BOUNDARY_FORCE:%d\n", BOUNDARY_FORCE);
   fprintf(stderr,"m:%f h:%f rho0:%f dt:%f nu:%f g:%f T:%d DAMPTIME:%d ROTSTARTTIME:%d\n\n\n",m,h,rho0,dt,nu,g,T, DAMPTIME, ROTSTARTTIME);
   fprintf(stderr, "Calculation started:%s\n", date);
   
@@ -236,6 +237,7 @@ void printParameters(FILE *fp, double angVel, char srcName[], char date[], doubl
   fprintf(fp,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
   fprintf(fp,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(fp, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
+  fprintf(fp, "BOUNDARY_FORCE:%d\n", BOUNDARY_FORCE);
   fprintf(fp,"m:%f h:%f rho0:%f dt:%f nu:%f g:%f T:%d DAMPTIME:%d ROTSTARTTIME:%d\n\n\n",m,h,rho0,dt,nu,g,T, DAMPTIME, ROTSTARTTIME);
 
   fprintf(fp, "Calculation started:%s\n", date);
@@ -351,7 +353,7 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
   fprintf(plt,"%s",line);
 
   //writing in plot.plt
-  sprintf(line, "plot '%s' index 0 u 1:2 w p pt 35, '%s' index (t*200) u 1:2 w p pt 18, '%s' index (t*200+1) u 1:2 w p pt 22\n", fName, fName, fName);
+  sprintf(line, "plot '%s' index 0 u 1:2 w p pt 35, '%s' index (t*200) u 1:2 w p pt 22, '%s' index (t*200+1) u 1:2 w p pt 18\n", fName, fName, fName);
   fprintf(plt2, "%s", line);
   sprintf(line,"print %.2f\n", ratio);
   fprintf(plt2,"%s",line);
@@ -425,7 +427,7 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
   fprintf(plt,"%s",line);
   sprintf(line,"print i\n");
   fprintf(plt,"%s",line);
-  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 3, '%s' index i u 1:2 w p pt 4, '%s' index i+1 u 1:2 w p pt 5\n", fName, fName, fName);
+  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 35, '%s' index i u 1:2 w p pt 22, '%s' index i+1 u 1:2 w p pt 18\n", fName, fName, fName);
   fprintf(plt,"%s",line);
   sprintf(line,"}\n");
   fprintf(plt,"%s",line);
@@ -433,7 +435,7 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
   fprintf(plt,"%s",line);
 
   //writing in plot.plt
-  sprintf(line, "plot '%s' index 0 u 1:2 w p pt 35, '%s' index (t*200) u 1:2 w p pt 18, '%s' index (t*200+1) u 1:2 w p pt 22\n", fName, fName, fName);
+  sprintf(line, "plot '%s' index 0 u 1:2 w p pt 35, '%s' index (t*200) u 1:2 w p pt 22, '%s' index (t*200+1) u 1:2 w p pt 18\n", fName, fName, fName);
   fprintf(plt2, "%s", line);
   sprintf(line,"print %.2f\n", ratio);
   fprintf(plt2,"%s",line);
@@ -453,7 +455,7 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
   fprintf(partPlot,"%s",line);
   sprintf(line,"print i\n");
   fprintf(partPlot,"%s",line);
-  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 3, '%s' index i u 1:2 w p pt 4, '%s' index i+1 u 1:2 w p pt 5\n", fName, fName,fName);
+  sprintf(line,"plot '%s' index 0 u 1:2 w p pt 35, '%s' index i u 1:2 w p pt 22, '%s' index i+1 u 1:2 w p pt 18\n", fName, fName,fName);
   fprintf(partPlot,"%s",line);
   sprintf(line,"}\n");
   fprintf(partPlot,"%s",line);

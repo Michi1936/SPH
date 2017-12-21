@@ -119,9 +119,11 @@ int main(int argc, char *argv[]){
   calcAccelByExternalForces(a);
   calcAccelByPressure(a,bfst, nxt);
   calcAccelByViscosity(a,bfst, nxt,0);
-  calcInterfacialForce(a, bfst, nxt);
-  calcAccelByBoundaryForce(a, bfst, nxt);
-
+  //calcInterfacialForce(a, bfst, nxt);
+  if(BOUNDARY_FORCE==1){
+    calcAccelByBoundaryForce(a, bfst, nxt);
+  }
+  
   //printParticles(a,data);//Here shows parameters at t=0
   printBoundaryParticles(a, data);
   printFluidParticles(a, data);
@@ -168,9 +170,10 @@ int main(int argc, char *argv[]){
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-    calcInterfacialForce(a, bfst, nxt);
-    calcAccelByBoundaryForce(a, bfst, nxt);
-    
+    //calcInterfacialForce(a, bfst, nxt);
+    if(BOUNDARY_FORCE==1){
+      calcAccelByBoundaryForce(a, bfst, nxt);
+    }
     if(i%100==0){
       printFluidParticles(a, data);//here show paremeters at t=(i*dt)
       printObstacleParticles(a, data);
