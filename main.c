@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
 
   //allocating bucket
   allocateBucket(&bfst, &blst, &nxt);
-  fprintf(stderr,"%d %d %d Bucket allocated\n", nBx, nBy, nBxy);
+  fprintf(stderr,"%f %f %d %d %d Bucket allocated\n", BktLgth, BktNum, nBx, nBy, nBxy);
   checkParticle(a);  
   makeBucket(bfst, blst, nxt, a);
   fprintf(stderr,"makeBucket\n\n");
@@ -119,7 +119,9 @@ int main(int argc, char *argv[]){
   calcAccelByExternalForces(a);
   calcAccelByPressure(a,bfst, nxt);
   calcAccelByViscosity(a,bfst, nxt,0);
-  //calcInterfacialForce(a, bfst, nxt);
+  if(FLUID_INTERACTION>epsilon){
+  calcInterfacialForce(a, bfst, nxt);
+  }
   if(BOUNDARY_FORCE==1){
     calcAccelByBoundaryForce(a, bfst, nxt);
   }
@@ -170,7 +172,9 @@ int main(int argc, char *argv[]){
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-    //calcInterfacialForce(a, bfst, nxt);
+    if(FLUID_INTERACTION>epsilon){
+    calcInterfacialForce(a, bfst, nxt);
+    }
     if(BOUNDARY_FORCE==1){
       calcAccelByBoundaryForce(a, bfst, nxt);
     }

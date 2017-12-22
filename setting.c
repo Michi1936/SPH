@@ -41,7 +41,7 @@ int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt
 
   while((ret=fscanf(fp, "%d %d %*d %*d %*d", &px, &py))!=EOF){
       p[i].px=(px+1)*interval;
-      p[i].py=(py+1)*0.088;//0.088 is used for exp2.png
+      p[i].py=(py+1)*interval;//0.088 is used for exp2.png
       i++;
   }
   
@@ -96,6 +96,7 @@ int obstacleBoundaryParticles(Particle_State p[])
     }else if(green==0){
       p[i].color=2;
     }
+    p[i].mass=rigidMass;
     i++;
   }
   
