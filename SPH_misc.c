@@ -229,7 +229,7 @@ void printParameters(FILE *fp, double angVel, char srcName[], char date[], doubl
   fprintf(stderr,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(stderr, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
   fprintf(stderr, "BOUNDARY_FORCE:%d\n", BOUNDARY_FORCE);
-  fprintf(stderr,"m:%f rigidMass:%f h:%f rho0:%f dt:%f nu:%f g:%f T:%d \nDAMPTIME:%d ROTSTARTTIME:%d\n\n\n",m, rigidMass, h,rho0,dt,nu,g,T, DAMPTIME, ROTSTARTTIME);
+  fprintf(stderr,"m:%f rigidMass:%f h:%f rho0:%f dt:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",m, rigidMass, h,rho0,dt,nu,g,T, DAMPTIME, MOTION_START_TIME);
   fprintf(stderr, "Calculation started:%s\n", date);
   
   fprintf(fp,"Source Image %s.png\n",srcName);
@@ -238,7 +238,7 @@ void printParameters(FILE *fp, double angVel, char srcName[], char date[], doubl
   fprintf(fp,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(fp, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
   fprintf(fp, "BOUNDARY_FORCE:%d\n", BOUNDARY_FORCE);
-  fprintf(fp,"m:%f rigidMass:%f h:%f rho0:%f dt:%f nu:%f g:%f T:%d DAMPTIME:%d ROTSTARTTIME:%d\n\n\n",m,rigidMass,h,rho0,dt,nu,g,T, DAMPTIME, ROTSTARTTIME);
+  fprintf(fp,"m:%f rigidMass:%f h:%f rho0:%f dt:%f nu:%f g:%f T:%d DAMPTIME:%d MOTION_START_TIME:%d\n\n\n",m,rigidMass,h,rho0,dt,nu,g,T, DAMPTIME, MOTION_START_TIME);
 
   fprintf(fp, "Calculation started:%s\n", date);
 }
@@ -264,6 +264,20 @@ void tipPosition(Particle_State p[], int time, FILE *tip)
     }
   }
   fprintf(tip, "%f %f %f %f\n", dt*time, max-0.3, (dt*time)*sqrt(2.0*g/4.0), ((max-0.3)/4.0));
+}
+
+
+void getMaxVelocity(Particle_State p[], FILE *fp, int time)
+{
+  int i;
+  double max=0;
+  for(i=0; i<FLP; i++){
+    double vel=sqrt(p[i].vx*p[i].vx+p[i].vy*p[i].vy);
+    if(vel>max){
+      max=vel;
+    }
+  }
+  fprintf(fp, "%d %f\n", time, max);
 }
 
 void getCalculationRegion(double range[], Particle_State p[])

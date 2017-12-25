@@ -9,16 +9,17 @@
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define rigidMass m*2.0
-#define nu 0.001e-1 //viscosity coefficient
+#define nu 0.001 //viscosity coefficient
 #define g 9.8//gravitational constant
 #define gamm 1.0//surface tension coefficient
+#define kappa 0.1
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
-#define cs 88.5
+#define cs 200.0
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 25000//time step
-#define DAMPTIME 8000//2.5sec for exp2
-#define ROTSTARTTIME DAMPTIME+1//at 3.9sec impact happens for exp2
+#define T 50000//time step
+#define DAMPTIME 10000//2.5sec for exp2
+#define MOTION_START_TIME DAMPTIME+10000//at 3.9sec impact happens for exp2
 #define FLUID_INTERACTION 0.0
 #define HPHILY_INTERACTION FLUID_INTERACTION/2.0
 #define HPHOBY_INTERACTION -FLUID_INTERACTION/2.0//negative value
@@ -97,6 +98,7 @@ double calcRadius(Particle_State p[]);
 void makeFileNamePrefix(char fNamePrefix[], char srcName[], double angVel, double spinParam);
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
+
 void printFluidParticles(Particle_State p[], FILE *fp);
 void printFluidPositions(Particle_State p[], FILE *fp);
 void printBoundaryParticles(Particle_State p[], FILE *fp);
@@ -105,7 +107,9 @@ void printObstacleParticles(Particle_State p[], FILE *fp);
 void printObstaclePositions(Particle_State p[], FILE *fp);
 void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[]);
 void printParameters(FILE *fp, double angVel, char srcName[], char date[], double spinParam);
+
 void tipPosition(Particle_State p[], int time, FILE *tip);
+void getMaxVelocity(Particle_State p[], FILE *fp, int time);
 void getCalculationRegion(double range[], Particle_State p[]);
 void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix);
 

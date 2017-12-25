@@ -22,6 +22,7 @@ int main(int argc, char *argv[]){
   FILE *parameters;
   FILE *numbers;
   FILE *rigidBody;
+  FILE *velocity;
   char srcName[256];
   char fName[256];
   char fileNamePrefix[256];
@@ -107,6 +108,11 @@ int main(int argc, char *argv[]){
   }
 
     
+  velocity=fopen("maxVelocity.dat", "w");
+  if(velocity==NULL){
+    printf("velocity cannot be opened!\n");
+    exit(EXIT_FAILURE);
+  }
 
   //printint parameters-------------------
   printParameters(parameters, angVel, srcName, date, spinParam);
@@ -143,7 +149,7 @@ int main(int argc, char *argv[]){
   printBoundaryPositions(a, partPlot);
   printParticlesAroundObstacle(a, partPlot, com);
 
-  if(ROTSTARTTIME==0){
+  if(MOTION_START_TIME==0){
     fprintf(stderr, "At 0 rigid body is rotated\n");
     rotateRigidBody(a, angVel);
   }
@@ -154,7 +160,7 @@ int main(int argc, char *argv[]){
       leapfrogStart(a);
     }else{
       leapfrogStep(a, i);
-      if(i==ROTSTARTTIME){
+      if(i==MOTION_START_TIME){
         fprintf(stderr, "At %d rigid body is rotated\n", i);
         rotateRigidBody(a, angVel);
         setInitialVelocity(a);
@@ -188,6 +194,7 @@ int main(int argc, char *argv[]){
       printParticlesAroundObstacle(a, partPlot, com);
     }
     percentage(i, &countPer);
+    getMaxVelocity(a, velocity, i);
   }
 
   fprintf(stderr,"\n");
@@ -212,6 +219,7 @@ int main(int argc, char *argv[]){
   fclose(parameters);
   fclose(rigidBody);
 
+  fclose(velocity);
   return  0;
   
 }

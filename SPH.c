@@ -311,7 +311,7 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
     //Muller(2005) Weakly compressible SPH for free surface flow model is used.
 {
   int i;
-
+  double damper=10.0;
 #pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<FLP; i++){
     if(p[i].inRegion==1){
@@ -338,7 +338,7 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
             viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
             viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
 	    if(time<DAMPTIME){
-	      viscCoef=viscCoef*35.0;
+	      viscCoef=viscCoef*damper;
 	    }
             if(dot<0){
               aijx = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);
@@ -385,7 +385,7 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
             viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
             viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
 	    if(time<DAMPTIME){
-	      viscCoef=viscCoef*30.0;
+	      viscCoef=viscCoef*damper;
 	    }
 
             if(dot<0){
@@ -481,83 +481,36 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
   }
 }
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
+    //This surface tension model is based upon M. Becker & M.Teschner, Weakly compressible SPH for free surface flows
 {
   int i;
-  
-  double nx[FLP];
-  double ny[FLP];
-
-  for(i=0; i<FLP; i++){
-    nx[i]=0;
-    ny[i]=0;
-  }
-
-  for(i=0; i<FLP; i++){
-    if(p[i].inRegion==1){
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      int jx, jy;
-
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb = jx + jy*nBx;
-          int j = bfst[jb];
-          if(j==-1)continue;
-          for(;;){
-            if(j>=FLP){
-            j = nxt[j];
-            if(j==-1){
-              break;
-            }
-            continue;
-            }
-            nx[i]+=h*p[j].mass*gradKernel(p[i],p[j],0)/(p[j].rho+epsilon);
-            ny[i]+=h*p[j].mass*gradKernel(p[i],p[j],1)/(p[j].rho+epsilon);
-            
-            j=nxt[j];
-            if(j==-1)break;
-          }
-        }
-      }
-    }
-  }
-  //calculation of cohesion force and surface area minimization
-  //Akinci(2013) cohesion and surface tension model is used
-  //  fprintf(stderr, "calculation of n is completed.\n");
-
 #pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<FLP; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
       int jx, jy;
-        
       for(jx=ix-1; jx<=ix+1; jx++){
         for(jy=iy-1; jy<=iy+1; jy++){
           int jb = jx + jy*nBx;
           int j = bfst[jb];
+          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
           if(j==-1)continue;
           for(;;){
-            if(j>=FLP){
-            j = nxt[j];
-            if(j==-1)break;
-            continue;
-            }
             double aijx, aijy;
-            double dx, dy, dist, Kij;
             aijx=0, aijy=0;
-            dx = (p[i].px-p[j].px);
-            dy = (p[i].py-p[j].py);
-              
-            dist = sqrt(dx*dx+dy*dy);
-            Kij=2.0*rho0/(p[i].rho+p[j].rho+epsilon);
-
-            aijx=-Kij*gamm*p[i].mass*(p[j].mass*surfaceTensionCoefficient(dist)*dx/(dist+epsilon) + (nx[i]-nx[j]));
-            aijx=-Kij*gamm*p[i].mass*(p[j].mass*surfaceTensionCoefficient(dist)*dy/(dist+epsilon) + (ny[i]-ny[j]));
-              
+            if(j>FLP){
+              j=nxt[j];
+              if(j==-1){
+                break;
+              }
+              continue;
+            }
+            aijx=-kappa*p[j].mass*kernel(p[i],p[j])/p[i].mass;
+            aijy=-kappa*p[j].mass*kernel(p[i],p[j])/p[i].mass;
             p[i].ax+=aijx;
             p[i].ay+=aijy;
-              
             j = nxt[j];
             if(j==-1)break;
           }
@@ -565,7 +518,6 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
       }
     }
   }
-  // fprintf(stderr,"Acceleration is calculated\n");
   
 }
 
@@ -823,7 +775,7 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
   Tx=0, Ty=0;
   Rot=0;
   radius=0;
-  if(time>DAMPTIME || time==1){
+  if(time>MOTION_START_TIME || time==1){
     for(i=0; i<OBP; i++){
       qx[i]=0;
       qy[i]=0;
@@ -900,7 +852,7 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
       p[i].vx=Tx-Rot*qy[i-FLP-BP];
       p[i].vy=Ty+Rot*qx[i-FLP-BP];
     }
-  }else if(time > 1 && time <=DAMPTIME){
+  }else if(time > 1 && time <=MOTION_START_TIME){
     for(i=0; i<OBP; i++){
       qx[i]=0;
       qy[i]=0;
@@ -993,7 +945,7 @@ void leapfrogStep(Particle_State p[], int time)
     p[i].py+=p[i].vyh*dt;
   }
   
-  if(time>DAMPTIME){
+  if(time>MOTION_START_TIME){
     for(i=FLP+BP; i<N; i++){
       p[i].vxh+=p[i].ax*dt;
       p[i].vyh+=p[i].ay*dt;
