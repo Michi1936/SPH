@@ -4,6 +4,7 @@
 *.out
 *.exe
 *.plt
+*.ipynb
 GPATH
 GRTAGS
 GSYMS
