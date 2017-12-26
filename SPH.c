@@ -496,11 +496,48 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
           int jb = jx + jy*nBx;
           int j = bfst[jb];
           //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
+          if(j==-1){
+            continue;
+          }
+          for(;;){
+            double aijx, aijy;
+            aijx=0, aijy=0;            
+            if(FLP<=j && j<FLP+BP){
+              j=nxt[j];
+              if(j==-1){
+                break;
+              }
+              continue;
+            }
+            aijx=-kappa*p[j].mass*kernel(p[i], p[j])/p[i].mass;
+            aijy=-kappa*p[j].mass*kernel(p[i], p[j])/p[i].mass;
+            p[i].ax+=aijx;
+            p[i].ay+=aijy;
+            j = nxt[j];
+            if(j==-1)break;
+          }
+        }
+      }
+    }
+  }
+
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=FLP+BP; i<N; i++){
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb = jx + jy*nBx;
+          int j = bfst[jb];
+          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
           if(j==-1)continue;
           for(;;){
             double aijx, aijy;
             aijx=0, aijy=0;
-            if(j>FLP){
+            if(FLP<=j && j<FLP+BP){
               j=nxt[j];
               if(j==-1){
                 break;

@@ -11,16 +11,15 @@
 #define rigidMass m*2.0
 #define nu 0.001 //viscosity coefficient
 #define g 9.8//gravitational constant
-#define gamm 1.0//surface tension coefficient
-#define kappa 0.1
+#define kappa 0.0
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
 #define cs 200.0
 //#define dh 0.0001 
 #define epsilon 1.0e-5 //small number not to make denominator in gradKernel zero
-#define T 50000//time step
-#define DAMPTIME 10000//2.5sec for exp2
-#define MOTION_START_TIME DAMPTIME+10000//at 3.9sec impact happens for exp2
-#define FLUID_INTERACTION 0.0
+#define T 200000//time step
+#define DAMPTIME 50000//2.5sec for exp2
+#define MOTION_START_TIME DAMPTIME+30000//at 3.9sec impact happens for exp2
+#define FLUID_INTERACTION 1.0
 #define HPHILY_INTERACTION FLUID_INTERACTION/2.0
 #define HPHOBY_INTERACTION -FLUID_INTERACTION/2.0//negative value
 #define IMPACT_VELOCITY 10.0
