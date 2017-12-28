@@ -76,9 +76,9 @@ void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double angVel, do
   FILE *dammyPLOT;
 
   if(angVel>=0){
-    sprintf(prefix, "angvel%.2f_dt%.6f_sp%.3f_nu%.5f_%s",  angVel, dt, spinParam,nu, srcName);
+    sprintf(prefix, "angvel%.2f_dt%.8f_sp%.3f_nu%.5f_%s",  angVel, dt, spinParam,nu, srcName);
   }else if(angVel<0){
-    sprintf(prefix, "angvelmin%.2f_dt%.6f_sp%.3f_nu%.5f_%s",  -angVel, dt, spinParam,nu,srcName);
+    sprintf(prefix, "angvelmin%.2f_dt%.8f_sp%.3f_nu%.5f_%s",  -angVel, dt, spinParam,nu,srcName);
   }
 
   sprintf(tempFileName,"./Source_%s/%s_plot.dat", srcName,prefix);
@@ -229,7 +229,7 @@ void printParameters(FILE *fp, double angVel, char srcName[], char date[], doubl
   fprintf(stderr,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(stderr, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
   fprintf(stderr, "BOUNDARY_FORCE:%d\n", BOUNDARY_FORCE);
-  fprintf(stderr,"m:%f rigidMass:%f h:%f rho0:%f dt:%f kappa:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",m, rigidMass, h,rho0,dt,kappa, nu,g,T, DAMPTIME, MOTION_START_TIME);
+  fprintf(stderr,"m:%f rigidMass:%f h:%f rho0:%f dt:%.8f kappa:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",m, rigidMass, h,rho0,dt,kappa, nu,g,T, DAMPTIME, MOTION_START_TIME);
   fprintf(stderr, "Calculation started:%s\n", date);
   
   fprintf(fp,"Source Image %s.png\n",srcName);
@@ -238,7 +238,7 @@ void printParameters(FILE *fp, double angVel, char srcName[], char date[], doubl
   fprintf(fp,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(fp, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
   fprintf(fp, "BOUNDARY_FORCE:%d\n", BOUNDARY_FORCE);
-  fprintf(fp,"m:%f rigidMass:%f h:%f rho0:%f dt:%f kappa:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",m, rigidMass, h,rho0,dt,kappa, nu,g,T, DAMPTIME, MOTION_START_TIME);
+  fprintf(fp,"m:%f rigidMass:%f h:%f rho0:%f dt:%.8f kappa:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",m, rigidMass, h,rho0,dt,kappa, nu,g,T, DAMPTIME, MOTION_START_TIME);
   fprintf(fp, "Calculation started:%s\n", date);
 }
 
@@ -282,10 +282,20 @@ void getMaxVelocity(Particle_State p[], FILE *fp, int time)
 void getCalculationRegion(double range[], Particle_State p[])
 {
   int i;
-  double xmin, xmax, ymin;
-  xmin=(XSIZE*interval)/2.0;
-  xmax=(XSIZE*interval)/2.0;
-  ymin=(YSIZE*interval)/2.0;
+  double xmin, xmax, ymin, ymax;
+  double center[2];
+  center[0]=0.0;
+  center[1]=0.0;
+  
+  for(i=FLP; i<FLP+BP; i++){
+    center[0]+=p[i].px/BP;
+    center[1]+=p[i].py/BP;
+  }
+
+  xmin=center[0];
+  ymin=center[0];
+  xmax=center[1];
+  ymax=center[1];
 
   for(i=FLP; i<FLP+BP; i++){
     if(p[i].px<xmin){
@@ -297,12 +307,16 @@ void getCalculationRegion(double range[], Particle_State p[])
     if(p[i].py<ymin){
       ymin=p[i].py;
     }
+    if(p[i].py>ymax){
+      ymax=p[i].py;
+    }
+
   }
 
-  range[0]=xmin;
-  range[1]=xmax;
-  range[2]=ymin;
-
+  range[0]=xmin-20*interval;
+  range[1]=xmax+20*interval;
+  range[2]=ymin-20*interval;
+  range[3]=ymax+50*interval;
 }
 
 void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
@@ -314,11 +328,11 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
   char directory[128];
   char fName[128];
   char line[1024];
-  double range[3];
+  double range[4];
   double ratio=0;
-  int sec;
+
   getCalculationRegion(range, p);
-  ratio=(((YSIZE+10)*interval)-(range[2]-1))/(range[1]-range[0]+2);
+  ratio=((range[3])-(range[2]))/(range[1]-range[0]);
   sprintf(directory, "./Source_%s/rigid_anime.plt", srcName);
 
   plt=fopen(directory,"w");
@@ -340,10 +354,10 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
   
   sprintf(fName, "%s_plot.dat", fileNamePrefix);
   
-  sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
+  sprintf(line,"set xrange[%.3f:%.3f]\n",(range[0]), (range[1]));
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
-  sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
+  sprintf(line,"set yrange[%.3f:%.3f]\n",(range[2]), range[3]);
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
   sprintf(line,"set size ratio %f\n",ratio);
@@ -375,9 +389,9 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
 
   //writing in partPlot.plt
   sprintf(fName, "%s_partPlot.dat", fileNamePrefix);
-  sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
+  sprintf(line,"set xrange[%.3f:%.3f]\n",(range[0]), (range[1]));
   fprintf(partPlot,"%s",line);
-  sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
+  sprintf(line,"set yrange[%.3f:%.3f]\n",(range[2]), range[3]);
   fprintf(partPlot,"%s",line);
   sprintf(line,"set size ratio %f\n",ratio);
   fprintf(partPlot,"%s",line);
@@ -422,11 +436,11 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
     printf("open plt2 error\n");
   }
   
-  sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
-  fprintf(plt,"%s",line);
+   sprintf(line,"set xrange[%.3f:%.3f]\n",(range[0]), (range[1]));
+   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
-  sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
-  fprintf(plt,"%s",line);
+   sprintf(line,"set yrange[%.3f:%.3f]\n",(range[2]), range[3]);
+   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
   sprintf(line,"set size ratio %f\n",ratio);
   fprintf(plt,"%s",line);
@@ -457,9 +471,9 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
 
   //writing in partPlot.plt
   sprintf(fName, "./Source_%s/%s_partPlot.dat", srcName, fileNamePrefix);
-  sprintf(line,"set xrange[%.1f:%.1f]\n",(range[0]-1), (range[1]+1));
+  sprintf(line,"set xrange[%.3f:%.3f]\n",(range[0]), (range[1]));
   fprintf(partPlot,"%s",line);
-  sprintf(line,"set yrange[%.1f:%.1f]\n",(range[2]-1), (YSIZE+10)*interval);
+  sprintf(line,"set yrange[%.3f:%.3f]\n",(range[2]), range[3]);
   fprintf(partPlot,"%s",line);
   if((int)((DAMPTIME/100)*2-20)<0){ 
     sprintf(line,"do for[i=1:t:2]{\n");

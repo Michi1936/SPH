@@ -16,47 +16,6 @@ double cubicSpline2(double q)//cubic spline for 1<=q<=2
   return (15.0/(pow(h,2)*14.0*M_PI))*(pow(2.0-q, 3));
 }
 
-double poly6(Particle_State p1, Particle_State p2)
-{
-  double dx = (p1.px-p2.px);
-  double dy = (p1.py-p2.py);
-  double dist = sqrt(dx*dx+dy*dy);
-  double coef=4.0/(M_PI*pow(h,8));
-  double val=0;
-  if(dist<=1){
-    val=coef*pow(h*h-dist*dist,3);
-  }else{
-    val=0;
-  }
-  return val;
-}
-
-double gradSpikey(Particle_State p1, Particle_State p2, int axis)
-{
-  double dx = (p1.px-p2.px);
-  double dy = (p1.py-p2.py);
-  double dist = sqrt(dx*dx+dy*dy);
-  double coeff_x = -30.0*dx/(M_PI*pow(h,5)*dist+epsilon);
-  double coeff_y = -30.0*dy/(M_PI*pow(h,5)*dist+epsilon);
-  double val=0;
-  if(axis==0){//x direction 
-    if(dist<=h){
-      val=coeff_x*pow(h-dist,2);
-    }else{
-      val=0;
-    }
-    if(axis==1){//x direction 
-      if(dist<=h){
-        val=coeff_y*pow(h-dist,2);
-      }else{
-        val=0;
-      }
-    }
-  }
-  return val;
-  
-}
-
 double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
 {
   double dx = fabs(p1.px-p2.px);
@@ -372,7 +331,13 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
           //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
           if(j==-1)continue;
           for(;;){
-
+            /*  if(j>=FLP+BP){
+              j = nxt[j];
+              if(j==-1){
+                break;
+              }
+              continue;
+              }*/
             double aijx, aijy;
             aijx=0, aijy=0;
             double viscCoef=0;
@@ -514,7 +479,9 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j = nxt[j];
-            if(j==-1)break;
+            if(j==-1){
+              break;
+            }
           }
         }
       }
@@ -926,7 +893,7 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
       }
     }
 
-    if(time%50==0){
+    if(time%1==0){
       fprintf(fp, "%f %f %f %f %f %f %f %f %f\n", (double)(time*dt), gx, gy, Tx, Ty, Rot, inertia, radius, radius*Rot/(Ty+epsilon));
     }
     //outputting center of mass
