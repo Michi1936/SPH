@@ -5,16 +5,14 @@
 #include<math.h>
 
 
-void initialization(Particle_State p[], int particleNumber)	//make all values of particles zero
+void initialization(Particle_State p[], RigidPreValue rig[])	//make all values of particles zero
 {
   int	i;
-  for(i=0; i<particleNumber; i++){
+  for(i=0; i<N; i++){
     p[i].inRegion = 0;//1 means particle is in region for calculatin 
     p[i].color=0;//1 means surface is hydrophilic, 2 means surface is hydrophilic
     p[i].px  = -100;
     p[i].py  = -100; 
-    p[i].prepx=-100;
-    p[i].prepy=-100;
     p[i].vx  = 0;
     p[i].vy  = 0;
     p[i].vxh = 0;
@@ -24,6 +22,10 @@ void initialization(Particle_State p[], int particleNumber)	//make all values of
     p[i].rho = 0;
     p[i].p   = 0;
     p[i].mass=m;
+  }
+  for(i=0; i<OBP; i++){
+    rig[i].prepx=-100;
+    rig[i].prepy=-100;
   }
 }
 

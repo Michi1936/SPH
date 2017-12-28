@@ -9,16 +9,16 @@
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define rigidMass m*2.0
-#define nu 1.0e-4 //viscosity coefficient
+#define nu 1.0e-2 //viscosity coefficient
 #define g 9.8//gravitational constant
 #define kappa 0.0
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
 #define cs 150.0
 //#define dh 0.0001 
 #define epsilon 1.0e-8 //small number not to make denominator in gradKernel zero
-#define T 250000//time step
-#define DAMPTIME 50000//2.5sec for exp2
-#define MOTION_START_TIME DAMPTIME+50000//at 3.9sec impact happens for exp2
+#define T 20000//time step
+#define DAMPTIME 5000//2.5sec for exp2
+#define MOTION_START_TIME DAMPTIME+3000//at 3.9sec impact happens for exp2
 #define FLUID_INTERACTION 0.0
 #define HPHILY_INTERACTION FLUID_INTERACTION/2.0
 #define HPHOBY_INTERACTION -FLUID_INTERACTION/2.0//negative value
@@ -43,8 +43,6 @@ typedef struct{
   short color;
   double px; 
   double py;
-  double prepx;
-  double prepy;
   double vx;
   double vy;
   double vxh;
@@ -55,6 +53,11 @@ typedef struct{
   double p; //pressure
   double mass;
 }Particle_State;
+
+typedef struct{
+  double prepx;
+  double prepy;
+}RigidPreValue;
 
 double cubicSpline1(double q);
 double cubicSpline2(double q);
@@ -74,12 +77,12 @@ double boundaryGamma(Particle_State p1, Particle_State p2);
 void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
 double adhesionCoefficient(Particle_State p1, Particle_State p2);
 void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]);
-void rotateRigidBody(Particle_State p[], double angVel);
-void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]);
-void leapfrogStart(Particle_State p[]);
-void leapfrogStep(Particle_State p[], int time);
+void rotateRigidBody(Particle_State p[], RigidPreValue rig[], double angVel);
+void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[],FILE *fp, int time, double com[]);
+void leapfrogStart(Particle_State p[], RigidPreValue rig[]);
+void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time);
 
-void initialization(Particle_State p[], int particleNumber);
+void initialization(Particle_State p[], RigidPreValue rig[]);
 int fluidParticles(Particle_State p[]);
 int wallParticles(Particle_State p[]);
 int obstacleBoundaryParticles(Particle_State p[]);

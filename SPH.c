@@ -772,7 +772,7 @@ void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[])
   }
 }
 
-void rotateRigidBody(Particle_State p[], double angVel)
+void rotateRigidBody(Particle_State p[], RigidPreValue rig[], double angVel)
 {
   double gx, gy;
   int i;
@@ -785,8 +785,8 @@ void rotateRigidBody(Particle_State p[], double angVel)
 
   //#pragma omp parallel for schedule(dynamic,64)  
     for(i=FLP+BP; i<N; i++){
-    double dx=p[i].prepx-gx;
-    double dy=p[i].prepy-gy;
+    double dx=rig[i-FLP-BP].prepx-gx;
+    double dy=rig[i-FLP-BP].prepy-gy;
 
     p[i].vxh+=(-angVel*dy);
     p[i].vyh+=(angVel*dx);
@@ -803,7 +803,7 @@ void rotateRigidBody(Particle_State p[], double angVel)
     fprintf(stderr,"\n%.2f Rigid body is rotated.\n",angVel);
 }
 
-void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
+void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[], FILE *fp, int time, double com[]){
   double gx, gy;
   double inertia;
   double qx[OBP], qy[OBP];
@@ -823,14 +823,14 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
       qy[i]=0;
     }
   
-    for (i=FLP+BP; i<N; i++){//calculating center of mass
-      gx+=p[i].prepx/OBP;
-      gy+=p[i].prepy/OBP;
+    for (i=0; i<OBP; i++){//calculating center of mass
+      gx+=rig[i].prepx/OBP;
+      gy+=rig[i].prepy/OBP;
     }
 
-    for (i=FLP+BP; i<N; i++){//calculating vector between center of mass and ith particle
-      qx[i-FLP-BP]=p[i].prepx-gx;
-      qy[i-FLP-BP]=p[i].prepy-gy;
+    for (i=0; i<OBP; i++){//calculating vector between center of mass and ith particle
+      qx[i]=rig[i].prepx-gx;
+      qy[i]=rig[i].prepy-gy;
     }
 
     for(i=FLP+BP; i<N; i++){//calculating inertia
@@ -839,26 +839,27 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
     }
 
     for(i=FLP+BP; i<N; i++){//calculating translation velocity
-      Tx+=p[i].vxh/OBP;
-      Ty+=p[i].vyh/OBP;
+            Tx+=p[i].vxh/OBP;
+            Ty+=p[i].vyh/OBP;
     }
 
 
     for(i=FLP+BP; i<N; i++){//calculating anglar velocity
-      Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vyh-qy[i-FLP-BP]*p[i].vxh)/(inertia+epsilon);
+            Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vyh-qy[i-FLP-BP]*p[i].vxh)/(inertia+epsilon);
     }
 
-    for(i=FLP+BP; i<N; i++){
+    for(i=FLP+BP; i<N; i++){//recalculating half step velocity
       p[i].vxh=Tx-Rot*qy[i-FLP-BP];
       p[i].vyh=Ty+Rot*qx[i-FLP-BP];
     }
 
     for(i=FLP+BP; i<N; i++){
-      p[i].px=p[i].prepx+p[i].vxh*dt;
-      p[i].py=p[i].prepy+p[i].vyh*dt;
+      p[i].px=rig[i-FLP-BP].prepx+p[i].vxh*dt;
+      p[i].py=rig[i-FLP-BP].prepy+p[i].vyh*dt;
     }
     //until here correction of position is complete
     //------------------------------------------------------
+
     gx=0;
     gy=0;
     inertia=0;
@@ -890,24 +891,24 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
       Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vy-qy[i-FLP-BP]*p[i].vx)/(inertia+epsilon);
     }
 
-    for(i=FLP+BP; i<N; i++){
+    for(i=FLP+BP; i<N; i++){//recalculating velocity
       p[i].vx=Tx-Rot*qy[i-FLP-BP];
       p[i].vy=Ty+Rot*qx[i-FLP-BP];
     }
-  }else if(time > 1 && time <=MOTION_START_TIME){
+  }else if(time > 1 && time <=MOTION_START_TIME){//calculation while rigid body is fixed
     for(i=0; i<OBP; i++){
       qx[i]=0;
       qy[i]=0;
     }
   
-    for (i=FLP+BP; i<N; i++){//calculating center of mass
-      gx+=p[i].prepx/OBP;
-      gy+=p[i].prepy/OBP;
+    for (i=0; i<OBP; i++){//calculating center of mass
+      gx+=rig[i].prepx/OBP;
+      gy+=rig[i].prepy/OBP;
     }
 
-    for (i=FLP+BP; i<N; i++){//calculating vector between center of mass and ith particle
-      qx[i-FLP-BP]=p[i].prepx-gx;
-      qy[i-FLP-BP]=p[i].prepy-gy;
+    for (i=0; i<OBP; i++){//calculating vector between center of mass and ith particle
+      qx[i]=rig[i].prepx-gx;
+      qy[i]=rig[i].prepy-gy;
     }
 
     for(i=FLP+BP; i<N; i++){//calculating inertia
@@ -942,7 +943,7 @@ void rigidBodyCorrection(Particle_State p[], FILE *fp, int time, double com[]){
 
 
 
-void leapfrogStart(Particle_State p[])
+void leapfrogStart(Particle_State p[], RigidPreValue rig[])
 {
   int i;
   for(i=0; i<FLP; i++){
@@ -960,15 +961,15 @@ void leapfrogStart(Particle_State p[])
       p[i].vyh=p[i].vy+p[i].ay*dt/2.0;
       p[i].vx+=p[i].ax*dt;
       p[i].vy+=p[i].ay*dt;
-      p[i].prepx=p[i].px;
-      p[i].prepy=p[i].py;
+      rig[i-FLP-BP].prepx=p[i].px;
+      rig[i-FLP-BP].prepy=p[i].py;
       p[i].px+=p[i].vxh*dt;
       p[i].py+=p[i].vyh*dt;
     }
     
 }
 
-void leapfrogStep(Particle_State p[], int time)
+void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time)
 {
   int i;
 
@@ -1000,8 +1001,8 @@ void leapfrogStep(Particle_State p[], int time)
         p[i].vx=0;
         p[i].vy=0;
       }
-      p[i].prepx=p[i].px;
-      p[i].prepy=p[i].py;
+      rig[i-FLP-BP].prepx=p[i].px;
+      rig[i-FLP-BP].prepy=p[i].py;
       p[i].px+=p[i].vxh*dt;
       p[i].py+=p[i].vyh*dt;
     }

@@ -11,6 +11,7 @@
 int main(int argc, char *argv[]){
     
   Particle_State a[N];
+  RigidPreValue rig[OBP];
   double com[2];
   int *bfst, *blst, *nxt;
   int countPer=0;
@@ -40,7 +41,7 @@ int main(int argc, char *argv[]){
   }
 
   //placing particles
-  initialization(a, N);
+  initialization(a, rig);
   fprintf(stderr,"check initialization\n");
   fluidParticles(a);
   fprintf(stderr,"fluid Particles placed\n");
@@ -153,24 +154,24 @@ int main(int argc, char *argv[]){
 
   if(MOTION_START_TIME==0){
     fprintf(stderr, "At 0 rigid body is rotated\n");
-    rotateRigidBody(a, angVel);
+    rotateRigidBody(a, rig, angVel);
   }
   
   //time development
   for(i=1; i<=T; i++){
     if(i==1){
-      leapfrogStart(a);
+      leapfrogStart(a, rig);
     }else{
-      leapfrogStep(a, i);
+      leapfrogStep(a,rig,i);
       if(i==MOTION_START_TIME){
         fprintf(stderr, "At %d rigid body is rotated\n", i);
-        rotateRigidBody(a, angVel);
+        rotateRigidBody(a, rig, angVel);
         setInitialVelocity(a);
         fprintf(stderr, "Rigid Body Velocity is set\n");
       }
     }
 
-    rigidBodyCorrection(a, rigidBody, i, com);
+    rigidBodyCorrection(a, rig, rigidBody, i, com);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
 
