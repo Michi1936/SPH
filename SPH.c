@@ -139,14 +139,18 @@ void calcDensity(Particle_State p[], int bfst[], int nxt[])
           jb = jx + jy*nBx;
           int j = bfst[jb];
           //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          if(j==-1)continue;
+          if(j==-1){
+	    continue;
+	  }
           for(;;){
             double rhoij=0;
             rhoij=p[j].mass*kernel(p[i], p[j]);
 
             p[i].rho+=rhoij;
             j = nxt[j];
-            if(j==-1)break;
+            if(j==-1){
+	      break;
+	    }
           }
         }
       }
@@ -221,7 +225,9 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
         for(jy=iy-1; jy<=iy+1; jy++){
           int jb = jx + jy*nBx;
           int j = bfst[jb];
-          if(j==-1)continue;
+          if(j==-1){
+	    continue;
+	  }
           for(;;){
             double aijx=0;
             double aijy=0;
@@ -230,7 +236,9 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
             p[i].ax += aijx;
             p[i].ay += aijy;
             j = nxt[j];
-            if(j==-1)break;
+            if(j==-1){
+	      break;
+	    }
           }
         }
       }
@@ -247,7 +255,9 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
         for(jy=iy-1; jy<=iy+1; jy++){
           int jb = jx + jy*nBx;
           int j = bfst[jb];
-          if(j==-1)continue;
+          if(j==-1){
+	    continue;
+	  }
           for(;;){
             double aijx=0;
             double aijy=0;
@@ -256,7 +266,9 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
             p[i].ax += aijx;
             p[i].ay += aijy;
             j = nxt[j];
-            if(j==-1)break;
+            if(j==-1){
+	      break;
+	    }
           }
         }
       }
@@ -283,7 +295,9 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
           int jb = jx + jy*nBx;
           int j = bfst[jb];
           //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          if(j==-1)continue;
+          if(j==-1){
+	    continue;
+	  }
           for(;;){
             double aijx, aijy;
             aijx=0, aijy=0;
@@ -310,7 +324,9 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j = nxt[j];
-            if(j==-1)break;
+            if(j==-1){
+	      break;
+	    }
           }
         }
       }
@@ -329,7 +345,9 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
           int jb = jx + jy*nBx;
           int j = bfst[jb];
           //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          if(j==-1)continue;
+          if(j==-1){
+	    continue;
+	  }
           for(;;){
             /*  if(j>=FLP+BP){
               j = nxt[j];
@@ -364,13 +382,14 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j = nxt[j];
-            if(j==-1)break;
+            if(j==-1){
+	      break;
+	    }
           }
         }
       }
     }
   }
-
 }
 
 
@@ -439,12 +458,15 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
           p[i].ax+=aijx;
           p[i].ay+=aijy;
           j = nxt[j];
-          if(j==-1)break;
+          if(j==-1){
+	    break;
+	  }
         }
       }
     }
   }
 }
+
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
     //This surface tension model is based upon M. Becker & M.Teschner, Weakly compressible SPH for free surface flows
 {
@@ -500,7 +522,9 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
           int jb = jx + jy*nBx;
           int j = bfst[jb];
           //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          if(j==-1)continue;
+          if(j==-1){
+	    continue;
+	  }
           for(;;){
             double aijx, aijy;
             aijx=0, aijy=0;
@@ -516,13 +540,14 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j = nxt[j];
-            if(j==-1)break;
+            if(j==-1){
+	      break;
+	    }
           }
         }
       }
     }
   }
-  
 }
 
 double boundaryGamma(Particle_State p1, Particle_State p2){
@@ -560,8 +585,9 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
         for(jy=iy-1; jy<=iy+1; jy++){
           int jb=jx+jy*nBx;
           int j=bfst[jb];
-
-          if(j==-1)continue;
+          if(j==-1){
+	    continue;
+	  }
           for(;;){
             if(j<FLP){
               j = nxt[j];
@@ -581,7 +607,9 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j=nxt[j];
-            if(j==-1)break;
+            if(j==-1){
+	      break;
+	    }
           }
         }
       }
@@ -600,8 +628,9 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
         for(jy=iy-1; jy<=iy+1; jy++){
           int jb=jx+jy*nBx;
           int j=bfst[jb];
-
-          if(j==-1)continue;
+          if(j==-1){
+	    continue;
+	  }
           for(;;){
             if(j<FLP || FLP+BP<=j){
               j = nxt[j];
@@ -620,13 +649,14 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j=nxt[j];
-            if(j==-1)break;
+            if(j==-1){
+	      break;
+	    }
           }
         }
       }
     }
   }
-
 }
 
 double adhesionCoefficient(Particle_State p1, Particle_State p2)
@@ -668,7 +698,9 @@ void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[])
           int jb=jx+jy*nBx;
           int j=bfst[jb];
 
-          if(j==-1)continue;
+          if(j==-1){
+	    continue;
+	  }
           for(;;){
             //fprintf(stderr, "%d \n", j);
             if(j<FLP){
@@ -681,7 +713,9 @@ void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[])
             boundaryParticleDensity[i-FLP]+=kernel(p[i], p[j]);
 
             j=nxt[j];
-            if(j==-1)break;
+            if(j==-1){
+	      break;
+	    }
           }
         }
       }
@@ -704,7 +738,9 @@ void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[])
           int jb=jx+jy*nBx;
           int j=bfst[jb];
 
-          if(j==-1)continue;
+          if(j==-1){
+	    continue;
+	  }
           for(;;){
             //fprintf(stderr, "%d \n", j);
             if(j<FLP){
@@ -726,7 +762,9 @@ void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[])
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j=nxt[j];
-            if(j==-1)break;
+            if(j==-1){
+	      break;
+	    }
           }
         }
       }
