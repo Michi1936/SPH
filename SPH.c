@@ -172,7 +172,7 @@ void calcPressure(Particle_State p[])
   }
   
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<N; i++){
+  for(i=0; i<FLP+BP; i++){
     p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
     if(p[i].p<0){
       p[i].p=0;
@@ -956,7 +956,7 @@ void leapfrogStart(Particle_State p[], RigidPreValue rig[])
     p[i].py+=p[i].vyh*dt;
   }
 
-    for(i=FLP+BP; i<N; i++){
+  /*    for(i=FLP+BP; i<N; i++){
       p[i].vxh=p[i].vx+p[i].ax*dt/2.0;
       p[i].vyh=p[i].vy+p[i].ay*dt/2.0;
       p[i].vx+=p[i].ax*dt;
@@ -965,7 +965,7 @@ void leapfrogStart(Particle_State p[], RigidPreValue rig[])
       rig[i-FLP-BP].prepy=p[i].py;
       p[i].px+=p[i].vxh*dt;
       p[i].py+=p[i].vyh*dt;
-    }
+      }*/
     
 }
 
@@ -987,7 +987,8 @@ void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time)
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
   }
-  
+
+  /*
   if(time>MOTION_START_TIME){
     for(i=FLP+BP; i<N; i++){
       p[i].vxh+=p[i].ax*dt;
@@ -1007,5 +1008,6 @@ void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time)
       p[i].py+=p[i].vyh*dt;
     }
   }
+  */
 }
 
