@@ -118,7 +118,6 @@ int main(int argc, char *argv[]){
   //printint parameters-------------------
   printParameters(parameters, angVel, srcName, date, spinParam);
 
-  
   //calculating initial state
   calcDensity(a, bfst, nxt);
   calcPressure(a);
