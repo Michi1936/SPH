@@ -265,7 +265,6 @@ void tipPosition(Particle_State p[], int time, FILE *tip)
   fprintf(tip, "%f %f %f %f\n", dt*time, max-0.3, (dt*time)*sqrt(2.0*g/4.0), ((max-0.3)/4.0));
 }
 
-
 void getMaxVelocity(Particle_State p[], FILE *fp, int time)
 {
   int i;

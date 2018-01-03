@@ -17,14 +17,14 @@
 //#define dh 0.0001 
 #define epsilon 1.0e-8 //small number not to make denominator in gradKernel zero
 #define T 20000//time step
-#define DAMPTIME 5000//2.5sec for exp2
+#define DAMPTIME 4000//2.5sec for exp2
 #define MOTION_START_TIME DAMPTIME+3000//at 3.9sec impact happens for exp2
 #define FLUID_INTERACTION 0.0
 #define HPHILY_INTERACTION FLUID_INTERACTION/2.0
 #define HPHOBY_INTERACTION -FLUID_INTERACTION/2.0//negative value
 #define IMPACT_VELOCITY 10.0
 #define ANGLE_OF_INCIDENT M_PI/2.0
-#define BOUNDARY_FORCE 0//if this value is zero calcAccelByBoundaryForce is not called.
+#define BOUNDARY_FORCE 1//if this value is zero calcAccelByBoundaryForce is not called.
 
 #define interval 0.1
 #define MAX_X 50

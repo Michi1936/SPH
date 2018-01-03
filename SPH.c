@@ -8,7 +8,6 @@
 double cubicSpline1(double q)//cubic spline for 0<=q<=1
 {
   return (15.0/(pow(h,2)*14.0*M_PI))*(pow(2.0-q,3)-4.0*pow(1.0-q,3));
-  //  return (315.0/(64.0*M_PI*pow(h,9)))*pow(h*h-q*q,3);
 }
 
 double cubicSpline2(double q)//cubic spline for 1<=q<=2
@@ -31,7 +30,6 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   else {
     return 0;
   }
-
 }
 
 double kernelVal(double q)
@@ -66,9 +64,7 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
     else {
       return 0;
     }
-  }
-  
-  else if(axis==1){//y direction 
+  }else if(axis==1){//y direction 
     if(0<=q && q<=1){
       return (15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
     }
@@ -78,8 +74,7 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
     else {
       return 0;
     }
-  }
-  else{
+  }else{
     return 0;
   }
 }
@@ -125,7 +120,6 @@ void calcDensity(Particle_State p[], int bfst[], int nxt[])
     p[i].rho=0;
   }
 
-  //  fprintf(stderr,"density initialized\n");
 #pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<N; i++){
     if(p[i].inRegion==1){
@@ -145,7 +139,6 @@ void calcDensity(Particle_State p[], int bfst[], int nxt[])
           for(;;){
             double rhoij=0;
             rhoij=p[j].mass*kernel(p[i], p[j]);
-
             p[i].rho+=rhoij;
             j = nxt[j];
             if(j==-1){
@@ -156,7 +149,6 @@ void calcDensity(Particle_State p[], int bfst[], int nxt[])
       }
     }
   }
-  //  fprintf(stderr, "Density calculated\n");
 }
 
 
@@ -245,7 +237,7 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
     } 
   }
 
-  #pragma omp parallel for schedule(dynamic,64)
+#pragma omp parallel for schedule(dynamic,64)
   for(i=FLP+BP; i<N; i++){  
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
@@ -349,13 +341,6 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
 	    continue;
 	  }
           for(;;){
-            /*  if(j>=FLP+BP){
-              j = nxt[j];
-              if(j==-1){
-                break;
-              }
-              continue;
-              }*/
             double aijx, aijy;
             aijx=0, aijy=0;
             double viscCoef=0;
@@ -632,7 +617,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
 	    continue;
 	  }
           for(;;){
-            if(j<FLP || FLP+BP<=j){
+            if(j>=FLP+BP){
               j = nxt[j];
               if(j==-1){
                 break;
@@ -784,7 +769,7 @@ void rotateRigidBody(Particle_State p[], RigidPreValue rig[], double angVel)
   }
 
   //#pragma omp parallel for schedule(dynamic,64)  
-    for(i=FLP+BP; i<N; i++){
+  for(i=FLP+BP; i<N; i++){
     double dx=rig[i-FLP-BP].prepx-gx;
     double dy=rig[i-FLP-BP].prepy-gy;
 
@@ -792,15 +777,15 @@ void rotateRigidBody(Particle_State p[], RigidPreValue rig[], double angVel)
     p[i].vyh+=(angVel*dx);
   }
 
-    for(i=FLP+BP; i<N; i++){
-      double dx=p[i].px-gx;
-      double dy=p[i].py-gy;
+  for(i=FLP+BP; i<N; i++){
+    double dx=p[i].px-gx;
+    double dy=p[i].py-gy;
 
-      p[i].vx+=(-angVel*dy);
-      p[i].vy+=(angVel*dx);
+    p[i].vx+=(-angVel*dy);
+    p[i].vy+=(angVel*dx);
   }
 
-    fprintf(stderr,"\n%.2f Rigid body is rotated.\n",angVel);
+  fprintf(stderr,"\n%.2f Rigid body is rotated.\n",angVel);
 }
 
 void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[], FILE *fp, int time, double com[]){
@@ -817,6 +802,7 @@ void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[], FILE *fp, int 
   Tx=0, Ty=0;
   Rot=0;
   radius=0;
+  
   if(time>MOTION_START_TIME || time==1){
     for(i=0; i<OBP; i++){
       qx[i]=0;
@@ -833,19 +819,19 @@ void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[], FILE *fp, int 
       qy[i]=rig[i].prepy-gy;
     }
 
-    for(i=FLP+BP; i<N; i++){//calculating inertia
-      double dist=qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP];
-      inertia+=p[i].mass*(dist);
+    for(i=0; i<OBP; i++){//calculating inertia
+      double dist=qx[i]*qx[i] + qy[i]*qy[i];
+      inertia+=p[i+FLP+BP].mass*(dist);
     }
 
     for(i=FLP+BP; i<N; i++){//calculating translation velocity
-            Tx+=p[i].vxh/OBP;
-            Ty+=p[i].vyh/OBP;
+      Tx+=p[i].vxh/OBP;
+      Ty+=p[i].vyh/OBP;
     }
 
 
     for(i=FLP+BP; i<N; i++){//calculating anglar velocity
-            Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vyh-qy[i-FLP-BP]*p[i].vxh)/(inertia+epsilon);
+      Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vyh-qy[i-FLP-BP]*p[i].vxh)/(inertia+epsilon);
     }
 
     for(i=FLP+BP; i<N; i++){//recalculating half step velocity
@@ -911,37 +897,34 @@ void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[], FILE *fp, int 
       qy[i]=rig[i].prepy-gy;
     }
 
-    for(i=FLP+BP; i<N; i++){//calculating inertia
-      double dist=qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP];
-      inertia+=p[i].mass*(dist);
+    for(i=0; i<OBP; i++){//calculating inertia
+      double dist=qx[i]*qx[i] + qy[i]*qy[i];
+      inertia+=p[i+FLP+BP].mass*(dist);
     }
   }
 
-    gx=0;
-    gy=0;
+  gx=0;
+  gy=0;
 
-    for (i=FLP+BP; i<N; i++){//calculating center of mass
-      gx+=p[i].px/OBP;
-      gy+=p[i].py/OBP;
-    }
+  for (i=FLP+BP; i<N; i++){//calculating center of mass
+    gx+=p[i].px/OBP;
+    gy+=p[i].py/OBP;
+  }
 
-    for(i=FLP+BP;i<N; i++)  {
-      double dist=qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP];
-      if(dist>radius){
-        radius=dist;
-      }
+  for(i=0;i<OBP; i++)  {
+    double dist=qx[i]*qx[i] + qy[i]*qy[i];
+    if(dist>radius){
+      radius=dist;
     }
+  }
 
-    if(time%1==0){
-      fprintf(fp, "%f %f %f %f %f %f %f %f %f\n", (double)(time*dt), gx, gy, Tx, Ty, Rot, inertia, radius, radius*Rot/(Ty+epsilon));
-    }
-    //outputting center of mass
-    com[0]=gx;
-    com[1]=gy;
+  if(time%100==0){
+    fprintf(fp, "%f %f %f %f %f %f %f %f %f\n", (double)(time*dt), gx, gy, Tx, Ty, Rot, inertia, radius, radius*Rot/(Ty+epsilon));
+  }
+  //outputting center of mass
+  com[0]=gx;
+  com[1]=gy;
 }
-
-
-
 
 void leapfrogStart(Particle_State p[], RigidPreValue rig[])
 {
@@ -966,7 +949,7 @@ void leapfrogStart(Particle_State p[], RigidPreValue rig[])
       p[i].px+=p[i].vxh*dt;
       p[i].py+=p[i].vyh*dt;
       }*/
-    
+
 }
 
 void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time)

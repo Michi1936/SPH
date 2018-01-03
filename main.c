@@ -118,15 +118,14 @@ int main(int argc, char *argv[]){
   //printint parameters-------------------
   printParameters(parameters, angVel, srcName, date, spinParam);
 
-  
   //calculating initial state
   calcDensity(a, bfst, nxt);
   calcPressure(a);
   initializeAccel(a);
   calcAccelByExternalForces(a);
   calcAccelByPressure(a,bfst, nxt);
-  calcAccelBySurfaceTension(a, bfst, nxt);
   calcAccelByViscosity(a,bfst, nxt,0);
+  //  calcAccelBySurfaceTension(a, bfst, nxt);
 
   if(FLUID_INTERACTION>epsilon){
   calcInterfacialForce(a, bfst, nxt);
@@ -181,7 +180,7 @@ int main(int argc, char *argv[]){
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-    calcAccelBySurfaceTension(a, bfst, nxt);
+    //    calcAccelBySurfaceTension(a, bfst, nxt);
     if(FLUID_INTERACTION>epsilon){
     calcInterfacialForce(a, bfst, nxt);
     }
