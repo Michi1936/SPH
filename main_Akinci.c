@@ -126,19 +126,20 @@ int main(int argc, char *argv[]){
   calcPsi(a, Psi, bfst, nxt);
   AkinciCalcDensity(a, Psi, bfst, nxt);
   calcPressure(a);
+
   initializeAccel(a);
   calcAccelByExternalForces(a);
   AkinciCalcAccelByPressure(a, Psi, bfst, nxt);
-  AkinciCalcAccelByViscosity(a, Psi, bfst, nxt,0);
+  //  AkinciCalcAccelByViscosity(a, Psi, bfst, nxt,0);
 
   if(FLUID_INTERACTION>epsilon){
-  calcInterfacialForce(a, bfst, nxt);
+    calcInterfacialForce(a, bfst, nxt);
   }
   if(BOUNDARY_FORCE==1){
     calcAccelByBoundaryForce(a, bfst, nxt);
   }
   
-  //printParticles(a,data);//Here shows parameters at t=0
+  printParticles(a,data);//Here shows parameters at t=0
   printBoundaryParticles(a, data);
   printFluidParticles(a, data);
   printObstacleParticles(a, data);
@@ -181,13 +182,14 @@ int main(int argc, char *argv[]){
 
     AkinciCalcDensity(a, Psi, bfst, nxt);
     calcPressure(a);
+
     initializeAccel(a);
     calcAccelByExternalForces(a);
     AkinciCalcAccelByPressure(a, Psi, bfst, nxt);
     AkinciCalcAccelByViscosity(a, Psi, bfst, nxt, i);
-
+        
     if(FLUID_INTERACTION>epsilon){
-    calcInterfacialForce(a, bfst, nxt);
+      calcInterfacialForce(a, bfst, nxt);
     }
     if(BOUNDARY_FORCE==1){
       calcAccelByBoundaryForce(a, bfst, nxt);

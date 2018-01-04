@@ -9,14 +9,14 @@
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define rigidMass m*2.0
-#define nu 1.0e-2 //viscosity coefficient
+#define nu 1.0e-3 //viscosity coefficient
 #define g 9.8//gravitational constant
 #define kappa 0.0
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
-#define cs 150.0
+#define cs 100
 //#define dh 0.0001 
 #define epsilon 1.0e-8 //small number not to make denominator in gradKernel zero
-#define T 20000//time step
+#define T 50000//time step
 #define DAMPTIME 4000//2.5sec for exp2
 #define MOTION_START_TIME DAMPTIME+3000//at 3.9sec impact happens for exp2
 #define FLUID_INTERACTION 0.0
