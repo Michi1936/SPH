@@ -9,7 +9,7 @@
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define rigidMass m*2.0
-#define nu 1.0e-2 //viscosity coefficient
+#define nu 1.0e-3 //viscosity coefficient
 #define g 9.8//gravitational constant
 #define kappa 0.0
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
@@ -24,7 +24,7 @@
 #define HPHOBY_INTERACTION -FLUID_INTERACTION/2.0//negative value
 #define IMPACT_VELOCITY 10.0
 #define ANGLE_OF_INCIDENT M_PI/2.0
-#define BOUNDARY_FORCE 1//if this value is zero calcAccelByBoundaryForce is not called.
+#define BOUNDARY_FORCE 0//if this value is zero calcAccelByBoundaryForce is not called.
 
 #define interval 0.1
 #define MAX_X 50

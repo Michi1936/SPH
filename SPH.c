@@ -355,7 +355,6 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
 	    if(time<DAMPTIME){
 	      viscCoef=viscCoef*damper;
 	    }
-
             if(dot<0){
               aijx = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);
               aijy = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 1);
@@ -938,7 +937,7 @@ void leapfrogStart(Particle_State p[], RigidPreValue rig[])
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
   }
-
+  
   for(i=FLP+BP; i<N; i++){
     p[i].vxh=p[i].vx+p[i].ax*dt/2.0;
     p[i].vyh=p[i].vy+p[i].ay*dt/2.0;
