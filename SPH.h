@@ -16,9 +16,9 @@
 #define cs 100
 //#define dh 0.0001 
 #define epsilon 1.0e-8 //small number not to make denominator in gradKernel zero
-#define T 50000//time step
+#define T 25000//time step
 #define DAMPTIME 4000//2.5sec for exp2
-#define MOTION_START_TIME DAMPTIME+3000//at 3.9sec impact happens for exp2
+#define MOTION_START_TIME DAMPTIME+1000//at 3.9sec impact happens for exp2
 #define FLUID_INTERACTION 0.0
 #define HPHILY_INTERACTION FLUID_INTERACTION/2.0
 #define HPHOBY_INTERACTION -FLUID_INTERACTION/2.0//negative value

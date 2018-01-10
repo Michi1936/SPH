@@ -227,30 +227,29 @@ void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int t
   Fx=0;
   Fy=0;
   cmx=0, cmy=0;
-  for(i=0; i<OBP; i++){
-
-    Fx+=m*p[i+FLP+BP].ax;
-    Fy+=m*p[i+FLP+BP].ay;
+  for(i=FLP+BP; i<N; i++){
+    Fx+=m*p[i].ax;
+    Fy+=m*p[i].ay;
   }
 
-  for(i=0; i<OBP; i++){//calculating center of mass
+  for(i=FLP+BP; i<N; i++){//calculating center of mass
     cmx+=p[i].px/OBP;
     cmy+=p[i].py/OBP;
   }
 
-  for(i=0; i<OBP; i++){//calculating torque
+  for(i=FLP+BP; i<N; i++){//calculating torque
     double dx, dy;
     dx=0, dy=0;
-    dx=p[i+FLP+BP].px-cmx;
-    dy=p[i+FLP+BP].py-cmy;
+    dx=p[i].px-cmx;
+    dy=p[i].py-cmy;
     torque+=dx*Fy-dy*Fx;
   }
 
-  for(i=0; i<OBP; i++){//calculating moment of inertia
+  for(i=FLP+BP; i<N; i++){//calculating moment of inertia
     double dx=0, dy=0;
     double dist=0;
-    dx=p[i+FLP+BP].px-cmx;
-    dy=p[i+FLP+BP].py-cmy;
+    dx=p[i].px-cmx;
+    dy=p[i].py-cmy;
     dist=dx*dx+dy*dy;
     inertia+=rigidMass*dist;
   }
@@ -260,11 +259,11 @@ void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int t
   anglarMomentum+=(torque*dt);
   *omega=anglarMomentum/inertia;
 
-  for(i=0; i<OBP; i++){
+  for(i=FLP+BP; i<N; i++){
     double dx=0, dy=0;
     double ax, ay;
-    dx=p[i+FLP+BP].px-cmx;
-    dy=p[i+FLP+BP].py-cmy;
+    dx=p[i].px-cmx;
+    dy=p[i].py-cmy;
     ax=(Fx);
     ay=(Fy);
     p[i].vxh+=ax*dt-(*omega)*dy;
