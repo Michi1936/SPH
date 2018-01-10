@@ -158,18 +158,26 @@ void calcPressure(Particle_State p[])
   //set p=0
   int i;
   double coef;
-  coef=(rho0*pow(cs,2))/7.0;
   for(i=0; i<N; i++){
     p[i].p=0;
   }
-  
+
+  coef=(rho0*pow(cs,2))/7.0;  
 #pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<FLP+BP; i++){
     p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
     if(p[i].p<0){
       p[i].p=0;
     }
+  }
 
+  coef=(rigidMassMultiplier*rho0*pow(cs,2))/7.0;
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=FLP+BP; i<N; i++){
+    p[i].p = coef*(pow(p[i].rho/(rigidMassMultiplier*rho0),7)-1.0);//Tait equation
+    if(p[i].p<0){
+      p[i].p=0;
+    }
   }
 }
 
@@ -355,7 +363,6 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
 	    if(time<DAMPTIME){
 	      viscCoef=viscCoef*damper;
 	    }
-
             if(dot<0){
               aijx = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);
               aijy = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 1);
@@ -938,7 +945,6 @@ void leapfrogStart(Particle_State p[], RigidPreValue rig[])
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
   }
-
   /*    for(i=FLP+BP; i<N; i++){
       p[i].vxh=p[i].vx+p[i].ax*dt/2.0;
       p[i].vyh=p[i].vy+p[i].ay*dt/2.0;
@@ -949,7 +955,6 @@ void leapfrogStart(Particle_State p[], RigidPreValue rig[])
       p[i].px+=p[i].vxh*dt;
       p[i].py+=p[i].vyh*dt;
       }*/
-
 }
 
 void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time)
