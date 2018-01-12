@@ -202,14 +202,14 @@ void calcAccelByExternalForces(Particle_State p[])
     p[i].ay += aijy;
   }
 
-#pragma omp parallel for schedule(dynamic,64)
+  /*#pragma omp parallel for schedule(dynamic,64)
   for(i=FLP+BP; i<N; i++){
     double aijx, aijy;
     aijx     = 0;
     aijy     = - g;//gravitational force
     p[i].ax += aijx;
     p[i].ay += aijy;
-  }
+    }*/
 }
 
 void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
