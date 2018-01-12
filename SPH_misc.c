@@ -4,6 +4,7 @@
 #include<time.h>
 #include <string.h>
 #include"SPH.h"
+#include"Parameters.h"
 #include"numbers.h"
 
 

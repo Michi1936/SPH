@@ -1,5 +1,6 @@
 //setting for dambreaking
 #include"SPH.h"
+#include"Parameters.h"
 #include"numbers.h"
 #include<stdio.h>
 #include<math.h>
