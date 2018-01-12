@@ -2,8 +2,8 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include"SPH.h"
+#include"Parameters.h"
 #include"numbers.h"
-
 
 void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[])
 {

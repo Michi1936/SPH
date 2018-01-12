@@ -4,6 +4,7 @@
 #include<time.h>
 #include <string.h>
 #include"SPH.h"
+#include"Parameters.h"
 #include"numbers.h"
 
 
@@ -74,7 +75,6 @@ int main(int argc, char *argv[]){
   
   makeFileNamePrefix(fileNamePrefix, srcName, angVel, spinParam);
   fprintf(stderr, "\n\nprefix and suffix test\n./Source_%s/%s_plot.dat\n", srcName, fileNamePrefix);
-
   
   sprintf(fName, "./Source_%s/%s_plot.dat", srcName, fileNamePrefix);
   plot=fopen(fName,"w");
@@ -110,7 +110,6 @@ int main(int argc, char *argv[]){
     printf("partPlot cannot be opened!\n");
     exit(EXIT_FAILURE);
   }
-
     
   velocity=fopen("maxVelocity.dat", "w");
   if(velocity==NULL){
@@ -120,7 +119,6 @@ int main(int argc, char *argv[]){
 
   //printint parameters-------------------
   printParameters(parameters, angVel, srcName, date, spinParam);
-
   
   //calculating initial state
   calcPsi(a, Psi, bfst, nxt);
@@ -130,7 +128,7 @@ int main(int argc, char *argv[]){
   initializeAccel(a);
   calcAccelByExternalForces(a);
   AkinciCalcAccelByPressure(a, Psi, bfst, nxt);
-  //  AkinciCalcAccelByViscosity(a, Psi, bfst, nxt,0);
+  AkinciCalcAccelByViscosity(a, Psi, bfst, nxt,0);
 
   if(FLUID_INTERACTION>epsilon){
     calcInterfacialForce(a, bfst, nxt);

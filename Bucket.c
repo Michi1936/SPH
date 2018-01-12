@@ -1,4 +1,5 @@
 #include"SPH.h"
+#include"Parameters.h"
 #include"numbers.h"
 #include<stdio.h>
 #include<stdlib.h>

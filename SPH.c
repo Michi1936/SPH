@@ -2,6 +2,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include"SPH.h"
+#include"Parameters.h"
 #include"numbers.h"
 
 //Monaghan(2005) cubic spline is used 
