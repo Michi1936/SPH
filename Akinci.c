@@ -127,8 +127,8 @@ void AkinciCalcAccelByPressure(Particle_State p[], double Psi[], int bfst[], int
             p[i].ax += aijx/(p[i].mass+epsilon);
             p[i].ay += aijy/(p[i].mass+epsilon);
             if(j>=FLP+BP){
-              p[j].ax+=-aijx;
-              p[j].ay+=-aijy;
+              p[j].ax+=-aijx/(p[j].mass+epsilon); 
+	      p[j].ay+=-aijy/(p[j].mass+epsilon); 
             }
             j = nxt[j];
             if(j==-1){
@@ -239,8 +239,8 @@ void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], in
             p[i].ax+=aijx/(p[i].mass+epsilon);
 	    p[i].ay+=aijy/(p[i].mass+epsilon);
             if(j>=FLP+BP){
-              p[j].ax+=-aijx;
-              p[j].ay+=-aijy;
+              p[j].ax+=-aijx/(p[j].mass+epsilon);
+	      p[j].ay+=-aijy/(p[j].mass+epsilon);
             }
             j = nxt[j];
             if(j==-1){
