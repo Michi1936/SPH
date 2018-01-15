@@ -49,6 +49,8 @@ void leapfrogStart(Particle_State p[], RigidPreValue rig[]);
 void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time);
 void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int time);
 
+void velocityCorrection(Particle_State p[], int bfst[], int nxt[]);
+
 void initialization(Particle_State p[], RigidPreValue rig[]);
 int fluidParticles(Particle_State p[]);
 int wallParticles(Particle_State p[]);
@@ -65,6 +67,7 @@ double poly6(Particle_State p1, Particle_State p2);
 void getSourceImageName(FILE *fp, char srcName[]);
 double calcRadius(Particle_State p[]);
 void makeFileNamePrefix(char fNamePrefix[], char srcName[], double angVel, double spinParam);
+void openDatFile(FILE **fp, char type[], char srcName[], char prefix[]);
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
 

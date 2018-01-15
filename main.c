@@ -8,9 +8,8 @@
 #include"numbers.h"
 
 
-
-int main(int argc, char *argv[]){
-    
+int main(int argc, char *argv[])
+{
   Particle_State a[N];
   RigidPreValue rig[OBP];
   double com[2];
@@ -26,11 +25,10 @@ int main(int argc, char *argv[]){
   FILE *rigidBody;
   FILE *velocity;
   char srcName[256];
-  char fName[256];
   char fileNamePrefix[256];
   char date[256];
+  char type[32];
   double angVel=0;
-
 
   time_t t=time(NULL);
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
@@ -43,78 +41,46 @@ int main(int argc, char *argv[]){
 
   //placing particles
   initialization(a, rig);
-  fprintf(stderr,"check initialization\n");
   fluidParticles(a);
-  fprintf(stderr,"fluid Particles placed\n");
   wallParticles(a);
-  fprintf(stderr,"Boundary Particles are placed\n");
   obstacleBoundaryParticles(a);
-  fprintf(stderr, "Obstacke Particles are placed\n");
+  fprintf(stderr, "Particles are placed.\n");
 
   //allocating bucket
   allocateBucket(&bfst, &blst, &nxt);
   fprintf(stderr,"%f %f %d %d %d Bucket allocated\n", BktLgth, BktNum, nBx, nBy, nBxy);
   checkParticle(a);  
   makeBucket(bfst, blst, nxt, a);
-  fprintf(stderr,"makeBucket\n\n");
+  fprintf(stderr,"Bucket is made.\n\n");
 
   spinParam=fabs(calcRadius(a)*angVel/(IMPACT_VELOCITY+epsilon));
   fprintf(stderr, "spin parameter:%f\n", spinParam);
+  
   //open numbers.h
   numbers=fopen("numbers.h","r");
   if(numbers==NULL){
     printf("numbers.h cannot be opened!\n");
-    return -1;
+    exit(EXIT_FAILURE);
   }
 
   getSourceImageName(numbers, srcName);
   printf("%s.png\n",srcName);
-  
   makeFileNamePrefix(fileNamePrefix, srcName, angVel, spinParam);
   fprintf(stderr, "\n\nprefix and suffix test\n./Source_%s/%s_plot.dat\n", srcName, fileNamePrefix);
 
-  
-  sprintf(fName, "./Source_%s/%s_plot.dat", srcName, fileNamePrefix);
-  plot=fopen(fName,"w");
-  if(plot==NULL){
-    printf("plot cannot be opened!\n");
-    exit(EXIT_FAILURE);
-  }
-   
-  sprintf(fName, "./Source_%s/%s_data.dat", srcName, fileNamePrefix);
-  data=fopen(fName,"w");
-  if(data==NULL){
-    printf("data cannot be opened!\n");
-    exit(EXIT_FAILURE);
-  }
-
-  sprintf(fName, "./Source_%s/%s_parameters.dat", srcName, fileNamePrefix);
-  parameters=fopen(fName,"w");
-  if(parameters==NULL){
-    printf("parameters cannot be opened!\n");
-    exit(EXIT_FAILURE);
-  }
-
-  sprintf(fName, "./Source_%s/%s_rigidBody.dat", srcName, fileNamePrefix);
-  rigidBody=fopen(fName,"w");
-  if(rigidBody==NULL){
-    printf("rigidBody cannot be opened!\n");
-    exit(EXIT_FAILURE);
-  }
-
-  sprintf(fName, "./Source_%s/%s_partPlot.dat", srcName, fileNamePrefix);
-  partPlot=fopen(fName,"w");
-  if(partPlot==NULL){
-    printf("partPlot cannot be opened!\n");
-    exit(EXIT_FAILURE);
-  }
-
-    
-  velocity=fopen("maxVelocity.dat", "w");
-  if(velocity==NULL){
-    printf("velocity cannot be opened!\n");
-    exit(EXIT_FAILURE);
-  }
+  //opening .dat files
+  sprintf(type, "plot");
+  openDatFile(&plot, type, srcName, fileNamePrefix);
+  sprintf(type, "data");
+  openDatFile(&data, type, srcName, fileNamePrefix);
+  sprintf(type, "parameters");
+  openDatFile(&parameters, type, srcName, fileNamePrefix);
+  sprintf(type, "rigidBody");
+  openDatFile(&rigidBody, type, srcName, fileNamePrefix);
+  sprintf(type, "partPlot");
+  openDatFile(&partPlot, type, srcName, fileNamePrefix);
+  sprintf(type, "maxVelocity");
+  openDatFile(&velocity, type, srcName, fileNamePrefix);
 
   //printint parameters-------------------
   printParameters(parameters, angVel, srcName, date, spinParam);
@@ -129,7 +95,7 @@ int main(int argc, char *argv[]){
   //  calcAccelBySurfaceTension(a, bfst, nxt);
 
   if(FLUID_INTERACTION>epsilon){
-  calcInterfacialForce(a, bfst, nxt);
+    calcInterfacialForce(a, bfst, nxt);
   }
   if(BOUNDARY_FORCE==1){
     calcAccelByBoundaryForce(a, bfst, nxt);
@@ -172,6 +138,7 @@ int main(int argc, char *argv[]){
     }
 
     rigidBodyCorrection(a, rig, rigidBody, i, com);
+    velocityCorrection(a, bfst, nxt);   
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
 
@@ -181,9 +148,14 @@ int main(int argc, char *argv[]){
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
+<<<<<<< HEAD
     //    calcAccelBySurfaceTension(a, bfst, nxt);
+
+    calcAccelBySurfaceTension(a, bfst, nxt);
+
+>>>>>>> master
     if(FLUID_INTERACTION>epsilon){
-    calcInterfacialForce(a, bfst, nxt);
+      calcInterfacialForce(a, bfst, nxt);
     }
     if(BOUNDARY_FORCE==1){
       calcAccelByBoundaryForce(a, bfst, nxt);
@@ -191,10 +163,8 @@ int main(int argc, char *argv[]){
     if(i%100==0){
       printFluidParticles(a, data);//here show paremeters at t=(i*dt)
       printObstacleParticles(a, data);
-
       printFluidPositions(a,plot);
       printObstaclePositions(a,plot);
-      
       printParticlesAroundObstacle(a, partPlot, com);
     }
     percentage(i, &countPer);
@@ -215,7 +185,6 @@ int main(int argc, char *argv[]){
   free(blst);
   free(nxt);
   fprintf(stderr,"Bucket is freed\n");
-
 
   fclose(data);
   fclose(plot);

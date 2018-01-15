@@ -108,6 +108,18 @@ void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double angVel, do
   fprintf(stderr, "makeFileName ended\n");
 }
 
+void openDatFile(FILE **fp, char type[], char srcName[], char prefix[])
+{
+  char fName[512];
+  sprintf(fName, "./Source_%s/%s_%s.dat", srcName, prefix, type);
+
+  *fp=fopen(fName,"w");
+  if(*fp==NULL){
+    printf("%s cannot be opened!\n", type);
+    exit(EXIT_FAILURE);
+  }
+}
+
 void printParticles(Particle_State p[], FILE *fp)
 {
   int i;
@@ -130,7 +142,6 @@ void printParticles(Particle_State p[], FILE *fp)
   fprintf(fp,"\n\n");
 }
 
-
 void printFluidParticles(Particle_State p[], FILE *fp)
 {
   int i;
@@ -151,7 +162,6 @@ void printFluidPositions(Particle_State p[], FILE *fp)
     fprintf(fp,"%.4f %.4fe\n", p[i].px, p[i].py);
   }
   fprintf(fp, "\n\n");
-
 }
 
 void printBoundaryParticles(Particle_State p[], FILE *fp)
@@ -217,7 +227,6 @@ void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[])
   for(i=FLP+BP; i<N; i++){
     fprintf(fp, "%.3f %.3f\n", p[i].px, p[i].py);
   }
-
   fprintf(fp, "\n\n");
 }
 
@@ -436,11 +445,11 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
     printf("open plt2 error\n");
   }
   
-   sprintf(line,"set xrange[%.3f:%.3f]\n",(range[0]), (range[1]));
-   fprintf(plt,"%s",line);
+  sprintf(line,"set xrange[%.3f:%.3f]\n",(range[0]), (range[1]));
+  fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
-   sprintf(line,"set yrange[%.3f:%.3f]\n",(range[2]), range[3]);
-   fprintf(plt,"%s",line);
+  sprintf(line,"set yrange[%.3f:%.3f]\n",(range[2]), range[3]);
+  fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
   sprintf(line,"set size ratio %f\n",ratio);
   fprintf(plt,"%s",line);

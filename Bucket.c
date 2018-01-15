@@ -59,8 +59,6 @@ void makeBucket(int *bfst, int *blst, int*nxt, Particle_State p[])//putting part
   //  fprintf(stderr, "Bucket is allocated\n");
 }
 
-
-
 void freeBucket(int *bfst, int *blst, int*nxt)
 {
   free(bfst);
