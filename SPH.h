@@ -47,6 +47,8 @@ void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[],FILE *fp, int t
 void leapfrogStart(Particle_State p[], RigidPreValue rig[]);
 void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time);
 
+void velocityCorrection(Particle_State p[], int bfst[], int nxt[]);
+
 void initialization(Particle_State p[], RigidPreValue rig[]);
 int fluidParticles(Particle_State p[]);
 int wallParticles(Particle_State p[]);

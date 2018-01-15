@@ -1000,3 +1000,57 @@ void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time)
   }
 }
 
+//Based upon Adami(2012) generalized wall boundary condition
+void velocityCorrection(Particle_State p[], int bfst[], int nxt[])
+{
+  int i;
+  double vx[OBP];
+  double vy[OBP];
+
+  for(i=0; i<OBP; i++){
+    vx[i]=0;
+    vy[i]=0;
+  }
+
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=FLP+BP; i<N; i++){
+    if(p[i].inRegion==1){
+      double sum[3];
+      sum[0]=epsilon;
+      sum[1]=0;
+      sum[2]=0;
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb = 0;
+          jb = jx + jy*nBx;
+          int j = bfst[jb];
+          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
+          if(j==-1){
+	    continue;
+	  }
+          for(;;){
+            sum[0]+=kernel(p[i],p[j]);
+            sum[1]+=p[j].vx*kernel(p[i],p[j]);
+            sum[2]+=p[j].vy*kernel(p[i],p[j]);
+            j=nxt[j];
+            if(j==-1){
+	      break;
+	    }
+          }
+        }
+      }
+      vx[i-FLP-BP]=sum[1]/sum[0];
+      vy[i-FLP-BP]=sum[2]/sum[0];
+    }
+  }
+
+#pragma omp parallel for schedule(dynamic,64)  
+  for(i=FLP+BP; i<N; i++){
+    p[i].vx=2.0*p[i].vx-vx[i-FLP-BP];
+    p[i].vy=2.0*p[i].vy-vy[i-FLP-BP];
+  }
+}

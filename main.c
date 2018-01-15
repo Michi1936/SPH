@@ -172,6 +172,7 @@ int main(int argc, char *argv[]){
     }
 
     rigidBodyCorrection(a, rig, rigidBody, i, com);
+    velocityCorrection(a, bfst, nxt);   
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
 
