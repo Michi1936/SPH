@@ -369,5 +369,5 @@ void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int t
   }
 
   *omega+=(torque/(inertia+epsilon))*dt;
-  fprintf(fp, "%f %f %f %f %f %f %f \n", (double)(time*dt), cmx, cmy, 10.0, 1.0, *omega, inertia);
+  fprintf(fp, "%f %f %f %f %f %f %f %f\n", (double)(time*dt), cmx, cmy, 10.0, 1.0, *omega, inertia, torque);
 }
