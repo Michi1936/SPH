@@ -65,6 +65,7 @@ double poly6(Particle_State p1, Particle_State p2);
 void getSourceImageName(FILE *fp, char srcName[]);
 double calcRadius(Particle_State p[]);
 void makeFileNamePrefix(char fNamePrefix[], char srcName[], double angVel, double spinParam);
+void openDatFile(FILE **fp, char type[], char srcName[], char prefix[]);
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
 
