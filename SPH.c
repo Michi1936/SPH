@@ -33,18 +33,6 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   }
 }
 
-double kernelVal(double q)
-{
-  double ans=0;
-  if(0<=q && q<=1){
-    ans=cubicSpline1(q);
-  }else if(1<=q && q<=2){
-    ans=cubicSpline2(q);
-  }else if(q<0){
-
-  }
-  return ans;
-}
 
 double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gradient of kernel
 {
@@ -80,39 +68,6 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
   }
 }
 
-double forwardGradKernel(Particle_State p1, Particle_State p2, int axis)
-{
-  double dx = (p1.px-p2.px);
-  double dy = (p1.py-p2.py);
-  double dist = sqrt(dx*dx+dy*dy);
-  double q = dist/h;
-  double coeff_x = (dx)/(dist*h+epsilon);
-  double coeff_y = (dy)/(dist*h+epsilon);
-  double dh = 0.01;
-  double val=0;
-  if(axis==0){//x direction 
-    val=coeff_x*(kernelVal(q+(dh/2.0))-kernelVal(q-(dh/2.0)))/dh;
-  }else if(axis==1){
-    val=coeff_y*(kernelVal(q+(dh/2.0))-kernelVal(q-(dh/2.0)))/dh;
-  }
-  return val;
-}
-
-//Muller(2003)  Kernel for viscosity term is used
-double Laplacian(Particle_State p1, Particle_State p2)
-{
-  double ans=0;
-  double dx = fabs(p1.px-p2.px);
-  double dy = fabs(p1.py-p2.py);
-  double dist = sqrt(dx*dx+dy*dy);
-  if(0<= dist && dist <= h){
-    ans=(45.0/(M_PI*pow(h,6)))*(h-dist);
-  }
-  else{
-    ans = 0;
-  }
-  return ans;
-}
 
 void calcDensity(Particle_State p[], int bfst[], int nxt[])
 {

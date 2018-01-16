@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
     }else{
       leapfrogStep(a,rig,i);
       if(i==MOTION_START_TIME){
-        fprintf(stderr, "At %d rigid body is rotated\n", i);
+        fprintf(stderr, "\nAt %d rigid body is rotated\n", i);
         rotateRigidBody(a, rig, angVel);
         setInitialVelocity(a);
         fprintf(stderr, "Rigid Body Velocity is set\n");
@@ -171,8 +171,8 @@ int main(int argc, char *argv[])
 
   t=time(NULL);
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
-  printf("Calculation ended:%s\n", date);
-  fprintf(parameters, "Calculation ended:%s\n", date);
+  printf("Calculation finished:%s\n", date);
+  fprintf(parameters, "Calculation finished:%s\n", date);
 
   makePltFile(srcName, a, fileNamePrefix);
   printf("plt files are created.\n");
