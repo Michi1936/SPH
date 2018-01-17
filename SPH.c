@@ -150,16 +150,10 @@ void calcAccelByExternalForces(Particle_State p[])
 {
   int i;
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<FLP; i++){
-    double aijx, aijy;
-    aijx     = 0;
-    aijy     = - g;//gravitational force
-    p[i].ax += aijx;
-    p[i].ay += aijy;
-  }
-
-#pragma omp parallel for schedule(dynamic,64)
-  for(i=FLP+BP; i<N; i++){
+  for(i=0; i<N; i++){
+    if(i>=FLP && i<FLP+BP){
+      continue;
+    }
     double aijx, aijy;
     aijx     = 0;
     aijy     = - g;//gravitational force
@@ -172,7 +166,10 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
 {
   int i;
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<FLP; i++){  
+  for(i=0; i<N; i++){  
+    if(i>=FLP && i<FLP+BP){
+      continue;
+    }
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
@@ -200,37 +197,6 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
       }
     } 
   }
-
-#pragma omp parallel for schedule(dynamic,64)
-  for(i=FLP+BP; i<N; i++){  
-    if(p[i].inRegion==1){
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb = jx + jy*nBx;
-          int j = bfst[jb];
-          if(j==-1){
-	    continue;
-	  }
-          for(;;){
-            double aijx=0;
-            double aijy=0;
-            aijx=-p[j].mass*((p[i].p/pow(p[i].rho,2.0)) + (p[j].p/pow(p[j].rho,2.0)))*gradKernel(p[i], p[j], 0);
-            aijy=-p[j].mass*((p[i].p/pow(p[i].rho,2.0)) + (p[j].p/pow(p[j].rho,2.0)))*gradKernel(p[i], p[j], 1);
-            p[i].ax += aijx;
-            p[i].ay += aijy;
-            j = nxt[j];
-            if(j==-1){
-	      break;
-	    }
-          }
-        }
-      }
-    } 
-  }
-
 }
 
 
@@ -240,7 +206,10 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
   int i;
   double damper=10.0;
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<FLP; i++){
+  for(i=0; i<N; i++){
+    if(i>=FLP && i<FLP+BP){
+      continue;
+    }
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
@@ -289,55 +258,6 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
     }
   }
   
-#pragma omp parallel for schedule(dynamic,64)
-  for(i=FLP+BP; i<N; i++){
-    if(p[i].inRegion==1){
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb = jx + jy*nBx;
-          int j = bfst[jb];
-          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          if(j==-1){
-	    continue;
-	  }
-          for(;;){
-            double aijx, aijy;
-            aijx=0, aijy=0;
-            double viscCoef=0;
-            double dx = (p[i].px-p[j].px);
-            double dy = (p[i].py-p[j].py);
-            double dvx = (p[i].vx-p[j].vx);
-            double dvy = (p[i].vy-p[j].vy);
-            double dot = dx*dvx+dy*dvy;
-            double dist = dx*dx+dy*dy;
-            viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
-            viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
-	    if(time<DAMPTIME){
-	      viscCoef=viscCoef*damper;
-	    }
-            if(dot<0){
-              aijx = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);
-              aijy = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 1);
-              //fprintf(stderr, "dot=%f %f %f aijx=%f, aijy=%f\n",dot, viscCoef, gradKernel(p[i], p[j], 0),  aijx, aijy);
-            }else if(dot>=0){
-              aijx=0; 
-              aijy=0;
-            }
-            p[i].ax+=aijx;
-            p[i].ay+=aijy;
-            j = nxt[j];
-            if(j==-1){
-	      break;
-	    }
-          }
-        }
-      }
-    }
-  }
 }
 
 
@@ -523,11 +443,13 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
   int i;
 
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<FLP; i++){
+  for(i=0; i<N; i++){
+    if(i>=FLP && i<FLP+BP){
+      continue;
+    }
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-
       int jx, jy;
       for(jx=ix-1; jx<=ix+1; jx++){
         for(jy=iy-1; jy<=iy+1; jy++){
@@ -543,49 +465,6 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
                 break;
               }
               continue;
-            }
-
-            double aijx, aijy;
-            double dx = p[i].px-p[j].px;
-            double dy = p[i].py-p[j].py;
-            double dist = sqrt(dx*dx+dy*dy);
-            aijx=0, aijy=0;
-	    aijx=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dx/(dist+epsilon);
-	    aijy=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dy/(dist+epsilon);
-            p[i].ax+=aijx;
-            p[i].ay+=aijy;
-            j=nxt[j];
-            if(j==-1){
-	      break;
-	    }
-          }
-        }
-      }
-    }
-  }
-
-
-#pragma omp parallel for schedule(dynamic,64)
-  for(i=FLP+BP; i<N; i++){
-    if(p[i].inRegion==1){
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb=jx+jy*nBx;
-          int j=bfst[jb];
-          if(j==-1){
-	    continue;
-	  }
-          for(;;){
-            if(j>=FLP+BP){
-              j = nxt[j];
-              if(j==-1){
-                break;
-              }
-	      continue;
             }
             double aijx, aijy;
             double dx = p[i].px-p[j].px;
@@ -594,119 +473,6 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
             aijx=0, aijy=0;
 	    aijx=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dx/(dist+epsilon);
 	    aijy=(p[j].mass/(p[i].mass+p[j].mass))*boundaryGamma(p[i],p[j])*dy/(dist+epsilon);
-            p[i].ax+=aijx;
-            p[i].ay+=aijy;
-            j=nxt[j];
-            if(j==-1){
-	      break;
-	    }
-          }
-        }
-      }
-    }
-  }
-}
-
-double adhesionCoefficient(Particle_State p1, Particle_State p2)
-{
-  double val=0;
-  double dx = p1.px-p2.px;
-  double dy = p1.py-p2.py;
-  double dist = sqrt(dx*dx+dy*dy);
-
-  if(2.0*dist>h && dist<=h){
-    val=pow((-4.0*dist*dist/h)+6.0*dist-2.0*h, 1.0/4.0);
-  }else{
-    val=0;
-  }
-
-  return 0.007*val/pow(h,3.25);
-}
-
-void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[])
-{
-  int i;
-  double boundaryParticleDensity[BP+OBP];
-  double psi[BP+OBP];
-  double beta=-1.0;
-
-  for(i=0; i<BP+OBP; i++){
-    boundaryParticleDensity[i]=0;
-    psi[i]=0;
-  }
-#pragma omp parallel for schedule(dynamic,64)
-  for(i=FLP; i<N; i++){//calculating number density of boundary particles 
-    if(p[i].inRegion==1){
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb=jx+jy*nBx;
-          int j=bfst[jb];
-
-          if(j==-1){
-	    continue;
-	  }
-          for(;;){
-            //fprintf(stderr, "%d \n", j);
-            if(j<FLP){
-              j = nxt[j];
-              if(j==-1){
-                break;
-              }
-              continue;
-            }
-            boundaryParticleDensity[i-FLP]+=kernel(p[i], p[j]);
-
-            j=nxt[j];
-            if(j==-1){
-	      break;
-	    }
-          }
-        }
-      }
-    }
-  }
-
-  for(i=0; i<BP+OBP; i++){
-    psi[i]=rho0*boundaryParticleDensity[i];
-  }
-
-#pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<FLP; i++){
-    if(p[i].inRegion==1){
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb=jx+jy*nBx;
-          int j=bfst[jb];
-
-          if(j==-1){
-	    continue;
-	  }
-          for(;;){
-            //fprintf(stderr, "%d \n", j);
-            if(j<FLP){
-              j = nxt[j];
-              if(j==-1){
-                break;
-              }
-              continue;
-            }
-            double aijx, aijy;
-            double dx = p[i].px-p[j].px;
-            double dy = p[i].py-p[j].py;
-            double dist = sqrt(dx*dx+dy*dy);
-            aijx=0, aijy=0;
-
-            aijx=-beta*p[i].mass*psi[j-FLP]*adhesionCoefficient(p[i], p[j])*dx/(dist*epsilon);
-            aijy=-beta*p[i].mass*psi[j-FLP]*adhesionCoefficient(p[i], p[j])*dy/(dist*epsilon);
-
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j=nxt[j];
@@ -952,60 +718,5 @@ void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time)
       p[i].px+=p[i].vxh*dt;
       p[i].py+=p[i].vyh*dt;
     }
-  }
-}
-
-//Based upon Adami(2012) generalized wall boundary condition
-void velocityCorrection(Particle_State p[], int bfst[], int nxt[])
-{
-  int i;
-  double vx[OBP];
-  double vy[OBP];
-
-  for(i=0; i<OBP; i++){
-    vx[i]=0;
-    vy[i]=0;
-  }
-
-#pragma omp parallel for schedule(dynamic,64)
-  for(i=FLP+BP; i<N; i++){
-    if(p[i].inRegion==1){
-      double sum[3];
-      sum[0]=epsilon;
-      sum[1]=0;
-      sum[2]=0;
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb = 0;
-          jb = jx + jy*nBx;
-          int j = bfst[jb];
-          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          if(j==-1){
-	    continue;
-	  }
-          for(;;){
-            sum[0]+=kernel(p[i],p[j]);
-            sum[1]+=p[j].vx*kernel(p[i],p[j]);
-            sum[2]+=p[j].vy*kernel(p[i],p[j]);
-            j=nxt[j];
-            if(j==-1){
-	      break;
-	    }
-          }
-        }
-      }
-      vx[i-FLP-BP]=sum[1]/sum[0];
-      vy[i-FLP-BP]=sum[2]/sum[0];
-    }
-  }
-
-#pragma omp parallel for schedule(dynamic,64)  
-  for(i=FLP+BP; i<N; i++){
-    p[i].vx=2.0*p[i].vx-vx[i-FLP-BP];
-    p[i].vy=2.0*p[i].vy-vy[i-FLP-BP];
   }
 }

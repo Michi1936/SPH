@@ -263,6 +263,19 @@ void percentage(int time, int *countPer)
   }
 }
 
+void tipPosition(Particle_State p[], int time, FILE *tip)
+{
+  double max=0;
+  int i;
+  for(i=0; i<FLP; i++){
+    if(p[i].px>max){
+      max=p[i].px;
+    }
+  }
+  fprintf(tip, "%f %f %f %f\n", dt*time, max-0.3, (dt*time)*sqrt(2.0*g/4.0), ((max-0.3)/4.0));
+}
+
+
 void getMaxVelocity(Particle_State p[], FILE *fp, int time)
 {
   int i;

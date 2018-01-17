@@ -79,7 +79,6 @@ int wallParticles(Particle_State p[]){
   return 0;
 }
 
-
 int obstacleBoundaryParticles(Particle_State p[])
 {
   FILE *fp;
