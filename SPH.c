@@ -33,7 +33,6 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   }
 }
 
-
 double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gradient of kernel
 {
   
@@ -67,7 +66,6 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
     return 0;
   }
 }
-
 
 void calcDensity(Particle_State p[], int bfst[], int nxt[])
 {
@@ -106,7 +104,6 @@ void calcDensity(Particle_State p[], int bfst[], int nxt[])
     }
   }
 }
-
 
 //Muller(2005) pressure model is used
 void calcPressure(Particle_State p[])
@@ -199,7 +196,6 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
   }
 }
 
-
 void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
     //Muller(2005) Weakly compressible SPH for free surface flow model is used.
 {
@@ -257,9 +253,7 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
       }
     }
   }
-  
 }
-
 
 double surfaceTensionCoefficient(double r)//caluculating cohesion term 
 {
@@ -340,7 +334,10 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
 {
   int i;
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<FLP; i++){
+  for(i=0; i<N; i++){
+    if(i>=FLP && i<FLP+BP){
+      continue;
+    }
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
@@ -372,45 +369,6 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
             if(j==-1){
               break;
             }
-          }
-        }
-      }
-    }
-  }
-
-#pragma omp parallel for schedule(dynamic,64)
-  for(i=FLP+BP; i<N; i++){
-    if(p[i].inRegion==1){
-      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
-      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
-      int jx, jy;
-      for(jx=ix-1; jx<=ix+1; jx++){
-        for(jy=iy-1; jy<=iy+1; jy++){
-          int jb = jx + jy*nBx;
-          int j = bfst[jb];
-          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
-          if(j==-1){
-	    continue;
-	  }
-          for(;;){
-            double aijx, aijy;
-            aijx=0, aijy=0;
-            if(FLP<=j && j<FLP+BP){
-              j=nxt[j];
-              if(j==-1){
-                break;
-              }
-              continue;
-            }
-            aijx=-kappa*p[j].mass*kernel(p[i],p[j])/p[i].mass;
-            aijy=-kappa*p[j].mass*kernel(p[i],p[j])/p[i].mass;
-            p[i].ax+=aijx;
-            p[i].ay+=aijy;
-            j = nxt[j];
-            if(j==-1){
-	      break;
-	    }
           }
         }
       }
@@ -677,8 +635,7 @@ void leapfrogStart(Particle_State p[], RigidPreValue rig[])
     rig[i-FLP-BP].prepy=p[i].py;
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
-  }
-    
+  } 
 }
 
 void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time)
@@ -704,7 +661,6 @@ void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time)
     for(i=FLP+BP; i<N; i++){
       p[i].vxh+=p[i].ax*dt;
       p[i].vyh+=p[i].ay*dt;
-      
       p[i].vx=p[i].vxh+p[i].ax*dt/2.0;
       p[i].vy=p[i].vyh+p[i].ay*dt/2.0;
       if(p[i].inRegion==0){
