@@ -123,7 +123,6 @@ void calcPressure(Particle_State p[])
       p[i].p=0;
     }
   }
-
   coef=(rigidMassMultiplier*rho0*pow(cs,2))/7.0;
 #pragma omp parallel for schedule(dynamic,64)
   for(i=FLP+BP; i<N; i++){
@@ -221,14 +220,14 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
 	  }
           for(;;){
             double aijx, aijy;
-            aijx=0, aijy=0;
             double viscCoef=0;
             double dx = (p[i].px-p[j].px);
             double dy = (p[i].py-p[j].py);
             double dvx = (p[i].vx-p[j].vx);
             double dvy = (p[i].vy-p[j].vy);
             double dot = dx*dvx+dy*dvy;
-            double dist = dx*dx+dy*dy;
+            double dist = sqrt(dx*dx+dy*dy);
+            aijx=0, aijy=0;      
             viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
             viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
 	    if(time<DAMPTIME){
