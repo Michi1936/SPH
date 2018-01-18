@@ -640,7 +640,6 @@ void leapfrogStart(Particle_State p[], RigidPreValue rig[])
 void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time)
 {
   int i;
-
   for(i=0; i<FLP; i++){
     p[i].vxh+=p[i].ax*dt;
     p[i].vyh+=p[i].ay*dt;
