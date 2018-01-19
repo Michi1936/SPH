@@ -225,7 +225,7 @@ void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], in
             double dvx = (p[i].vx-p[j].vx);
             double dvy = (p[i].vy-p[j].vy);
             double dot = dx*dvx+dy*dvy;
-            double dist = dx*dx+dy*dy;
+            double dist = sqrt(dx*dx+dy*dy);
             if(j<FLP){
               viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
               viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
@@ -301,7 +301,7 @@ void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], in
             double dvx = (p[i].vx-p[j].vx);
             double dvy = (p[i].vy-p[j].vy);
             double dot = dx*dvx+dy*dvy;
-            double dist = dx*dx+dy*dy;
+            double dist = sqrt(dx*dx+dy*dy);
             viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
             viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
             if(time<DAMPTIME){
