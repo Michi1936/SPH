@@ -28,9 +28,13 @@ double cubicSpline1(double q);
 double cubicSpline2(double q);
 double kernel(Particle_State p1, Particle_State p2);
 double gradKernel(Particle_State p1, Particle_State p2, int x_or_y);
+
 double Laplacian(Particle_State p1, Particle_State p2);
-void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[]);
+void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int rigidNum[]);
 void AkinciCalcDensity(Particle_State p[], double Psi[], int bfst[], int nxt[]);
+
+void calcDensity(Particle_State p[], int bfst[], int nxt[]);
+
 void calcPressure(Particle_State p[]);
 void initializeAccel(Particle_State p[]);
 void calcAccelByExternalForces(Particle_State p[]);
@@ -41,15 +45,11 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[]);
 void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[]);
 double boundaryGamma(Particle_State p1, Particle_State p2);
 void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
-double adhesionCoefficient(Particle_State p1, Particle_State p2);
-void calcAccelByAdhesion(Particle_State p[], int bfst[], int nxt[]);
 void rotateRigidBody(Particle_State p[], RigidPreValue rig[], double angVel);
 //void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[],FILE *fp, int time, double com[]);
 void leapfrogStart(Particle_State p[], RigidPreValue rig[]);
 void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time);
 void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int time);
-
-void velocityCorrection(Particle_State p[], int bfst[], int nxt[]);
 
 void initialization(Particle_State p[], RigidPreValue rig[]);
 int fluidParticles(Particle_State p[]);
@@ -80,7 +80,6 @@ void printObstaclePositions(Particle_State p[], FILE *fp);
 void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[]);
 void printParameters(FILE *fp, double angVel, char srcName[], char date[], double spinParam);
 
-void tipPosition(Particle_State p[], int time, FILE *tip);
 void getMaxVelocity(Particle_State p[], FILE *fp, int time);
 void getCalculationRegion(double range[], Particle_State p[]);
 void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix);

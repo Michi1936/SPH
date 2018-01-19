@@ -8,13 +8,13 @@
 #define dt 0.5e-4//time step size
 #define rho0 1000.0 // reference density
 #define m M_PI*h*h*rho0/12.0 //particle mass
-#define rigidMassMultiplier 2.0
+#define rigidMassMultiplier 1.5
 #define rigidMass m*rigidMassMultiplier
-#define nu 1.0e-2 //viscosity coefficient
+#define nu 1.0e-1 //viscosity coefficient
 #define g 9.8//gravitational constant
 #define kappa 0.0
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
-#define cs 200.0
+#define cs 80.0
 //#define dh 0.0001 
 #define epsilon 1.0e-8 //small number not to make denominator in gradKernel zero
 #define T 30000//time step

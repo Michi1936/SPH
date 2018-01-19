@@ -85,17 +85,17 @@ void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double angVel, do
   sprintf(tempFileName,"./Source_%s/%s_plot.dat", srcName,prefix);
   sprintf(fileNamePrefix, "%s", prefix);
   if((dammyPLOT=fopen(tempFileName,"r"))!=NULL){
-    int bool;
+    int option;
     fprintf(stderr, "\nWarning!\n");
     fprintf(stderr, "File %s already exists.\n", tempFileName);
     fprintf(stderr,"1:Overwrite this file\n");
     fprintf(stderr,"2:Rename this file\n");
     fprintf(stderr, "0:Stop this programm\n");
-    scanf("%d", &bool);
-    if(bool==1){
+    scanf("%d", &option);
+    if(option==1){
       sprintf(fileNamePrefix, "%s", prefix);
-      fprintf(stderr, "bool=%d\n", bool);
-    }else if(bool==2){
+      fprintf(stderr, "option=%d\n", option);
+    }else if(option==2){
       fprintf(stderr,"Enter suffix\n");
       scanf("%s", suffix);
       sprintf(fileNamePrefix, "%s_%s", prefix, suffix);
@@ -232,7 +232,7 @@ void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[])
 
 void printParameters(FILE *fp, double angVel, char srcName[], char date[], double spinParam)
 {
-  fprintf(stderr, "Parameters:\n");
+  fprintf(stderr, "\n\nParameters:\n");
   fprintf(stderr,"Source Image %s.png\n",srcName);
   fprintf(stderr,"Anglar Velocity:%f Impact Velocity:%f Angle of Incident:%f Spin Parameter:%f\n", angVel, IMPACT_VELOCITY, ANGLE_OF_INCIDENT, spinParam);
   fprintf(stderr,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);

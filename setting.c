@@ -24,12 +24,12 @@ void initialization(Particle_State p[], RigidPreValue rig[])	//make all values o
     p[i].p   = 0;
     p[i].mass=m;
   }
+
   for(i=0; i<OBP; i++){
     rig[i].prepx=-100;
     rig[i].prepy=-100;
   }
 }
-
 
 int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt
 {
@@ -78,7 +78,6 @@ int wallParticles(Particle_State p[]){
   fclose(fp);
   return 0;
 }
-
 
 int obstacleBoundaryParticles(Particle_State p[])
 {

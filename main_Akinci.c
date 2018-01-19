@@ -12,9 +12,10 @@
 int main(int argc, char *argv[]){
     
   Particle_State a[N];
-  RigidPreValue rig[OBP];
   double com[2];
   double Psi[OBP];
+  int rigidNum[BP+OBP];
+  RigidPreValue rig[OBP];
   double omega;
   int *bfst, *blst, *nxt;
   int countPer=0;
@@ -121,7 +122,7 @@ int main(int argc, char *argv[]){
   printParameters(parameters, angVel, srcName, date, spinParam);
   
   //calculating initial state
-  calcPsi(a, Psi, bfst, nxt);
+  calcPsi(a, Psi, bfst, nxt, rigidNum);
   AkinciCalcDensity(a, Psi, bfst, nxt);
   calcPressure(a);
 
@@ -178,6 +179,7 @@ int main(int argc, char *argv[]){
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
 
+    calcPsi(a, Psi, bfst, nxt, rigidNum);
     AkinciCalcDensity(a, Psi, bfst, nxt);
     calcPressure(a);
 

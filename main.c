@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<math.h>
 #include<time.h>
-#include <string.h>
+#include<string.h>
 #include"SPH.h"
 #include"Parameters.h"
 #include"numbers.h"
@@ -63,6 +63,7 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
+  //get name of source image and create file name including anglar velocity, dt, spin param, nu
   getSourceImageName(numbers, srcName);
   printf("%s.png\n",srcName);
   makeFileNamePrefix(fileNamePrefix, srcName, angVel, spinParam);
@@ -130,7 +131,7 @@ int main(int argc, char *argv[])
     }else{
       leapfrogStep(a,rig,i);
       if(i==MOTION_START_TIME){
-        fprintf(stderr, "At %d rigid body is rotated\n", i);
+        fprintf(stderr, "\nAt %d rigid body is rotated\n", i);
         rotateRigidBody(a, rig, angVel);
         setInitialVelocity(a);
         fprintf(stderr, "Rigid Body Velocity is set\n");
@@ -138,7 +139,6 @@ int main(int argc, char *argv[])
     }
 
     rigidBodyCorrection(a, rig, rigidBody, i, com);
-    velocityCorrection(a, bfst, nxt);   
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
 
@@ -148,12 +148,8 @@ int main(int argc, char *argv[])
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-<<<<<<< HEAD
     //    calcAccelBySurfaceTension(a, bfst, nxt);
 
-    calcAccelBySurfaceTension(a, bfst, nxt);
-
->>>>>>> master
     if(FLUID_INTERACTION>epsilon){
       calcInterfacialForce(a, bfst, nxt);
     }
@@ -175,8 +171,8 @@ int main(int argc, char *argv[])
 
   t=time(NULL);
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
-  printf("Calculation ended:%s\n", date);
-  fprintf(parameters, "Calculation ended:%s\n", date);
+  printf("Calculation finished:%s\n", date);
+  fprintf(parameters, "Calculation finished:%s\n", date);
 
   makePltFile(srcName, a, fileNamePrefix);
   printf("plt files are created.\n");
