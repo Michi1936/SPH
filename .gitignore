@@ -6,6 +6,7 @@
 *.plt
 *.ipynb
 /unusedFunctions.c
+/Parameters.h
 GPATH
 GRTAGS
 GSYMS

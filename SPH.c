@@ -353,13 +353,6 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
           for(;;){
             double aijx, aijy;
             aijx=0, aijy=0;            
-            if(FLP<=j && j<FLP+BP){
-              j=nxt[j];
-              if(j==-1){
-                break;
-              }
-              continue;
-            }
             aijx=-kappa*p[j].mass*kernel(p[i], p[j])/p[i].mass;
             aijy=-kappa*p[j].mass*kernel(p[i], p[j])/p[i].mass;
             p[i].ax+=aijx;
