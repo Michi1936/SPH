@@ -377,7 +377,7 @@ void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int t
 
   //  fprintf(stderr, "torque:%f inertia:%f omega:%f\n", torque, inertia, *omega);
 
-  for(i=FLP+BP; i<N; i++){
+  /*  for(i=FLP+BP; i<N; i++){
     double dx=0, dy=0;
     double ax, ay;
     dx=p[i].px-cmx;
@@ -390,8 +390,34 @@ void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int t
     p[i].vy=p[i].vyh+ay/2.0;
     p[i].px+=p[i].vxh*dt;
     p[i].py+=p[i].vyh*dt;
-  }
+    }*/
+
+  for(i=FLP+BP; i<N; i++){
+    double dx=0, dy=0;
+    double ax, ay;
+    dx=p[i].px-cmx;
+    dy=p[i].py-cmy;
+    ax=(Fx)/Mass-(torque/(inertia+epsilon))*dy-(*omega)*p[i].vy;
+    ay=(Fy)/Mass+(torque/(inertia+epsilon))*dx+(*omega)*p[i].vx;
+    p[i].vx+=p[i].ax*dt;
+    p[i].vy+=p[i].ay*dt;
+    p[i].px+=p[i].vx*dt;
+    p[i].py+=p[i].vy*dt;
+
+}
 
   *omega+=(torque/(inertia+epsilon))*dt;
   fprintf(fp, "%f %f %f %f %f %f %f %f\n", (double)(time*dt), cmx, cmy, 10.0, 1.0, *omega, inertia, torque);
+}
+
+void EulerCromerTimeIntegration(Particle_State p[])
+{
+  int i;
+
+  for(i=0; i<FLP; i++){
+    p[i].vx+=p[i].ax*dt;
+    p[i].vy+=p[i].ay*dt;
+    p[i].px+=p[i].vx*dt;
+    p[i].py+=p[i].vy*dt;
+  }
 }

@@ -38,8 +38,7 @@ void calcDensity(Particle_State p[], int bfst[], int nxt[]);
 void calcPressure(Particle_State p[]);
 void initializeAccel(Particle_State p[]);
 void calcAccelByExternalForces(Particle_State p[]);
-void AkinciCalcAccelByPressure(Particle_State p[], double Psi[], int bfst[], int nxt[]);
-void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], int nxt[], int time);
+
 double surfaceTensionCoefficient(double r);
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[]);
 void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[]);
@@ -49,6 +48,10 @@ void rotateRigidBody(Particle_State p[], RigidPreValue rig[], double angVel);
 //void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[],FILE *fp, int time, double com[]);
 void leapfrogStart(Particle_State p[], RigidPreValue rig[]);
 void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time);
+
+void AkinciCalcAccelByPressure(Particle_State p[], double Psi[], int bfst[], int nxt[]);
+void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], int nxt[], int time);
+void EulerCromerTimeIntegration(Particle_State p[]);
 void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int time);
 
 void initialization(Particle_State p[], RigidPreValue rig[]);

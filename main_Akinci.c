@@ -29,7 +29,7 @@ int main(int argc, char *argv[]){
   FILE *rigidBody;
   FILE *velocity;
   char srcName[256];
-  char fName[256];
+  char type[32];
   char fileNamePrefix[256];
   char date[256];
   double angVel=0;
@@ -76,47 +76,19 @@ int main(int argc, char *argv[]){
   
   makeFileNamePrefix(fileNamePrefix, srcName, angVel, spinParam);
   fprintf(stderr, "\n\nprefix and suffix test\n./Source_%s/%s_plot.dat\n", srcName, fileNamePrefix);
-  
-  sprintf(fName, "./Source_%s/%s_plot.dat", srcName, fileNamePrefix);
-  plot=fopen(fName,"w");
-  if(plot==NULL){
-    printf("plot cannot be opened!\n");
-    exit(EXIT_FAILURE);
-  }
-   
-  sprintf(fName, "./Source_%s/%s_data.dat", srcName, fileNamePrefix);
-  data=fopen(fName,"w");
-  if(data==NULL){
-    printf("data cannot be opened!\n");
-    exit(EXIT_FAILURE);
-  }
 
-  sprintf(fName, "./Source_%s/%s_parameters.dat", srcName, fileNamePrefix);
-  parameters=fopen(fName,"w");
-  if(parameters==NULL){
-    printf("parameters cannot be opened!\n");
-    exit(EXIT_FAILURE);
-  }
-
-  sprintf(fName, "./Source_%s/%s_rigidBody.dat", srcName, fileNamePrefix);
-  rigidBody=fopen(fName,"w");
-  if(rigidBody==NULL){
-    printf("rigidBody cannot be opened!\n");
-    exit(EXIT_FAILURE);
-  }
-
-  sprintf(fName, "./Source_%s/%s_partPlot.dat", srcName, fileNamePrefix);
-  partPlot=fopen(fName,"w");
-  if(partPlot==NULL){
-    printf("partPlot cannot be opened!\n");
-    exit(EXIT_FAILURE);
-  }
-    
-  velocity=fopen("maxVelocity.dat", "w");
-  if(velocity==NULL){
-    printf("velocity cannot be opened!\n");
-    exit(EXIT_FAILURE);
-  }
+  sprintf(type, "plot");
+  openDatFile(&plot, type, srcName, fileNamePrefix);
+  sprintf(type, "data");
+  openDatFile(&data, type, srcName, fileNamePrefix);
+  sprintf(type, "parameters");
+  openDatFile(&parameters, type, srcName, fileNamePrefix);
+  sprintf(type, "rigidBody");
+  openDatFile(&rigidBody, type, srcName, fileNamePrefix);
+  sprintf(type, "partPlot");
+  openDatFile(&partPlot, type, srcName, fileNamePrefix);
+  sprintf(type, "maxVelocity");
+  openDatFile(&velocity, type, srcName, fileNamePrefix);
 
   //printint parameters-------------------
   printParameters(parameters, angVel, srcName, date, spinParam);
@@ -163,9 +135,9 @@ int main(int argc, char *argv[]){
   //time development
   for(i=1; i<=T; i++){
     if(i==1){
-      leapfrogStart(a, rig);
+      EulerCromerTimeIntegration(a);
     }else{
-      leapfrogStep(a,rig,i);
+      EulerCromerTimeIntegration(a);
       if(i==MOTION_START_TIME){
         fprintf(stderr, "At %d rigid body is rotated\n", i);
         rotateRigidBody(a, rig, angVel);
@@ -174,7 +146,6 @@ int main(int argc, char *argv[]){
       }
     }
 
-    //    rigidBodyCorrection(a, rig, rigidBody, i, com);
     rigidBodyTimeIntegration(a, &omega, rigidBody, i);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
