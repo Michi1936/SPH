@@ -15,8 +15,7 @@ int main(int argc, char *argv[]){
   double com[2];
   double Psi[OBP];
   int rigidNum[BP+OBP];
-  RigidPreValue rig[OBP];
-  double omega;
+  RigidBodyValues rigV;
   int *bfst, *blst, *nxt;
   int countPer=0;
   double spinParam=0;
@@ -43,10 +42,11 @@ int main(int argc, char *argv[]){
   if(argc==2){
     angVel=atof(argv[1]);
   }
-  omega=angVel;
+
+  rigV.omega=angVel;
 
   //placing particles
-  initialization(a, rig);
+  initialization(a, rigV);
   fprintf(stderr,"check initialization\n");
   fluidParticles(a);
   fprintf(stderr,"fluid Particles placed\n");
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]){
 
   if(MOTION_START_TIME==0){
     fprintf(stderr, "At 0 rigid body is rotated\n");
-    rotateRigidBody(a, rig, angVel);
+    rotateRigidBody(a, rigV, angVel);
   }
   
   //time development
@@ -140,13 +140,13 @@ int main(int argc, char *argv[]){
       EulerCromerTimeIntegration(a);
       if(i==MOTION_START_TIME){
         fprintf(stderr, "At %d rigid body is rotated\n", i);
-        rotateRigidBody(a, rig, angVel);
+        rotateRigidBody(a, rigV, angVel);
         setInitialVelocity(a);
         fprintf(stderr, "Rigid Body Velocity is set\n");
       }
     }
 
-    rigidBodyTimeIntegration(a, &omega, rigidBody, i);
+    rigidBodyTimeIntegration(a, rigV, rigidBody, i);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
 

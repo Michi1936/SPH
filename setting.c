@@ -6,7 +6,7 @@
 #include<math.h>
 
 
-void initialization(Particle_State p[], RigidPreValue rig[])	//make all values of particles zero
+void initialization(Particle_State p[], RigidBodyValues rig)	//make all values of particles zero
 {
   int	i;
   for(i=0; i<N; i++){
@@ -24,11 +24,7 @@ void initialization(Particle_State p[], RigidPreValue rig[])	//make all values o
     p[i].p   = 0;
     p[i].mass=m;
   }
-
-  for(i=0; i<OBP; i++){
-    rig[i].prepx=-100;
-    rig[i].prepy=-100;
-  }
+  rig.angle=0;
 }
 
 int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt

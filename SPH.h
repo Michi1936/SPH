@@ -20,9 +20,9 @@ typedef struct{
 }Particle_State;
 
 typedef struct{
-  double prepx;
-  double prepy;
-}RigidPreValue;
+  double angle;
+  double omega;
+}RigidBodyValues;
 
 double cubicSpline1(double q);
 double cubicSpline2(double q);
@@ -44,17 +44,16 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[]);
 void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[]);
 double boundaryGamma(Particle_State p1, Particle_State p2);
 void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
-void rotateRigidBody(Particle_State p[], RigidPreValue rig[], double angVel);
-//void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[],FILE *fp, int time, double com[]);
-void leapfrogStart(Particle_State p[], RigidPreValue rig[]);
-void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time);
+void rotateRigidBody(Particle_State p[], RigidBodyValues rig, double angVel);
+void leapfrogStart(Particle_State p[], RigidBodyValues rig);
+void leapfrogStep(Particle_State p[], RigidBodyValues rig, int time);
 
 void AkinciCalcAccelByPressure(Particle_State p[], double Psi[], int bfst[], int nxt[]);
 void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], int nxt[], int time);
 void EulerCromerTimeIntegration(Particle_State p[]);
-void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int time);
+void rigidBodyTimeIntegration(Particle_State p[], RigidBodyValues rigV, FILE *fp, int time);
 
-void initialization(Particle_State p[], RigidPreValue rig[]);
+void initialization(Particle_State p[], RigidBodyValues rig);
 int fluidParticles(Particle_State p[]);
 int wallParticles(Particle_State p[]);
 int obstacleBoundaryParticles(Particle_State p[]);

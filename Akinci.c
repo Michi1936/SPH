@@ -331,9 +331,10 @@ void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], in
   }
 }
 
-void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int time)
+void rigidBodyTimeIntegration(Particle_State p[], RigidBodyValues rigV, FILE *fp, int time)
 {
   double Fx, Fy;
+  double transVx=0, transVy=0;
   double cmx, cmy;
   double Mass=0;
   double torque=0;
@@ -343,71 +344,61 @@ void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int t
   Fy=0;
   cmx=0, cmy=0;
 
-  for(i=FLP+BP; i<N; i++){
-    Mass+=p[i].mass;
-  }
+  if(time>MOTION_START_TIME){
+    for(i=FLP+BP; i<N; i++){
+      Mass+=p[i].mass;
+    }
   
-  for(i=FLP+BP; i<N; i++){//calculating F_total
-    Fx+=rigidMass*p[i].ax;
-    Fy+=rigidMass*p[i].ay;
-  }
+    for(i=FLP+BP; i<N; i++){//calculating F_total
+      Fx+=rigidMass*p[i].ax;
+      Fy+=rigidMass*p[i].ay;
+    }
   
-  Fy+=-rigidMass*g;
+    for(i=FLP+BP; i<N; i++){//calculation of translation velocity
+      transVx+=p[i].vx/OBP;
+      transVy+=p[i].vy/OBP;
+    }
 
-  for(i=FLP+BP; i<N; i++){//calculating center of mass
-    cmx+=p[i].px/OBP;
-    cmy+=p[i].py/OBP;
-  }
+    Fy+=-rigidMass*g;
 
-  for(i=FLP+BP; i<N; i++){//calculating torque
-    double dx, dy;
-    dx=0, dy=0;
-    dx=p[i].px-cmx;
-    dy=p[i].py-cmy;
-    //fprintf(stderr, "%d dffx:%f dy:%f %f\n", i, dx, dy, dx*Fy-dy*Fx);
-    torque+=dx*Fy-dy*Fx;
-  }
-  //  fprintf(stderr, "cmx:%f cmy:%f Fx:%f Fy:%f torque:%f\n", cmx, cmy, Fx, Fy, torque);
-  
-  for(i=FLP+BP; i<N; i++){//calculating moment of inertia
-    double dx=0, dy=0;
-    double dist=0;
-    dx=p[i].px-cmx;
-    dy=p[i].py-cmy;
-    dist=dx*dx+dy*dy;
-    inertia+=rigidMass*dist;
-  }
+    for(i=FLP+BP; i<N; i++){//calculating center of mass
+      cmx+=p[i].px/OBP;
+      cmy+=p[i].py/OBP;
+    }
 
-  /*  for(i=FLP+BP; i<N; i++){
-      double dx=0, dy=0;
-      double ax, ay;
+    for(i=FLP+BP; i<N; i++){//calculating torque
+      double dx, dy;
+      dx=0, dy=0;
       dx=p[i].px-cmx;
       dy=p[i].py-cmy;
-      ax=(Fx)/Mass-(torque/(inertia+epsilon))*dy-(*omega)*p[i].vy;
-      ay=(Fy)/Mass+(torque/(inertia+epsilon))*dx+(*omega)*p[i].vx;
-      p[i].vxh+=ax*dt;
-      p[i].vyh+=ay*dt;
-      p[i].vx=p[i].vxh+ax/2.0;
-      p[i].vy=p[i].vyh+ay/2.0;
-      p[i].px+=p[i].vxh*dt;
-      p[i].py+=p[i].vyh*dt;
-      }*/
+      torque+=dx*Fy-dy*Fx;
+    }
+    //fprintf(stderr, "cmx:%f cmy:%f Fx:%f Fy:%f torque:%f\n", cmx, cmy, Fx, Fy, torque);
+  
+    for(i=FLP+BP; i<N; i++){//calculating moment of inertia
+      double dx=0, dy=0;
+      double dist=0;
+      dx=p[i].px-cmx;
+      dy=p[i].py-cmy;
+      dist=dx*dx+dy*dy;
+      inertia+=rigidMass*dist;
+    }
 
-  *omega+=(torque/(inertia+epsilon))*dt;
-  for(i=FLP+BP; i<N; i++){
-    double dx=0, dy=0;
-    double ax, ay;
-    dx=p[i].px-cmx;
-    dy=p[i].py-cmy;
-    ax=(Fx)/Mass-(torque/(inertia+epsilon))*dy-(*omega)*p[i].vy;
-    ay=(Fy)/Mass+(torque/(inertia+epsilon))*dx+(*omega)*p[i].vx;
-    p[i].vx+=ax*dt;
-    p[i].vy=ay*dt;
-    p[i].px+=p[i].vx*dt;
-    p[i].py+=p[i].vy*dt;
+    rigV.omega+=(torque/(inertia+epsilon))*dt;
+    rigV.angle+=rigV.omega*dt;
+    transVx+=Fx*dt;
+    transVy+=Fy*dt;
+    for(i=FLP+BP; i<N; i++){
+      double dx=0, dy=0;
+      dx=p[i].px-cmx;
+      dy=p[i].py-cmy;
+      p[i].vx=transVx-rigV.omega*dy;
+      p[i].vy=transVy+rigV.omega*dx;
+      p[i].px+=p[i].vx*dt;
+      p[i].py+=p[i].vy*dt;
+    }
   }
-   
-  fprintf(fp, "%f %f %f %f %f %f %f %f %f %f\n", (double)(time*dt), cmx, cmy, 10.0, 1.0, *omega, inertia, torque, Fx, Fy);
+  fprintf(fp, "%f %f %f %f %f %f %f %f %f %f\n", (double)(time*dt), cmx, cmy, 10.0, 1.0, rigV.omega, inertia, torque, Fx, Fy);
 }
 
 void EulerCromerTimeIntegration(Particle_State p[])
