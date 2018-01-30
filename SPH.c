@@ -116,7 +116,7 @@ void calcPressure(Particle_State p[])
   }
 
   coef=(rho0*pow(cs,2))/7.0;  
-#pragma omp parallel for schedule(dynamic,64)
+  /*#pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<FLP+BP; i++){
     p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
     if(p[i].p<0){
@@ -127,6 +127,14 @@ void calcPressure(Particle_State p[])
 #pragma omp parallel for schedule(dynamic,64)
   for(i=FLP+BP; i<N; i++){
     p[i].p = coef*(pow(p[i].rho/(rigidMassMultiplier*rho0),7)-1.0);//Tait equation
+    if(p[i].p<0){
+      p[i].p=0;
+    }
+    }*/
+
+#pragma omp parallel for schedule(dynamic,64)
+  for(i=0; i<FLP; i++){
+    p[i].p = coef*(pow(p[i].rho/rho0,7)-1.0);//Tait equation
     if(p[i].p<0){
       p[i].p=0;
     }

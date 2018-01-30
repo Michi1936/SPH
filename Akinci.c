@@ -16,7 +16,7 @@ void set_rigidNum(int rigidNum[])
   }
 }
 
-void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int rigidNum[])
+void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int boundaryType[])
 {
   double delta[BP+OBP];
   int i;
@@ -26,7 +26,7 @@ void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int rigidN
     delta[i]=0;
   }
 
-  //calculating Psi
+  //calculating Psi = contribution of boundary particles 
 #pragma omp parallel for schedule(dynamic,64)
   for(i=FLP; i<N; i++){
     if(p[i].inRegion==1){
@@ -49,7 +49,7 @@ void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int rigidN
               }
               continue;
             }
-            if(rigidNum[i]!=rigidNum[j]){//Psi is added between the same particles
+            if(boundaryType[i]!=boundaryType[j]){//Psi is added between the same particles
               j=nxt[j];
               if(j==-1){
                 break;
@@ -79,9 +79,8 @@ void AkinciCalcDensity(Particle_State p[], double Psi[], int bfst[], int nxt[])
     p[i].rho=0;
   }
 
-  //  fprintf(stderr,"density initialized\n");
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<N; i++){
+  for(i=0; i<FLP; i++){
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
@@ -99,7 +98,7 @@ void AkinciCalcDensity(Particle_State p[], double Psi[], int bfst[], int nxt[])
           for(;;){
             double rhoij=0;
             if(j<FLP){
-            rhoij=p[j].mass*kernel(p[i], p[j]);
+              rhoij=p[j].mass*kernel(p[i], p[j]);
             }else if(i>=FLP){//interaction between boundary particles
               rhoij=Psi[j-FLP]*kernel(p[i], p[j]);
             }
@@ -142,11 +141,13 @@ void AkinciCalcAccelByPressure(Particle_State p[], double Psi[], int bfst[], int
               aijx=-p[i].mass*Psi[j-FLP]*p[i].p*gradKernel(p[i],p[j],0)/(pow(p[i].rho,2)+epsilon);
               aijy=-p[i].mass*Psi[j-FLP]*p[i].p*gradKernel(p[i],p[j],1)/(pow(p[i].rho,2)+epsilon);
             }
-            p[i].ax += aijx/(p[i].mass+epsilon);
-            p[i].ay += aijy/(p[i].mass+epsilon);
-            if(j>=FLP+BP){
-              p[j].ax+=-aijx/(p[j].mass+epsilon); 
-	      p[j].ay+=-aijy/(p[j].mass+epsilon); 
+            aijx=aijx/(p[i].mass+epsilon);
+            aijy=aijy/(p[i].mass+epsilon);
+            p[i].ax += aijx;
+            p[i].ay += aijy;
+            if(j>=FLP+BP){//calculation between fluid and rigid body
+              p[j].ax+=-aijx;
+	      p[j].ay+=-aijy;
             }
             j = nxt[j];
             if(j==-1){
@@ -157,7 +158,7 @@ void AkinciCalcAccelByPressure(Particle_State p[], double Psi[], int bfst[], int
       }
     } 
   }
-
+  
   //interaction between rigid body and wall particles
 #pragma omp parallel for schedule(dynamic,64)
   for(i=FLP+BP; i<N; i++){  
@@ -193,7 +194,7 @@ void AkinciCalcAccelByPressure(Particle_State p[], double Psi[], int bfst[], int
           }
         }
       }
-    } 
+    }
   }
 }
 
@@ -226,39 +227,41 @@ void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], in
             double dvy = (p[i].vy-p[j].vy);
             double dot = dx*dvx+dy*dvy;
             double dist = sqrt(dx*dx+dy*dy);
-            if(j<FLP){
-              viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
-              viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
+            if(j<FLP){//calculation between fluids particles
               if(time<DAMPTIME){
                 viscCoef=viscCoef*damper;
               }
-              if(dot<0){
+              if(dot>0){
+                viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
+                viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
                 aijx = -p[i].mass*p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);
                 aijy = -p[i].mass*p[j].mass*viscCoef*gradKernel(p[i], p[j], 1);
                 //fprintf(stderr, "dot=%f %f %f aijx=%f, aijy=%f\n",dot, viscCoef, gradKernel(p[i], p[j], 0),  aijx, aijy);
-              }else if(dot>=0){
+              }else if(dot<0){
                 aijx=0; 
                 aijy=0;
               }
             }else if(j>=FLP){//force from rigid body
-              viscCoef=nu*h*cs/(2.0*p[i].rho+epsilon);
-              viscCoef=-viscCoef*dot/(dist*dist+0.01*h*h);
               if(time<DAMPTIME){
                 viscCoef=viscCoef*damper;
               }
-              if(dot<0){
+              if(dot>0){
+                viscCoef=nu*h*cs/(2.0*p[i].rho+epsilon);
+                viscCoef=-viscCoef*dot/(dist*dist+0.01*h*h);
                 aijx=-p[i].mass*Psi[j-FLP]*viscCoef*gradKernel(p[i],p[j],0);
                 aijy=-p[i].mass*Psi[j-FLP]*viscCoef*gradKernel(p[i],p[j],1);
-              }else if(dot>=0){
+              }else if(dot<0){
                 aijx=0; 
                 aijy=0;
               }
             }
-            p[i].ax+=aijx/(p[i].mass+epsilon);
-	    p[i].ay+=aijy/(p[i].mass+epsilon);
+            aijx=aijx/(p[i].mass+epsilon);
+            aijy=aijy/(p[i].mass+epsilon);
+            p[i].ax+=aijx;
+	    p[i].ay+=aijy;
             if(j>=FLP+BP){
-              p[j].ax+=-aijx/(p[j].mass+epsilon);
-	      p[j].ay+=-aijy/(p[j].mass+epsilon);
+              p[j].ax+=-aijx;
+	      p[j].ay+=-aijy;
             }
             j = nxt[j];
             if(j==-1){
@@ -311,10 +314,10 @@ void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], in
               aijx=-p[i].mass*Psi[j-FLP]*viscCoef*gradKernel(p[i],p[j],0);
               aijy=-p[i].mass*Psi[j-FLP]*viscCoef*gradKernel(p[i],p[j],1);
               //fprintf(stderr, "dot=%f %f %f aijx=%f, aijy=%f\n",dot, viscCoef, gradKernel(p[i], p[j], 0),  aijx, aijy);
-              }else if(dot>=0){
-                aijx=0; 
-                aijy=0;
-              }
+            }else if(dot>=0){
+              aijx=0; 
+              aijy=0;
+            }
             p[i].ax+=aijx/(p[i].mass+epsilon);
 	    p[i].ay+=aijy/(p[i].mass+epsilon);
             j = nxt[j];
@@ -375,23 +378,22 @@ void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int t
     inertia+=rigidMass*dist;
   }
 
-  //  fprintf(stderr, "torque:%f inertia:%f omega:%f\n", torque, inertia, *omega);
-
   /*  for(i=FLP+BP; i<N; i++){
-    double dx=0, dy=0;
-    double ax, ay;
-    dx=p[i].px-cmx;
-    dy=p[i].py-cmy;
-    ax=(Fx)/Mass-(torque/(inertia+epsilon))*dy-(*omega)*p[i].vy;
-    ay=(Fy)/Mass+(torque/(inertia+epsilon))*dx+(*omega)*p[i].vx;
-    p[i].vxh+=ax*dt;
-    p[i].vyh+=ay*dt;
-    p[i].vx=p[i].vxh+ax/2.0;
-    p[i].vy=p[i].vyh+ay/2.0;
-    p[i].px+=p[i].vxh*dt;
-    p[i].py+=p[i].vyh*dt;
-    }*/
+      double dx=0, dy=0;
+      double ax, ay;
+      dx=p[i].px-cmx;
+      dy=p[i].py-cmy;
+      ax=(Fx)/Mass-(torque/(inertia+epsilon))*dy-(*omega)*p[i].vy;
+      ay=(Fy)/Mass+(torque/(inertia+epsilon))*dx+(*omega)*p[i].vx;
+      p[i].vxh+=ax*dt;
+      p[i].vyh+=ay*dt;
+      p[i].vx=p[i].vxh+ax/2.0;
+      p[i].vy=p[i].vyh+ay/2.0;
+      p[i].px+=p[i].vxh*dt;
+      p[i].py+=p[i].vyh*dt;
+      }*/
 
+  *omega+=(torque/(inertia+epsilon))*dt;
   for(i=FLP+BP; i<N; i++){
     double dx=0, dy=0;
     double ax, ay;
@@ -399,21 +401,18 @@ void rigidBodyTimeIntegration(Particle_State p[], double *omega, FILE *fp, int t
     dy=p[i].py-cmy;
     ax=(Fx)/Mass-(torque/(inertia+epsilon))*dy-(*omega)*p[i].vy;
     ay=(Fy)/Mass+(torque/(inertia+epsilon))*dx+(*omega)*p[i].vx;
-    p[i].vx+=p[i].ax*dt;
-    p[i].vy+=p[i].ay*dt;
+    p[i].vx+=ax*dt;
+    p[i].vy=ay*dt;
     p[i].px+=p[i].vx*dt;
     p[i].py+=p[i].vy*dt;
-
-}
-
-  *omega+=(torque/(inertia+epsilon))*dt;
-  fprintf(fp, "%f %f %f %f %f %f %f %f\n", (double)(time*dt), cmx, cmy, 10.0, 1.0, *omega, inertia, torque);
+  }
+   
+  fprintf(fp, "%f %f %f %f %f %f %f %f %f %f\n", (double)(time*dt), cmx, cmy, 10.0, 1.0, *omega, inertia, torque, Fx, Fy);
 }
 
 void EulerCromerTimeIntegration(Particle_State p[])
 {
   int i;
-
   for(i=0; i<FLP; i++){
     p[i].vx+=p[i].ax*dt;
     p[i].vy+=p[i].ay*dt;

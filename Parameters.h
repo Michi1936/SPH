@@ -10,7 +10,7 @@
 #define m M_PI*h*h*rho0/12.0 //particle mass
 #define rigidMassMultiplier 1.5
 #define rigidMass m*rigidMassMultiplier
-#define nu 1.0e-1 //viscosity coefficient
+#define nu 3.0e-1 //viscosity coefficient
 #define g 9.8//gravitational constant
 #define kappa 0.0
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
