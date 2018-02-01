@@ -109,7 +109,6 @@ int main(int argc, char *argv[]){
     calcAccelByBoundaryForce(a, bfst, nxt);
   }
   
-  printParticles(a,data);//Here shows parameters at t=0
   printBoundaryParticles(a, data);
   printFluidParticles(a, data);
   printObstacleParticles(a, data);

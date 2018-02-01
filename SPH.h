@@ -38,9 +38,8 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[]);
 void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[]);
 double boundaryGamma(Particle_State p1, Particle_State p2);
 void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
+void setInitialVelocity(Particle_State p[]);
 void rotateRigidBody(Particle_State p[], RigidBodyValues rig, double angVel);
-void leapfrogStart(Particle_State p[], RigidBodyValues rig);
-void leapfrogStep(Particle_State p[], RigidBodyValues rig, int time);
 
 void set_boundaryType(int boundaryType[]);
 void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int rigidNum[]);
@@ -54,7 +53,7 @@ void initialization(Particle_State p[], RigidBodyValues rig);
 int fluidParticles(Particle_State p[]);
 int wallParticles(Particle_State p[]);
 int obstacleBoundaryParticles(Particle_State p[]);
-void setInitialVelocity(Particle_State p[]);
+
 
 void allocateBucket(int **bfst, int **blst, int **nxt);
 void checkParticle(Particle_State p[]);

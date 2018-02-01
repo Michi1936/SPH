@@ -24,8 +24,8 @@ void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int bounda
     Psi[i]=0;
     delta[i]=0;
   }
+  
   //calculating Psi which is contribution of boundary particles 
-
 #pragma omp parallel for schedule(dynamic,64)
   for(i=FLP; i<N; i++){
     if(p[i].inRegion==1){
@@ -394,7 +394,7 @@ void rigidBodyTimeIntegration(Particle_State p[], RigidBodyValues rigV, FILE *fp
       p[i].py+=p[i].vy*dt;
     }
   }
-  fprintf(fp, "%f %f %f %f %f %f %f %f %f %f\n", (double)(time*dt), cmx, cmy, 10.0, 1.0, rigV.omega, inertia, torque, Fx, Fy);
+  fprintf(fp, "%f %f %f %f %f %f %f %f %f %f\n", (double)(time*dt), cmx, cmy, transVx, transVy, rigV.omega, inertia, torque, Fx, Fy);
 }
 
 void EulerCromerTimeIntegration(Particle_State p[])

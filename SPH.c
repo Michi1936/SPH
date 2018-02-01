@@ -432,6 +432,18 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
   }
 }
 
+
+void setInitialVelocity(Particle_State p[])
+{
+  int i;
+  double angle=ANGLE_OF_INCIDENT;
+  for(i=FLP+BP; i<N; i++){
+    p[i].vx+=IMPACT_VELOCITY*cos(angle);
+    p[i].vy+=-IMPACT_VELOCITY*sin(angle);
+  }
+
+}
+
 void rotateRigidBody(Particle_State p[], RigidBodyValues rigV, double angVel)
 {
   double gx, gy;
