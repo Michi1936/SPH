@@ -13,8 +13,8 @@ int main(int argc, char *argv[]){
     
   Particle_State a[N];
   double com[2];
-  double Psi[OBP];
-  int rigidNum[BP+OBP];
+  double Psi[BP+OBP];
+  int boundaryType[BP+OBP];
   RigidBodyValues rigV;
   int *bfst, *blst, *nxt;
   int countPer=0;
@@ -32,7 +32,6 @@ int main(int argc, char *argv[]){
   char fileNamePrefix[256];
   char date[256];
   double angVel=0;
-
 
   time_t t=time(NULL);
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
@@ -94,7 +93,7 @@ int main(int argc, char *argv[]){
   printParameters(parameters, angVel, srcName, date, spinParam);
   
   //calculating initial state
-  calcPsi(a, Psi, bfst, nxt, rigidNum);
+  calcPsi(a, Psi, bfst, nxt, boundaryType);
   AkinciCalcDensity(a, Psi, bfst, nxt);
   calcPressure(a);
 
@@ -150,7 +149,7 @@ int main(int argc, char *argv[]){
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
 
-    calcPsi(a, Psi, bfst, nxt, rigidNum);
+    calcPsi(a, Psi, bfst, nxt, boundaryType);
     AkinciCalcDensity(a, Psi, bfst, nxt);
     calcPressure(a);
 

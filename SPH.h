@@ -28,17 +28,11 @@ double cubicSpline1(double q);
 double cubicSpline2(double q);
 double kernel(Particle_State p1, Particle_State p2);
 double gradKernel(Particle_State p1, Particle_State p2, int x_or_y);
-
 double Laplacian(Particle_State p1, Particle_State p2);
-void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int rigidNum[]);
-void AkinciCalcDensity(Particle_State p[], double Psi[], int bfst[], int nxt[]);
-
 void calcDensity(Particle_State p[], int bfst[], int nxt[]);
-
 void calcPressure(Particle_State p[]);
 void initializeAccel(Particle_State p[]);
 void calcAccelByExternalForces(Particle_State p[]);
-
 double surfaceTensionCoefficient(double r);
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[]);
 void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[]);
@@ -48,6 +42,9 @@ void rotateRigidBody(Particle_State p[], RigidBodyValues rig, double angVel);
 void leapfrogStart(Particle_State p[], RigidBodyValues rig);
 void leapfrogStep(Particle_State p[], RigidBodyValues rig, int time);
 
+void set_boundaryType(int boundaryType[]);
+void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int rigidNum[]);
+void AkinciCalcDensity(Particle_State p[], double Psi[], int bfst[], int nxt[]);
 void AkinciCalcAccelByPressure(Particle_State p[], double Psi[], int bfst[], int nxt[]);
 void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], int nxt[], int time);
 void EulerCromerTimeIntegration(Particle_State p[]);

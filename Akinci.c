@@ -5,14 +5,14 @@
 #include"Parameters.h"
 #include"numbers.h"
 
-void set_rigidNum(int rigidNum[])
+void set_boundaryType(int boundaryType[])
 {
   int i;
   for(i=0; i<BP; i++){
-    rigidNum[i]=0;
+    boundaryType[i]=0;
   }
   for(i=BP; i<BP+OBP; i++){
-    rigidNum[i]=1;
+    boundaryType[i]=1;
   }
 }
 
@@ -20,13 +20,12 @@ void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int bounda
 {
   double delta[BP+OBP];
   int i;
-
   for(i=0; i<BP+OBP; i++){
     Psi[i]=0;
     delta[i]=0;
   }
+  //calculating Psi which is contribution of boundary particles 
 
-  //calculating Psi = contribution of boundary particles 
 #pragma omp parallel for schedule(dynamic,64)
   for(i=FLP; i<N; i++){
     if(p[i].inRegion==1){
@@ -49,7 +48,7 @@ void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int bounda
               }
               continue;
             }
-            if(boundaryType[i]!=boundaryType[j]){//Psi is added between the same particles
+            if(boundaryType[i-FLP]!=boundaryType[j-FLP]){//Psi is added between the same particles
               j=nxt[j];
               if(j==-1){
                 break;
@@ -57,6 +56,7 @@ void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int bounda
               continue;
             }
             delta[i-FLP]+=kernel(p[i], p[j]);
+
             j=nxt[j];
             if(j==-1){
               break;
@@ -119,7 +119,7 @@ void AkinciCalcAccelByPressure(Particle_State p[], double Psi[], int bfst[], int
   int i;
 
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=0; i<FLP; i++){  
+  for(i=0; i<FLP; i++){//calculating acceleration of fluid particles caused by pressure
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
@@ -135,8 +135,8 @@ void AkinciCalcAccelByPressure(Particle_State p[], double Psi[], int bfst[], int
             double aijx=0;
             double aijy=0;
             if(j<FLP){
-              aijx=-p[i].mass*p[j].mass*(p[j].p/(p[i].rho*p[j].rho+epsilon))*gradKernel(p[i],p[j],0);
-              aijy=-p[i].mass*p[j].mass*(p[j].p/(p[i].rho*p[j].rho+epsilon))*gradKernel(p[i],p[j],1);
+              aijx=-p[i].mass*p[j].mass*(p[j].p/(p[i].rho*p[i].rho+epsilon))*gradKernel(p[i],p[j],0);
+              aijy=-p[i].mass*p[j].mass*(p[j].p/(p[i].rho*p[i].rho+epsilon))*gradKernel(p[i],p[j],1);
             }else if(j>=FLP){//interaction betwen boundary particles
               aijx=-p[i].mass*Psi[j-FLP]*p[i].p*gradKernel(p[i],p[j],0)/(pow(p[i].rho,2)+epsilon);
               aijy=-p[i].mass*Psi[j-FLP]*p[i].p*gradKernel(p[i],p[j],1)/(pow(p[i].rho,2)+epsilon);
@@ -161,7 +161,7 @@ void AkinciCalcAccelByPressure(Particle_State p[], double Psi[], int bfst[], int
   
   //interaction between rigid body and wall particles
 #pragma omp parallel for schedule(dynamic,64)
-  for(i=FLP+BP; i<N; i++){  
+  for(i=FLP+BP; i<N; i++){//acceleration of rigid body particles applied from boundary particles
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
@@ -333,16 +333,13 @@ void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], in
 
 void rigidBodyTimeIntegration(Particle_State p[], RigidBodyValues rigV, FILE *fp, int time)
 {
-  double Fx, Fy;
+  double Fx=0, Fy=0;
   double transVx=0, transVy=0;
-  double cmx, cmy;
+  double cmx=0, cmy=0;
   double Mass=0;
   double torque=0;
   double inertia=0;
   int i;
-  Fx=0;
-  Fy=0;
-  cmx=0, cmy=0;
 
   if(time>MOTION_START_TIME){
     for(i=FLP+BP; i<N; i++){
@@ -358,8 +355,7 @@ void rigidBodyTimeIntegration(Particle_State p[], RigidBodyValues rigV, FILE *fp
       transVx+=p[i].vx/OBP;
       transVy+=p[i].vy/OBP;
     }
-
-    Fy+=-rigidMass*g;
+    Fy+=-Mass*g;
 
     for(i=FLP+BP; i<N; i++){//calculating center of mass
       cmx+=p[i].px/OBP;
@@ -373,7 +369,6 @@ void rigidBodyTimeIntegration(Particle_State p[], RigidBodyValues rigV, FILE *fp
       dy=p[i].py-cmy;
       torque+=dx*Fy-dy*Fx;
     }
-    //fprintf(stderr, "cmx:%f cmy:%f Fx:%f Fy:%f torque:%f\n", cmx, cmy, Fx, Fy, torque);
   
     for(i=FLP+BP; i<N; i++){//calculating moment of inertia
       double dx=0, dy=0;
@@ -386,8 +381,9 @@ void rigidBodyTimeIntegration(Particle_State p[], RigidBodyValues rigV, FILE *fp
 
     rigV.omega+=(torque/(inertia+epsilon))*dt;
     rigV.angle+=rigV.omega*dt;
-    transVx+=Fx*dt;
-    transVy+=Fy*dt;
+    transVx+=Fx*dt/Mass;
+    transVy+=Fy*dt/Mass;
+
     for(i=FLP+BP; i<N; i++){
       double dx=0, dy=0;
       dx=p[i].px-cmx;
