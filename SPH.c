@@ -233,14 +233,13 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
 	    if(time<DAMPTIME){
 	      viscCoef=viscCoef*damper;
 	    }
-            if(dot<0){
+            //if(dot<0){
               aijx = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);
               aijy = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 1);
-              //fprintf(stderr, "dot=%f %f %f aijx=%f, aijy=%f\n",dot, viscCoef, gradKernel(p[i], p[j], 0),  aijx, aijy);
-            }else if(dot>=0){
+              /* }else if(dot>=0){
               aijx=0; 
               aijy=0;
-            }
+              }*/
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j = nxt[j];
