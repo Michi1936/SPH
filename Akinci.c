@@ -228,32 +228,18 @@ void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], in
             double dot = dx*dvx+dy*dvy;
             double dist = sqrt(dx*dx+dy*dy);
             if(j<FLP){//calculation between fluids particles
-              if(time<DAMPTIME){
-                viscCoef=viscCoef*damper;
-              }
-              if(dot>0){
-                viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
-                viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
-                aijx = -p[i].mass*p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);
-                aijy = -p[i].mass*p[j].mass*viscCoef*gradKernel(p[i], p[j], 1);
-                //fprintf(stderr, "dot=%f %f %f aijx=%f, aijy=%f\n",dot, viscCoef, gradKernel(p[i], p[j], 0),  aijx, aijy);
-              }else if(dot<0){
-                aijx=0; 
-                aijy=0;
-              }
+              viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
+	      viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
+	      aijx = -p[i].mass*p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);
+	      aijy = -p[i].mass*p[j].mass*viscCoef*gradKernel(p[i], p[j], 1);
             }else if(j>=FLP){//force from rigid body
-              if(time<DAMPTIME){
-                viscCoef=viscCoef*damper;
-              }
-              if(dot>0){
-                viscCoef=nu*h*cs/(2.0*p[i].rho+epsilon);
-                viscCoef=-viscCoef*dot/(dist*dist+0.01*h*h);
-                aijx=-p[i].mass*Psi[j-FLP]*viscCoef*gradKernel(p[i],p[j],0);
-                aijy=-p[i].mass*Psi[j-FLP]*viscCoef*gradKernel(p[i],p[j],1);
-              }else if(dot<0){
-                aijx=0; 
-                aijy=0;
-              }
+              viscCoef=nu*h*cs/(2.0*p[i].rho+epsilon);
+	      viscCoef=-viscCoef*dot/(dist*dist+0.01*h*h);
+	      aijx=-p[i].mass*Psi[j-FLP]*viscCoef*gradKernel(p[i],p[j],0);
+	      aijy=-p[i].mass*Psi[j-FLP]*viscCoef*gradKernel(p[i],p[j],1);
+            }
+            if(time<DAMPTIME){
+              viscCoef=viscCoef*10.0;
             }
             aijx=aijx/(p[i].mass+epsilon);
             aijy=aijy/(p[i].mass+epsilon);
@@ -307,9 +293,6 @@ void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], in
             double dist = sqrt(dx*dx+dy*dy);
             viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
             viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
-            if(time<DAMPTIME){
-              viscCoef=viscCoef*damper;
-            }
             if(dot<0){
               aijx=-p[i].mass*Psi[j-FLP]*viscCoef*gradKernel(p[i],p[j],0);
               aijy=-p[i].mass*Psi[j-FLP]*viscCoef*gradKernel(p[i],p[j],1);
@@ -318,6 +301,10 @@ void AkinciCalcAccelByViscosity(Particle_State p[], double Psi[], int bfst[], in
               aijx=0; 
               aijy=0;
             }
+            if(time<DAMPTIME){
+              viscCoef=viscCoef*10.0;
+            }
+
             p[i].ax+=aijx/(p[i].mass+epsilon);
 	    p[i].ay+=aijy/(p[i].mass+epsilon);
             j = nxt[j];

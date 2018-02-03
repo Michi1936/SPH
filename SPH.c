@@ -432,7 +432,6 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[])//Bounda
   }
 }
 
-
 void setInitialVelocity(Particle_State p[])
 {
   int i;

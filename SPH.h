@@ -54,7 +54,6 @@ int fluidParticles(Particle_State p[]);
 int wallParticles(Particle_State p[]);
 int obstacleBoundaryParticles(Particle_State p[]);
 
-
 void allocateBucket(int **bfst, int **blst, int **nxt);
 void checkParticle(Particle_State p[]);
 void makeBucket(int *bfst, int *blst, int*nxt, Particle_State p[]);
