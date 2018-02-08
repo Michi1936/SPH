@@ -63,6 +63,7 @@ int main(int argc, char *argv[]){
 
   spinParam=fabs(calcRadius(a)*angVel/(IMPACT_VELOCITY+epsilon));
   fprintf(stderr, "spin parameter:%f\n", spinParam);
+
   //open numbers.h
   numbers=fopen("numbers.h","r");
   if(numbers==NULL){
@@ -89,10 +90,11 @@ int main(int argc, char *argv[]){
   sprintf(type, "maxVelocity");
   openDatFile(&velocity, type, srcName, fileNamePrefix);
 
-  //printint parameters-------------------
+  //print parameters-------------------
   printParameters(parameters, angVel, srcName, date, spinParam);
   
   //calculating initial state
+  setBoundaryType(boundaryType);
   calcPsi(a, Psi, bfst, nxt, boundaryType);
   AkinciCalcDensity(a, Psi, bfst, nxt);
   calcPressure(a);
@@ -109,7 +111,6 @@ int main(int argc, char *argv[]){
     calcAccelByBoundaryForce(a, bfst, nxt);
   }
   
-
   printBoundaryParticles(a, data);
   printFluidParticles(a, data);
   printObstacleParticles(a, data);

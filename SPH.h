@@ -41,7 +41,7 @@ void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
 void setInitialVelocity(Particle_State p[]);
 void rotateRigidBody(Particle_State p[], RigidBodyValues rig, double angVel);
 
-void set_boundaryType(int boundaryType[]);
+void setBoundaryType(int boundaryType[]);
 void calcPsi(Particle_State p[], double Psi[], int bfst[], int nxt[], int rigidNum[]);
 void AkinciCalcDensity(Particle_State p[], double Psi[], int bfst[], int nxt[]);
 void AkinciCalcAccelByPressure(Particle_State p[], double Psi[], int bfst[], int nxt[]);

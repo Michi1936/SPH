@@ -5,7 +5,7 @@
 #include"Parameters.h"
 #include"numbers.h"
 
-void set_boundaryType(int boundaryType[])
+void setBoundaryType(int boundaryType[])
 {
   int i;
   for(i=0; i<BP; i++){
