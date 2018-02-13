@@ -239,7 +239,7 @@ void printParameters(FILE *fp, double angVel, char srcName[], char date[], doubl
   fprintf(stderr,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(stderr, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
   fprintf(stderr, "BOUNDARY_FORCE:%d\n", BOUNDARY_FORCE);
-  fprintf(stderr,"cs:%.2f m:%f rigidMass:%f h:%f rho0:%f dt:%.8f kappa:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",cs, m, rigidMass, h,rho0,dt,kappa, nu,g,T, DAMPTIME, MOTION_START_TIME);
+  fprintf(stderr,"cs:%.2f m:%f rigidMass:%f h_smooth:%f rho0:%f dt:%.8f kappa:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",cs, m, rigidMass, h_smooth,rho0,dt,kappa, nu,g,T, DAMPTIME, MOTION_START_TIME);
   fprintf(stderr, "Calculation started:%s\n", date);
   
   fprintf(fp,"Source Image %s.png\n",srcName);
@@ -248,7 +248,7 @@ void printParameters(FILE *fp, double angVel, char srcName[], char date[], doubl
   fprintf(fp,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(fp, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
   fprintf(fp, "BOUNDARY_FORCE:%d\n", BOUNDARY_FORCE);
-  fprintf(fp,"cs:%.2f m:%f rigidMass:%f h:%f rho0:%f dt:%.8f kappa:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",cs, m, rigidMass, h,rho0,dt,kappa, nu,g,T, DAMPTIME, MOTION_START_TIME);
+  fprintf(fp,"cs:%.2f m:%f rigidMass:%f h_smooth:%f rho0:%f dt:%.8f kappa:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",cs, m, rigidMass, h_smooth,rho0,dt,kappa, nu,g,T, DAMPTIME, MOTION_START_TIME);
   fprintf(fp, "Calculation started:%s\n", date);
 }
 

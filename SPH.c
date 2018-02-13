@@ -8,12 +8,12 @@
 //Monaghan(2005) cubic spline is used 
 double cubicSpline1(double q)//cubic spline for 0<=q<=1
 {
-  return (15.0/(pow(h,2)*14.0*M_PI))*(pow(2.0-q,3)-4.0*pow(1.0-q,3));
+  return (15.0/(pow(h_smooth,2)*14.0*M_PI))*(pow(2.0-q,3)-4.0*pow(1.0-q,3));
 }
 
 double cubicSpline2(double q)//cubic spline for 1<=q<=2
 {
-  return (15.0/(pow(h,2)*14.0*M_PI))*(pow(2.0-q, 3));
+  return (15.0/(pow(h_smooth,2)*14.0*M_PI))*(pow(2.0-q, 3));
 }
 
 double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
@@ -21,16 +21,18 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   double dx = fabs(p1.px-p2.px);
   double dy = fabs(p1.py-p2.py);
   double dist = sqrt(dx*dx+dy*dy);
-  double q = dist/h;
+  double q = dist/h_smooth;
+  double val=0;
   if(0<=q && q<=1){
-    return cubicSpline1(q);
+    val=cubicSpline1(q);
   }
   else if(1<=q && q<=2){
-    return cubicSpline2(q);
+    val=cubicSpline2(q);
   }
   else {
-    return 0;
+    val=0;
   }
+  return val;
 }
 
 double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gradient of kernel
@@ -39,32 +41,34 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
   double dx = (p1.px-p2.px);
   double dy = (p1.py-p2.py);
   double dist = sqrt(dx*dx+dy*dy);
-  double q = dist/h;
-  double coeff_x = (dx)/(dist*h+epsilon);
-  double coeff_y = (dy)/(dist*h+epsilon);
+  double q = dist/h_smooth;
+  double coeff_x = (dx)/(dist*h_smooth+epsilon);
+  double coeff_y = (dy)/(dist*h_smooth+epsilon);
+  double val=0;
   if(axis==0){//x direction 
     if(0<=q && q<=1){
-      return (15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
+      val = (15.0/(pow(h_smooth,2)*14.0*M_PI))*coeff_x*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
     }
     else if(1<=q && q<=2){
-      return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_x*(3.0*pow(2.0-q,2));
+      val = -(15.0/(pow(h_smooth,2)*14.0*M_PI))*coeff_x*(3.0*pow(2.0-q,2));
     }
     else {
-      return 0;
+      val = 0;
     }
   }else if(axis==1){//y direction 
     if(0<=q && q<=1){
-      return (15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
+      val = (15.0/(pow(h_smooth,2)*14.0*M_PI))*coeff_y*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
     }
     else if(1<=q && q<=2){
-      return -(15.0/(pow(h,2)*14.0*M_PI))*coeff_y*(3.0*pow(2.0-q,2));
+      val = -(15.0/(pow(h_smooth,2)*14.0*M_PI))*coeff_y*(3.0*pow(2.0-q,2));
     }
     else {
-      return 0;
+      val = 0;
     }
   }else{
-    return 0;
+    val = 0;
   }
+  return val;
 }
 
 void calcDensity(Particle_State p[], int bfst[], int nxt[])
@@ -79,14 +83,12 @@ void calcDensity(Particle_State p[], int bfst[], int nxt[])
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
       int jx, jy;
       for(jx=ix-1; jx<=ix+1; jx++){
         for(jy=iy-1; jy<=iy+1; jy++){
           int jb = 0;
           jb = jx + jy*nBx;
           int j = bfst[jb];
-          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
           if(j==-1){
 	    continue;
 	  }
@@ -123,6 +125,7 @@ void calcPressure(Particle_State p[])
       p[i].p=0;
     }
   }
+
   coef=(rigidMassMultiplier*rho0*pow(cs,2))/7.0;
 #pragma omp parallel for schedule(dynamic,64)
   for(i=FLP+BP; i<N; i++){
@@ -228,8 +231,8 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
             double dot = dx*dvx+dy*dvy;
             double dist = sqrt(dx*dx+dy*dy);
             aijx=0, aijy=0;      
-            viscCoef=2.0*nu*h*cs/(p[i].rho+p[j].rho);
-            viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h*h);
+            viscCoef=2.0*nu*h_smooth*cs/(p[i].rho+p[j].rho);
+            viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h_smooth*h_smooth);
 	    if(time<DAMPTIME){
 	      viscCoef=viscCoef*damper;
 	    }
@@ -255,12 +258,12 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
 
 double surfaceTensionCoefficient(double r)//caluculating cohesion term 
 {
-  double coef=32.0/(M_PI*pow(h,9));
-  if(2*r>h && r<=h){
-    return (coef*pow(h-r,3.0)*pow(r,3.0));
+  double coef=32.0/(M_PI*pow(h_smooth,9));
+  if(2*r>h_smooth && r<=h_smooth){
+    return (coef*pow(h_smooth-r,3.0)*pow(r,3.0));
   }
-  else if(r>0 && 2*r<=h){
-    return (coef*(2.0*pow(h-r,3.0)*pow(r,3.0) - pow(h,6.0)/64.0));
+  else if(r>0 && 2*r<=h_smooth){
+    return (coef*(2.0*pow(h_smooth-r,3.0)*pow(r,3.0) - pow(h_smooth,6.0)/64.0));
   }
   else {
     return 0;
@@ -308,9 +311,9 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
           double dy = (p[i].py-p[j].py);
           double dist = dx*dx+dy*dy;
           
-          if(dist<=enl*h){
-            aijx=interCoeff*p[i].mass*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h))*dx/(dist+epsilon);
-            aijy=interCoeff*p[i].mass*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h))*dy/(dist+epsilon);
+          if(dist<=enl*h_smooth){
+            aijx=interCoeff*p[i].mass*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h_smooth))*dx/(dist+epsilon);
+            aijy=interCoeff*p[i].mass*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h_smooth))*dy/(dist+epsilon);
           }else{
             aijx=0;
             aijy=0;
@@ -372,7 +375,7 @@ double boundaryGamma(Particle_State p1, Particle_State p2){
   double dx = p1.px-p2.px;
   double dy = p1.py-p2.py;
   double dist = sqrt(dx*dx+dy*dy);
-  double q =dist/h;
+  double q =dist/h_smooth;
 
   if(0<q && q<(2.0/3.0)){
     val=2.0/3.0;
