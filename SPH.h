@@ -29,6 +29,7 @@ double cubicSpline2(double q);
 double kernel(Particle_State p1, Particle_State p2);
 double gradKernel(Particle_State p1, Particle_State p2, int x_or_y);
 void calcDensity(Particle_State p[], int bfst[], int nxt[]);
+void integrateDensity(Particle_State p[], int bfst[], int nxt[]);
 void calcPressure(Particle_State p[]);
 void initializeAccel(Particle_State p[]);
 void calcAccelByExternalForces(Particle_State p[]);

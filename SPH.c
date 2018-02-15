@@ -107,6 +107,39 @@ void calcDensity(Particle_State p[], int bfst[], int nxt[])
   }
 }
 
+void integrateDensity(Particle_State p[], int bfst[], int nxt[])
+{
+  int i;
+#pragma omp parallel for schedule(dynamic, 64)
+  for(i=0; i<N; i++){
+    if(p[i].inRegion==1){
+      int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+      int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+      int jx, jy;
+      for(jx=ix-1; jx<=ix+1; jx++){
+        for(jy=iy-1; jy<=iy+1; jy++){
+          int jb=jx+jy*nBx;
+          int j=bfst[jb];
+          if(j==-1){
+	    continue;
+	  }
+          for(;;){
+            double dvx = p[i].vx-p[j].vy;
+            double dvy = p[i].vy-p[j].vy;    
+            double dot = 0;
+            dot=dvx*gradKernel(p[i],p[j],0)+dvy*gradKernel(p[i],p[j],1);
+            p[i].rho+=p[j].mass*dot*dt;
+            j=nxt[j];
+            if(j==-1){
+	      break;
+	    }
+          }
+        }
+      }
+    }
+  }
+}
+
 //Muller(2005) pressure model is used
 void calcPressure(Particle_State p[])
 {
@@ -183,8 +216,10 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
           for(;;){
             double aijx=0;
             double aijy=0;
-            aijx=-p[j].mass*((p[i].p/pow(p[i].rho,2.0)) + (p[j].p/pow(p[j].rho,2.0)))*gradKernel(p[i], p[j], 0);
-            aijy=-p[j].mass*((p[i].p/pow(p[i].rho,2.0)) + (p[j].p/pow(p[j].rho,2.0)))*gradKernel(p[i], p[j], 1);
+            double presCoef=0;
+            presCoef=((p[i].p)/(pow(p[i].rho,2.0)+epsilon))+(p[j].p/(pow(p[i].rho,2.0)+epsilon));
+            aijx=-p[j].mass*presCoef*gradKernel(p[i],p[j],0);
+            aijy=-p[j].mass*presCoef*gradKernel(p[i],p[j],1);
             p[i].ax += aijx;
             p[i].ay += aijy;
             j = nxt[j];
@@ -224,25 +259,24 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
           for(;;){
             double aijx, aijy;
             double viscCoef=0;
+            double alpha_visc=0;
             double dx = (p[i].px-p[j].px);
             double dy = (p[i].py-p[j].py);
             double dvx = (p[i].vx-p[j].vx);
             double dvy = (p[i].vy-p[j].vy);
-            double dot = dx*dvx+dy*dvy;
+            //double dot = dx*dvx+dy*dvy;
             double dist = sqrt(dx*dx+dy*dy);
             aijx=0, aijy=0;      
-            viscCoef=2.0*nu*h_smooth*cs/(p[i].rho+p[j].rho);
-            viscCoef=-viscCoef*(dot)/(dist*dist+0.01*h_smooth*h_smooth);
+            //alpha_visc=2.0*nu*h_smooth*cs/(p[i].rho+p[j].rho+epsilon);
+            //viscCoef=-alpha_visc*dot/(dist*dist+epsilon);
+            double dot=dx*gradKernel(p[i],p[j],0)+dy*gradKernel(p[i],p[j],1);
+            aijx=4.0*nu*p[j].mass*dot*dvx/((p[i].rho+p[j].rho)*(dist*dist+epsilon));
+            aijy=4.0*nu*p[j].mass*dot*dvy/((p[i].rho+p[j].rho)*(dist*dist+epsilon));
 	    if(time<DAMPTIME){
 	      viscCoef=viscCoef*damper;
 	    }
-            //if(dot<0){
-              aijx = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 0);
-              aijy = -p[j].mass*viscCoef*gradKernel(p[i], p[j], 1);
-              /* }else if(dot>=0){
-              aijx=0; 
-              aijy=0;
-              }*/
+	    //aijx = -p[j].mass*viscCoef*gradKernel(p[i],p[j],0);
+	    //aijy = -p[j].mass*viscCoef*gradKernel(p[i],p[j],1);
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j = nxt[j];
@@ -501,8 +535,8 @@ void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[], FILE *fp, int 
     }
 
     for(i=0; i<OBP; i++){//calculating inertia
-      double dist=qx[i]*qx[i] + qy[i]*qy[i];
-      inertia+=p[i+FLP+BP].mass*(dist);
+      double dist2=qx[i]*qx[i] + qy[i]*qy[i];
+      inertia+=p[i+FLP+BP].mass*(dist2);
     }
 
     for(i=FLP+BP; i<N; i++){//calculating translation velocity
@@ -669,3 +703,4 @@ void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time)
     }
   }
 }
+

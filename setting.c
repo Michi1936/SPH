@@ -20,7 +20,7 @@ void initialization(Particle_State p[], RigidPreValue rig[])	//make all values o
     p[i].vyh = 0;
     p[i].ax  = 0;
     p[i].ay  = 0;
-    p[i].rho = 0;
+    p[i].rho = rho0;
     p[i].p   = 0;
     p[i].mass=m;
   }
