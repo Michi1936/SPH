@@ -124,7 +124,7 @@ void integrateDensity(Particle_State p[], int bfst[], int nxt[])
 	    continue;
 	  }
           for(;;){
-            double dvx = p[i].vx-p[j].vy;
+            double dvx = p[i].vx-p[j].vx;
             double dvy = p[i].vy-p[j].vy;    
             double dot = 0;
             dot=dvx*gradKernel(p[i],p[j],0)+dvy*gradKernel(p[i],p[j],1);

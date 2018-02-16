@@ -142,7 +142,8 @@ int main(int argc, char *argv[])
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
 
-    calcDensity(a, bfst, nxt);
+    //calcDensity(a, bfst, nxt);
+    integrateDensity(a, bfst, nxt);
     calcPressure(a);
     initializeAccel(a);
     calcAccelByExternalForces(a);
