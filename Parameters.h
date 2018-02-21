@@ -10,14 +10,14 @@
 #define m M_PI*h_smooth*h_smooth*rho0/12.0 //particle mass
 #define rigidMassMultiplier 1.5
 #define rigidMass m*rigidMassMultiplier
-#define nu 1.0e-1 //viscosity coefficient
+#define nu 0.5e-1 //viscosity coefficient
 #define g 9.8//gravitational constant
-#define kappa 0.0
+#define kappa 1.0
 #define Ch 15/(14*M_PI*h*h) //normalization constant of cubic spline
 #define cs 80.0
 //#define dh 0.0001 
 #define epsilon 1.0e-8 //small number not to make denominator in gradKernel zero
-#define T 30000//time step
+#define T 25000//time step
 #define DAMPTIME 5000//2.5sec for exp2
 #define MOTION_START_TIME DAMPTIME+5000//at 3.9sec impact happens for exp2
 #define FLUID_INTERACTION 0.0

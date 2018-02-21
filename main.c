@@ -93,7 +93,6 @@ int main(int argc, char *argv[])
   calcAccelByExternalForces(a);
   calcAccelByPressure(a,bfst, nxt);
   calcAccelByViscosity(a,bfst, nxt,0);
-  //calcAccelBySurfaceTension(a, bfst, nxt);
 
   if(FLUID_INTERACTION>epsilon){
     calcInterfacialForce(a, bfst, nxt);
@@ -142,14 +141,12 @@ int main(int argc, char *argv[])
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
 
-    //calcDensity(a, bfst, nxt);
-    integrateDensity(a, bfst, nxt);
+    calcDensity(a, bfst, nxt);
     calcPressure(a);
     initializeAccel(a);
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-    //calcAccelBySurfaceTension(a, bfst, nxt);
 
     if(FLUID_INTERACTION>epsilon){
       calcInterfacialForce(a, bfst, nxt);

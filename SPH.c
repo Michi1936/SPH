@@ -188,7 +188,7 @@ void calcAccelByExternalForces(Particle_State p[])
     }
     double aijx, aijy;
     aijx     = 0;
-    aijy     = - g;//gravitational force
+    aijy     = -g;//gravitational force
     p[i].ax += aijx;
     p[i].ay += aijy;
   }
@@ -199,7 +199,7 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
   int i;
 #pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<N; i++){  
-    if(i>=FLP && i<FLP+BP){
+    if(i>=FLP && i<FLP+BP){//if i is wall particle, skip this calculation
       continue;
     }
     if(p[i].inRegion==1){
@@ -217,7 +217,7 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
             double aijx=0;
             double aijy=0;
             double presCoef=0;
-            presCoef=((p[i].p)/(pow(p[i].rho,2.0)+epsilon))+(p[j].p/(pow(p[i].rho,2.0)+epsilon));
+            presCoef=((p[i].p)/(pow(p[i].rho,2.0)+epsilon))+(p[j].p/(pow(p[j].rho,2.0)+epsilon));
             aijx=-p[j].mass*presCoef*gradKernel(p[i],p[j],0);
             aijy=-p[j].mass*presCoef*gradKernel(p[i],p[j],1);
             p[i].ax += aijx;
@@ -246,13 +246,11 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
       int jx, jy;
       for(jx=ix-1; jx<=ix+1; jx++){
         for(jy=iy-1; jy<=iy+1; jy++){
           int jb = jx + jy*nBx;
           int j = bfst[jb];
-          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
           if(j==-1){
 	    continue;
 	  }
@@ -271,7 +269,7 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
             //viscCoef=-alpha_visc*dot/(dist*dist+epsilon);
             double dot=dx*gradKernel(p[i],p[j],0)+dy*gradKernel(p[i],p[j],1);
             aijx=4.0*nu*p[j].mass*dot*dvx/((p[i].rho+p[j].rho)*(dist*dist+epsilon));
-            aijy=4.0*nu*p[j].mass*dot*dvy/((p[i].rho+p[j].rho)*(dist*dist+epsilon));
+	    aijy=4.0*nu*p[j].mass*dot*dvy/((p[i].rho+p[j].rho)*(dist*dist+epsilon));
 	    if(time<DAMPTIME){
 	      viscCoef=viscCoef*damper;
 	    }
@@ -376,23 +374,26 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
     if(p[i].inRegion==1){
       int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
       int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-      //fprintf(stderr, "%f %f %d %d %f",p[i].px ,p[i].py, ix, iy, BktLgth );
       int jx, jy;
       for(jx=ix-1; jx<=ix+1; jx++){
         for(jy=iy-1; jy<=iy+1; jy++){
           int jb = jx + jy*nBx;
           int j = bfst[jb];
-          //fprintf(stderr,"%d bfst accessed, %d %d %d\n", jb, i, jx, jy);
           if(j==-1){
             continue;
           }
           for(;;){
-            double aijx, aijy;
-            aijx=0, aijy=0;            
-            aijx=-kappa*p[j].mass*kernel(p[i], p[j])/p[i].mass;
-            aijy=-kappa*p[j].mass*kernel(p[i], p[j])/p[i].mass;
-            p[i].ax+=aijx;
-            p[i].ay+=aijy;
+            if(j>=FLP){
+              j=nxt[j];
+              if(j==-1){
+                break;
+              }
+              continue;
+            }
+            double surfCoef=0;
+            surfCoef=-kappa*p[j].mass*kernel(p[i], p[j])/(p[i].mass);
+            p[i].ax+=surfCoef;
+            p[i].ay+=surfCoef;
             j = nxt[j];
             if(j==-1){
               break;
