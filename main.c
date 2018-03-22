@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
   printf("\n\nCalculation started:%s\n", date);
 
-  //defining anglar velocity
+  //defining initial anglar velocity
   if(argc==2){
     angVel=atof(argv[1]);
   }
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  //get name of source image and create file name including anglar velocity, dt, spin param, nu
+  //get name of source image and create file name including source image name, anglar velocity, dt, spin param, nu
   getSourceImageName(numbers, srcName);
   printf("%s.png\n",srcName);
   makeFileNamePrefix(fileNamePrefix, srcName, angVel, spinParam);
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
   sprintf(type, "maxVelocity");
   openDatFile(&velocity, type, srcName, fileNamePrefix);
 
-  //printint parameters-------------------
+  //printing parameters-------------------
   printParameters(parameters, angVel, srcName, date, spinParam);
 
   //calculating initial state
@@ -155,10 +155,15 @@ int main(int argc, char *argv[])
       calcAccelByBoundaryForce(a, bfst, nxt);
     }
     if(i%100==0){
+      //output of parameters of particles
       printFluidParticles(a, data);//here show paremeters at t=(i*dt)
       printObstacleParticles(a, data);
+      
+      //output of positions of particles
       printFluidPositions(a,plot);
       printObstaclePositions(a,plot);
+      
+      //positions of fluid particle around rigid body
       printParticlesAroundObstacle(a, partPlot, com);
     }
     percentage(i, &countPer);

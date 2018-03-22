@@ -257,7 +257,7 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
           for(;;){
             double aijx, aijy;
             double viscCoef=0;
-            double alpha_visc=0;
+            //double alpha_visc=0;
             double dx = (p[i].px-p[j].px);
             double dy = (p[i].py-p[j].py);
             double dvx = (p[i].vx-p[j].vx);
@@ -633,7 +633,7 @@ void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[], FILE *fp, int 
       radius=dist;
     }
   }
-
+  //time, position of center of mass, translational velocity, angular velocity, inertia, radius of rigid body, spin parameter(ratio of anglar velocity at contact point between rigid body and fluid, to fall velocity)
   if(time%100==0){
     fprintf(fp, "%f %f %f %f %f %f %f %f %f\n", (double)(time*dt), gx, gy, Tx, Ty, Rot, inertia, radius, radius*Rot/(Ty+epsilon));
   }
