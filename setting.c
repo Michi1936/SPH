@@ -106,13 +106,13 @@ int obstacleBoundaryParticles(Particle_State p[])
   return 0;
 }
 
-void setInitialVelocity(Particle_State p[])
+void setInitialVelocity(Particle_State p[], double impactVel)
 {
   int i;
   double angle=ANGLE_OF_INCIDENT;
   for(i=FLP+BP; i<N; i++){
-    p[i].vxh+=IMPACT_VELOCITY*cos(angle);
-    p[i].vyh+=-IMPACT_VELOCITY*sin(angle);
+    p[i].vxh+=impactVel*cos(angle);
+    p[i].vyh+=-impactVel*sin(angle);
   }
 
 }

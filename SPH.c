@@ -302,7 +302,7 @@ double surfaceTensionCoefficient(double r)//caluculating cohesion term
   }
 }
 
-//Based on Versatile Interactions at Interfaces for SPHbased SImulations(2016)
+//Based on Versatile Interactions at Interfaces for SPHbased Simulations(2016)
 void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
 {
   int i;
@@ -327,6 +327,7 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
           aijx=0, aijy=0;
           if(j<FLP){
             //interaction between fluid particles
+            //some kind of surface tension
             interCoeff=FLUID_INTERACTION;
           }else{//interaction between fluid and boundary particles
             //1 means surface is hydrophily, 2 means surface is hydrophoby

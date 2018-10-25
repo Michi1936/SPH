@@ -49,7 +49,7 @@ void initialization(Particle_State p[], RigidPreValue rig[]);
 int fluidParticles(Particle_State p[]);
 int wallParticles(Particle_State p[]);
 int obstacleBoundaryParticles(Particle_State p[]);
-void setInitialVelocity(Particle_State p[]);
+void setInitialVelocity(Particle_State p[], double impactVel);
 
 void allocateBucket(int **bfst, int **blst, int **nxt);
 void checkParticle(Particle_State p[]);
@@ -60,7 +60,7 @@ double poly6(Particle_State p1, Particle_State p2);
 
 void getSourceImageName(FILE *fp, char srcName[]);
 double calcRadius(Particle_State p[]);
-void makeFileNamePrefix(char fNamePrefix[], char srcName[], double angVel, double spinParam);
+void makeFileNamePrefix(char fNamePrefix[], char srcName[], double impactVel, double spinParam);
 void openDatFile(FILE **fp, char type[], char srcName[], char prefix[]);
 void printParticles(Particle_State p[], FILE *fp);
 void percentage(int time, int *countPer);
@@ -72,7 +72,7 @@ void printBoundaryPositions(Particle_State p[], FILE *fp);
 void printObstacleParticles(Particle_State p[], FILE *fp);
 void printObstaclePositions(Particle_State p[], FILE *fp);
 void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[]);
-void printParameters(FILE *fp, double angVel, char srcName[], char date[], double spinParam);
+void printParameters(FILE *fp, double impactVel, char srcName[], char date[], double spinParam);
 
 void getMaxVelocity(Particle_State p[], FILE *fp, int time);
 void getCalculationRegion(double range[], Particle_State p[]);

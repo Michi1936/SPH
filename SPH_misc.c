@@ -69,17 +69,17 @@ double calcRadius(Particle_State p[])
 
 }
 
-void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double angVel, double spinParam)
+void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double impactVel, double spinParam)
 {
   char prefix[512];
   char tempFileName[512];
   char suffix[128];
   FILE *dammyPLOT;
 
-  if(angVel>=0){
-    sprintf(prefix, "angvel%.2f_dt%.8f_sp%.3f_nu%.5f_%s",  angVel, dt, spinParam,nu, srcName);
-  }else if(angVel<0){
-    sprintf(prefix, "angvelmin%.2f_dt%.8f_sp%.3f_nu%.5f_%s",  -angVel, dt, spinParam,nu,srcName);
+  if(impactVel>=0){
+    sprintf(prefix, "impactVel%.2f_dt%.8f_sp%.3f_nu%.5f_%s",  impactVel, dt, spinParam,nu, srcName);
+  }else if(impactVel<0){
+    sprintf(prefix, "impactVelmin%.2f_dt%.8f_sp%.3f_nu%.5f_%s",  -impactVel, dt, spinParam,nu,srcName);
   }
 
   sprintf(tempFileName,"./Source_%s/%s_plot.dat", srcName,prefix);
@@ -230,11 +230,11 @@ void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[])
   fprintf(fp, "\n\n");
 }
 
-void printParameters(FILE *fp, double angVel, char srcName[], char date[], double spinParam)
+void printParameters(FILE *fp, double impactVel, char srcName[], char date[], double spinParam)
 {
   fprintf(stderr, "\n\nParameters:\n");
   fprintf(stderr,"Source Image %s.png\n",srcName);
-  fprintf(stderr,"Anglar Velocity:%f Impact Velocity:%f Angle of Incident:%f Spin Parameter:%f\n", angVel, IMPACT_VELOCITY, ANGLE_OF_INCIDENT, spinParam);
+  fprintf(stderr,"Impact Velocity:%f Angle of Incident:%f Spin Parameter:%f\n", impactVel, ANGLE_OF_INCIDENT, spinParam);
   fprintf(stderr,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
   fprintf(stderr,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(stderr, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
@@ -243,7 +243,7 @@ void printParameters(FILE *fp, double angVel, char srcName[], char date[], doubl
   fprintf(stderr, "Calculation started:%s\n", date);
   
   fprintf(fp,"Source Image %s.png\n",srcName);
-  fprintf(fp,"Anglar Velocity:%f Impact Velocity:%f Angle of Incident:%f Spin Parameter:%f\n", angVel, IMPACT_VELOCITY, ANGLE_OF_INCIDENT, spinParam);
+  fprintf(fp,"Impact Velocity:%f Angle of Incident:%f Spin Parameter:%f\n", impactVel, ANGLE_OF_INCIDENT, spinParam);
   fprintf(fp,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
   fprintf(fp,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(fp, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);

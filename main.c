@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
   char date[256];
   char type[32];
   double angVel=0;
+  double impactVel=IMPACT_VELOCITY;
 
   time_t t=time(NULL);
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
@@ -36,7 +37,7 @@ int main(int argc, char *argv[])
 
   //defining initial anglar velocity
   if(argc==2){
-    angVel=atof(argv[1]);
+    impactVel=atof(argv[1]);
   }
 
   //placing particles
@@ -66,7 +67,7 @@ int main(int argc, char *argv[])
   //get name of source image and create file name including source image name, anglar velocity, dt, spin param, nu
   getSourceImageName(numbers, srcName);
   printf("%s.png\n",srcName);
-  makeFileNamePrefix(fileNamePrefix, srcName, angVel, spinParam);
+  makeFileNamePrefix(fileNamePrefix, srcName, impactVel, spinParam);
   fprintf(stderr, "\n\nprefix and suffix test\n./Source_%s/%s_plot.dat\n", srcName, fileNamePrefix);
 
   //opening .dat files
@@ -84,7 +85,7 @@ int main(int argc, char *argv[])
   openDatFile(&velocity, type, srcName, fileNamePrefix);
 
   //printing parameters-------------------
-  printParameters(parameters, angVel, srcName, date, spinParam);
+  printParameters(parameters, impactVel, srcName, date, spinParam);
 
   //calculating initial state
   calcDensity(a, bfst, nxt);
@@ -131,8 +132,8 @@ int main(int argc, char *argv[])
       leapfrogStep(a,rig,i);
       if(i==MOTION_START_TIME){
         fprintf(stderr, "\nAt %d rigid body is rotated\n", i);
-        rotateRigidBody(a, rig, angVel);
-        setInitialVelocity(a);
+        //       rotateRigidBody(a, rig, angVel);
+        setInitialVelocity(a, impactVel);
         fprintf(stderr, "Rigid Body Velocity is set\n");
       }
     }
