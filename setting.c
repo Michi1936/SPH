@@ -11,7 +11,7 @@ void initialization(Particle_State p[], RigidPreValue rig[])	//make all values o
   int	i;
   for(i=0; i<N; i++){
     p[i].inRegion = 0;//1 means particle is in region for calculatin 
-    p[i].color=0;//1 means surface is hydrophilic, 2 means surface is hydrophilic
+    p[i].color=0;//1 means surface is hydrophilic, 2 means surface is hydrophobic
     p[i].px  = -100;
     p[i].py  = -100; 
     p[i].vx  = 0;
@@ -70,6 +70,7 @@ int wallParticles(Particle_State p[]){
     if(green==255){
       p[i].color=1;//hydrophilic
     }else if(green==0){
+
       p[i].color=2;//hydrophobic
     }
     i++;

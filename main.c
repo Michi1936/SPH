@@ -7,7 +7,6 @@
 #include"Parameters.h"
 #include"numbers.h"
 
-
 int main(int argc, char *argv[])
 {
   Particle_State a[N];
@@ -15,7 +14,6 @@ int main(int argc, char *argv[])
   double com[2];
   int *bfst, *blst, *nxt;
   int countPer=0;
-  double spinParam=0;
   int i;
   FILE *data;
   FILE *plot;
@@ -49,14 +47,12 @@ int main(int argc, char *argv[])
 
   //allocating bucket
   allocateBucket(&bfst, &blst, &nxt);
+  fprintf(stderr, "interval %f\n", interval);
   fprintf(stderr,"%f %f %d %d %d Bucket allocated\n", BktLgth, BktNum, nBx, nBy, nBxy);
   checkParticle(a);  
   makeBucket(bfst, blst, nxt, a);
   fprintf(stderr,"Bucket is made.\n\n");
 
-  spinParam=fabs(calcRadius(a)*angVel/(IMPACT_VELOCITY+epsilon));
-  fprintf(stderr, "spin parameter:%f\n", spinParam);
-  
   //open numbers.h
   numbers=fopen("numbers.h","r");
   if(numbers==NULL){
@@ -67,7 +63,7 @@ int main(int argc, char *argv[])
   //get name of source image and create file name including source image name, anglar velocity, dt, spin param, nu
   getSourceImageName(numbers, srcName);
   printf("%s.png\n",srcName);
-  makeFileNamePrefix(fileNamePrefix, srcName, impactVel, spinParam);
+  makeFileNamePrefix(fileNamePrefix, srcName, impactVel);
   fprintf(stderr, "\n\nprefix and suffix test\n./Source_%s/%s_plot.dat\n", srcName, fileNamePrefix);
 
   //opening .dat files
@@ -85,7 +81,7 @@ int main(int argc, char *argv[])
   openDatFile(&velocity, type, srcName, fileNamePrefix);
 
   //printing parameters-------------------
-  printParameters(parameters, impactVel, srcName, date, spinParam);
+  printParameters(parameters, impactVel, srcName, date);
 
   //calculating initial state
   calcDensity(a, bfst, nxt);
@@ -95,15 +91,15 @@ int main(int argc, char *argv[])
   calcAccelByPressure(a,bfst, nxt);
   calcAccelByViscosity(a,bfst, nxt,0);
 
-  if(FLUID_INTERACTION>epsilon){
+  //calcAccelBySurfaceTension(a, bfst, nxt);
     calcInterfacialForce(a, bfst, nxt);
-  }
-  if(BOUNDARY_FORCE==1){
-    calcAccelByBoundaryForce(a, bfst, nxt);
-  }
+  
+    if(BOUNDARY_FORCE==1){
+      calcAccelByBoundaryForce(a, bfst, nxt);
+    }
   
   //printParticles(a,data);//Here shows parameters at t=0
-  printBoundaryParticles(a, data);
+    printBoundaryParticles(a, data);
   printFluidParticles(a, data);
   printObstacleParticles(a, data);
 
@@ -149,9 +145,9 @@ int main(int argc, char *argv[])
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
 
-    if(FLUID_INTERACTION>epsilon){
-      calcInterfacialForce(a, bfst, nxt);
-    }
+    calcInterfacialForce(a, bfst, nxt);
+    //calcAccelBySurfaceTension(a, bfst, nxt);
+    
     if(BOUNDARY_FORCE==1){
       calcAccelByBoundaryForce(a, bfst, nxt);
     }

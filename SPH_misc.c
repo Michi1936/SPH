@@ -69,17 +69,23 @@ double calcRadius(Particle_State p[])
 
 }
 
-void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double impactVel, double spinParam)
+void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double impactVel)
 {
   char prefix[512];
   char tempFileName[512];
   char suffix[128];
   FILE *dammyPLOT;
+  time_t timer;
+  struct tm *local;
+
+  timer = time(NULL);
+  local = localtime(&timer);
 
   if(impactVel>=0){
-    sprintf(prefix, "impactVel%.2f_dt%.8f_sp%.3f_nu%.5f_%s",  impactVel, dt, spinParam,nu, srcName);
+    sprintf(prefix, "%s_%.2f_%02d%02d_%02d%02d",srcName, impactVel, local->tm_mon+1, local->tm_mday, local->tm_hour, local->tm_min);
   }else if(impactVel<0){
-    sprintf(prefix, "impactVelmin%.2f_dt%.8f_sp%.3f_nu%.5f_%s",  -impactVel, dt, spinParam,nu,srcName);
+    sprintf(prefix, "%s_%.2f_%02d%02d_%02d%02d",srcName, impactVel, local->tm_mon, local->tm_mday, local->tm_hour, local->tm_min);
+    //    sprintf(prefix, "impactVelmin%.2f_dt%.8f_nu%.4f_%s",  -impactVel, dt,nu,srcName);
   }
 
   sprintf(tempFileName,"./Source_%s/%s_plot.dat", srcName,prefix);
@@ -230,22 +236,24 @@ void printParticlesAroundObstacle(Particle_State p[], FILE *fp, double com[])
   fprintf(fp, "\n\n");
 }
 
-void printParameters(FILE *fp, double impactVel, char srcName[], char date[], double spinParam)
+void printParameters(FILE *fp, double impactVel, char srcName[], char date[])
 {
   fprintf(stderr, "\n\nParameters:\n");
   fprintf(stderr,"Source Image %s.png\n",srcName);
-  fprintf(stderr,"Impact Velocity:%f Angle of Incident:%f Spin Parameter:%f\n", impactVel, ANGLE_OF_INCIDENT, spinParam);
+  fprintf(stderr,"Impact Velocity:%f Angle of Incident:%f \n", impactVel, ANGLE_OF_INCIDENT);
   fprintf(stderr,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
   fprintf(stderr,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
+  fprintf(stderr, "ENLARGEMENT RATIO %.2f \n",ENLARGEMENT);
   fprintf(stderr, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
   fprintf(stderr, "BOUNDARY_FORCE:%d\n", BOUNDARY_FORCE);
   fprintf(stderr,"cs:%.2f m:%f rigidMass:%f h_smooth:%f rho0:%f dt:%.8f kappa:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",cs, m, rigidMass, h_smooth,rho0,dt,kappa, nu,g,T, DAMPTIME, MOTION_START_TIME);
   fprintf(stderr, "Calculation started:%s\n", date);
   
   fprintf(fp,"Source Image %s.png\n",srcName);
-  fprintf(fp,"Impact Velocity:%f Angle of Incident:%f Spin Parameter:%f\n", impactVel, ANGLE_OF_INCIDENT, spinParam);
+  fprintf(fp,"Impact Velocity:%f Angle of Incident:%f\n", impactVel, ANGLE_OF_INCIDENT);
   fprintf(fp,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
   fprintf(fp,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
+  fprintf(fp, "ENLARGEMENT RATIO %.2f \n",ENLARGEMENT);
   fprintf(fp, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
   fprintf(fp, "BOUNDARY_FORCE:%d\n", BOUNDARY_FORCE);
   fprintf(fp,"cs:%.2f m:%f rigidMass:%f h_smooth:%f rho0:%f dt:%.8f kappa:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",cs, m, rigidMass, h_smooth,rho0,dt,kappa, nu,g,T, DAMPTIME, MOTION_START_TIME);

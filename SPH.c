@@ -159,6 +159,7 @@ void calcPressure(Particle_State p[])
     }
   }
 
+  //Pressure calculation of rigid body particles
   coef=(rigidMassMultiplier*rho0*pow(cs,2))/7.0;
 #pragma omp parallel for schedule(dynamic,64)
   for(i=FLP+BP; i<N; i++){
@@ -257,24 +258,24 @@ void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time)
           for(;;){
             double aijx, aijy;
             double viscCoef=0;
-            //double alpha_visc=0;
+            double alpha_visc=0;
             double dx = (p[i].px-p[j].px);
             double dy = (p[i].py-p[j].py);
             double dvx = (p[i].vx-p[j].vx);
             double dvy = (p[i].vy-p[j].vy);
-            //double dot = dx*dvx+dy*dvy;
+            double dot = dx*dvx+dy*dvy;
             double dist = sqrt(dx*dx+dy*dy);
             aijx=0, aijy=0;      
-            //alpha_visc=2.0*nu*h_smooth*cs/(p[i].rho+p[j].rho+epsilon);
-            //viscCoef=-alpha_visc*dot/(dist*dist+epsilon);
-            double dot=dx*gradKernel(p[i],p[j],0)+dy*gradKernel(p[i],p[j],1);
-            aijx=4.0*nu*p[j].mass*dot*dvx/((p[i].rho+p[j].rho)*(dist*dist+epsilon));
-	    aijy=4.0*nu*p[j].mass*dot*dvy/((p[i].rho+p[j].rho)*(dist*dist+epsilon));
+            alpha_visc=2.0*nu*h_smooth*cs/(p[i].rho+p[j].rho+epsilon);
+            viscCoef=-alpha_visc*dot/(dist*dist+epsilon);
+            //double dot=dx*gradKernel(p[i],p[j],0)+dy*gradKernel(p[i],p[j],1);
+            //aijx=4.0*nu*p[j].mass*dot*dvx/((p[i].rho+p[j].rho)*(dist*dist+epsilon));
+	    //aijy=4.0*nu*p[j].mass*dot*dvy/((p[i].rho+p[j].rho)*(dist*dist+epsilon));
 	    if(time<DAMPTIME){
 	      viscCoef=viscCoef*damper;
 	    }
-	    //aijx = -p[j].mass*viscCoef*gradKernel(p[i],p[j],0);
-	    //aijy = -p[j].mass*viscCoef*gradKernel(p[i],p[j],1);
+	    aijx = -p[j].mass*viscCoef*gradKernel(p[i],p[j],0);
+	    aijy = -p[j].mass*viscCoef*gradKernel(p[i],p[j],1);
             p[i].ax+=aijx;
             p[i].ay+=aijy;
             j = nxt[j];
@@ -323,7 +324,7 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
         for(;;){
           double aijx, aijy;
           double interCoeff=0;
-          double enl=1.4;//enlargement coefficient
+          double enl=ENLARGEMENT;//enlargement coefficient
           aijx=0, aijy=0;
           if(j<FLP){
             //interaction between fluid particles
@@ -340,13 +341,13 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
               interCoeff=0;
             }
           }
-          double dx = (p[i].px-p[j].px);
-          double dy = (p[i].py-p[j].py);
-          double dist = dx*dx+dy*dy;
+	  double dx = (p[i].px-p[j].px);
+	  double dy = (p[i].py-p[j].py);
+          double dist = sqrt(dx*dx+dy*dy);
           
           if(dist<=enl*h_smooth){
-            aijx=interCoeff*p[i].mass*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h_smooth))*dx/(dist+epsilon);
-            aijy=interCoeff*p[i].mass*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h_smooth))*dy/(dist+epsilon);
+            aijx=interCoeff*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h_smooth))*dx/(dist+epsilon);
+	    aijy=interCoeff*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h_smooth))*dy/(dist+epsilon);
           }else{
             aijx=0;
             aijy=0;
@@ -391,10 +392,15 @@ void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
               }
               continue;
             }
+            double dx=0;
+            double dy=0;
             double surfCoef=0;
+            dx=p[i].px-p[j].px;
+            dy=p[i].py-p[j].py;
+
             surfCoef=-kappa*p[j].mass*kernel(p[i], p[j])/(p[i].mass);
-            p[i].ax+=surfCoef;
-            p[i].ay+=surfCoef;
+            p[i].ax+=surfCoef*dx;
+            p[i].ay+=surfCoef*dy;
             j = nxt[j];
             if(j==-1){
               break;
@@ -678,7 +684,7 @@ void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time)
     p[i].vy=p[i].vyh+p[i].ay*dt/2.0;
     if(p[i].inRegion==0){
       p[i].vxh =0; 
-      p[i].vyh =0; 
+      p[i].vyh =0;
       p[i].vx=0;
       p[i].vy=0;
     }
