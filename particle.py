@@ -47,6 +47,12 @@ for x in range(size[0]):
         if (r,b)==(255,127):
             f.write(s)
             iOBP=iOBP+1
+#SPH.c中にOPBが分母になっている箇所があり、OBP=0ではエラーになってしまう。
+#そのためOBP=0の時、計算の範囲外にOBPを一つ配置しておく。
+if(iOBP==0):
+    s="%d %d %d %d %d \n"%(-10,-10,255,100,127)
+    f.write(s)
+    iOBP=iOBP+1
 f.close()
 
 s2="//%s\n"%(fileName)

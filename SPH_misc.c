@@ -29,7 +29,7 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
     fprintf(stderr ,"%c ", srcName[charCount]);
     charCount++;
   }
-  fprintf(stderr, "%d\n", charCount);
+  fprintf(stderr, "\n%d\n", charCount);
   srcName[charCount]='\0';
   fprintf(stderr, "\nsrcName is %s\n", srcName);
   printf("\n");
@@ -378,7 +378,7 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
   sprintf(line,"set yrange[%.3f:%.3f]\n",(range[2]), range[3]);
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
-  sprintf(line,"set size ratio %f\n",ratio);
+  sprintf(line,"set size square \n");
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
 
