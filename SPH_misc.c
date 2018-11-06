@@ -244,6 +244,7 @@ void printParameters(FILE *fp, double impactVel, char srcName[], char date[])
   fprintf(stderr,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
   fprintf(stderr,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(stderr, "ENLARGEMENT RATIO %.2f \n",ENLARGEMENT);
+  fprintf(stderr, "CONTACT_ANGLE %f\n", CONTACT_ANGLE);
   fprintf(stderr, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
   fprintf(stderr, "BOUNDARY_FORCE:%d\n", BOUNDARY_FORCE);
   fprintf(stderr,"cs:%.2f m:%f rigidMass:%f h_smooth:%f rho0:%f dt:%.8f kappa:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",cs, m, rigidMass, h_smooth,rho0,dt,kappa, nu,g,T, DAMPTIME, MOTION_START_TIME);
@@ -254,6 +255,7 @@ void printParameters(FILE *fp, double impactVel, char srcName[], char date[])
   fprintf(fp,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
   fprintf(fp,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
   fprintf(fp, "ENLARGEMENT RATIO %.2f \n",ENLARGEMENT);
+  fprintf(fp, "CONTACT_ANGLE %f\n", CONTACT_ANGLE);
   fprintf(fp, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
   fprintf(fp, "BOUNDARY_FORCE:%d\n", BOUNDARY_FORCE);
   fprintf(fp,"cs:%.2f m:%f rigidMass:%f h_smooth:%f rho0:%f dt:%.8f kappa:%f nu:%f g:%f T:%d \nDAMPTIME:%d MOTION_START_TIME:%d\n\n\n",cs, m, rigidMass, h_smooth,rho0,dt,kappa, nu,g,T, DAMPTIME, MOTION_START_TIME);
