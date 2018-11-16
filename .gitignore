@@ -5,6 +5,10 @@
 *.exe
 *.plt
 *.ipynb
+*.aux
+*.log
+*.pdf
+*.tex
 /unusedFunctions.c
 /Parameters.h
 GPATH

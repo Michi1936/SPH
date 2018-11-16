@@ -240,9 +240,11 @@ void printParameters(FILE *fp, double impactVel, char srcName[], char date[])
 {
   fprintf(stderr, "\n\nParameters:\n");
   fprintf(stderr,"Source Image %s.png\n",srcName);
-  fprintf(stderr,"Impact Velocity:%f Angle of Incident:%f \n", impactVel, ANGLE_OF_INCIDENT);
   fprintf(stderr,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
+  fprintf(stderr,"Impact Velocity:%f Angle of Incident:%f \n", impactVel, ANGLE_OF_INCIDENT);
   fprintf(stderr,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
+  fprintf(stderr, "interval:%f Bucket Length%f\n", interval, BktLgth);
+  fprintf(stderr, "MAX_X:%d MIN_X:%d MAX_Y:%d MIN_Y:%d\n", MAX_X, MIN_X, MAX_Y, MIN_Y);
   fprintf(stderr, "ENLARGEMENT RATIO %.2f \n",ENLARGEMENT);
   fprintf(stderr, "CONTACT_ANGLE %f\n", CONTACT_ANGLE);
   fprintf(stderr, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
@@ -251,9 +253,11 @@ void printParameters(FILE *fp, double impactVel, char srcName[], char date[])
   fprintf(stderr, "Calculation started:%s\n", date);
   
   fprintf(fp,"Source Image %s.png\n",srcName);
-  fprintf(fp,"Impact Velocity:%f Angle of Incident:%f\n", impactVel, ANGLE_OF_INCIDENT);
   fprintf(fp,"FLP:%d BP:%d OBP:%d\n", FLP, BP, OBP);
+  fprintf(fp,"Impact Velocity:%f Angle of Incident:%f\n", impactVel, ANGLE_OF_INCIDENT);
   fprintf(fp,"XSIZE:%d YSIZE:%d\n", XSIZE, YSIZE);
+  fprintf(fp, "interval:%f Bucket Length%f\n", interval, BktLgth);
+  fprintf(fp, "MAX_X:%d MIN_X:%d MAX_Y:%d MIN_Y:%d\n", MAX_X, MIN_X, MAX_Y, MIN_Y);
   fprintf(fp, "ENLARGEMENT RATIO %.2f \n",ENLARGEMENT);
   fprintf(fp, "CONTACT_ANGLE %f\n", CONTACT_ANGLE);
   fprintf(fp, "FLUID_INTERACTION:%f HPHILY_INTERACTION:%F HPHOBY_INTERACTION:%F\n", FLUID_INTERACTION, HPHILY_INTERACTION, HPHOBY_INTERACTION);
@@ -380,7 +384,7 @@ void makePltFile(char *srcName, Particle_State p[], char *fileNamePrefix)
   sprintf(line,"set yrange[%.3f:%.3f]\n",(range[2]), range[3]);
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
-  sprintf(line,"set size square \n");
+  sprintf(line,"set size ratio %f\n", ratio);
   fprintf(plt,"%s",line);
   fprintf(plt2,"%s",line);
 

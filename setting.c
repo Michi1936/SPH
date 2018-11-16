@@ -92,8 +92,10 @@ int obstacleBoundaryParticles(Particle_State p[])
   }
 
   while((ret = fscanf(fp, "%d %d %*d %d %*d", &px, &py, &green))!=EOF){
-    p[i].px=(px+1)*(interval);
-    p[i].py=(py+1)*(interval);
+    // p[i].px=(px+1)*(interval);
+    // p[i].py=(py+1)*(interval);
+    p[i].px = -100;
+    p[i].py = -100;
     if(green==255){
       p[i].color=1;
     }else if(green==0){
