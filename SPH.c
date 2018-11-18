@@ -304,16 +304,18 @@ double surfaceTensionCoefficient(double r)//caluculating cohesion term
 }
 
 //Based on Versatile Interactions at Interfaces for SPHbased Simulations(2016)
-void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
+void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
 {
   int i;
-
+  double interfacialForce=0;
 #pragma omp parallel for schedule(dynamic, 64)
   for(i=0; i<FLP; i++){
     int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
     int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
     
     int jx, jy;
+
+
     for(jx=ix-1; jx<=ix+1; jx++){
       for(jy=iy-1; jy<=iy+1; jy++){
         int jb = jx + jy*nBx;
@@ -333,9 +335,13 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
           }else{//interaction between fluid and boundary particles
             //1 means surface is hydrophily, 2 means surface is hydrophoby
             if(p[j].color==1){
-              interCoeff=HPHILY_INTERACTION;
+              //interCoeff=HPHILY_INTERACTION;
+              //interCoeff=FLUID_INTERACTION*cos(CONTACT_ANGLE);
+              interCoeff=FLUID_INTERACTION*(cos(CONTACT_ANGLE)+1.0)/2.0;
             }else if(p[j].color==2){
-              interCoeff=HPHOBY_INTERACTION;
+              //interCoeff=HPHOBY_INTERACTION;
+              //interCoeff=FLUID_INTERACTION*cos(CONTACT_ANGLE);
+              interCoeff=FLUID_INTERACTION*(cos(CONTACT_ANGLE)+1.0)/2.0;
             }
             else if(p[j].color==0){
               interCoeff=0;
@@ -355,6 +361,7 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
 
           p[i].ax+=aijx;
           p[i].ay+=aijy;
+          interfacialForce+=sqrt(aijx*aijx+aijy*aijy);
           //if a fluid particle is forced by rigid body particle,
           //this rigid body particle must be forced by the fluid particle because of Newton's 3rd law.
           /*if(j>=FLP+BP){
@@ -369,6 +376,7 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[])
       }
     }
   }
+  fprintf(fp, "%f\n", interfacialForce);
 }
 
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])

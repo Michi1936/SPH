@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
   FILE *numbers;
   FILE *rigidBody;
   FILE *velocity;
+  FILE *interfacialForce;
   char srcName[256];
   char fileNamePrefix[256];
   char date[256];
@@ -79,6 +80,8 @@ int main(int argc, char *argv[])
   openDatFile(&partPlot, type, srcName, fileNamePrefix);
   sprintf(type, "maxVelocity");
   openDatFile(&velocity, type, srcName, fileNamePrefix);
+  sprintf(type, "interfacialForce");
+  openDatFile(&interfacialForce, type, srcName, fileNamePrefix);
 
   //printing parameters-------------------
   printParameters(parameters, impactVel, srcName, date);
@@ -92,17 +95,17 @@ int main(int argc, char *argv[])
   calcAccelByViscosity(a,bfst, nxt,0);
 
   //calcAccelBySurfaceTension(a, bfst, nxt);
-    calcInterfacialForce(a, bfst, nxt);
+  calcInterfacialForce(a, bfst, nxt, interfacialForce);
   
-    if(BOUNDARY_FORCE==1){
-      calcAccelByBoundaryForce(a, bfst, nxt);
-    }
+  if(BOUNDARY_FORCE==1){
+    calcAccelByBoundaryForce(a, bfst, nxt);
+  }
   
   //printParticles(a,data);//Here shows parameters at t=0
-    printBoundaryParticles(a, data);
+  printBoundaryParticles(a, data);
   printFluidParticles(a, data);
   printObstacleParticles(a, data);
-
+  
   printBoundaryPositions(a, plot);
   printFluidPositions(a, plot);
   printObstaclePositions(a,plot);
@@ -119,7 +122,7 @@ int main(int argc, char *argv[])
     fprintf(stderr, "At 0 rigid body is rotated\n");
     rotateRigidBody(a, rig, angVel);
   }
-  
+    
   //time development
   for(i=1; i<=T; i++){
     if(i==1){
@@ -133,19 +136,19 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Rigid Body Velocity is set\n");
       }
     }
-
+      
     rigidBodyCorrection(a, rig, rigidBody, i, com);
     checkParticle(a);
     makeBucket(bfst, blst, nxt, a);
-
+      
     calcDensity(a, bfst, nxt);
     calcPressure(a);
     initializeAccel(a);
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-
-    calcInterfacialForce(a, bfst, nxt);
+      
+    calcInterfacialForce(a, bfst, nxt, interfacialForce);
     //calcAccelBySurfaceTension(a, bfst, nxt);
     
     if(BOUNDARY_FORCE==1){

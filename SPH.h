@@ -37,7 +37,7 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[]);
 void calcAccelByViscosity(Particle_State p[], int bfst[], int nxt[], int time);
 double surfaceTensionCoefficient(double r);
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[]);
-void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[]);
+void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp);
 double boundaryGamma(Particle_State p1, Particle_State p2);
 void calcAccelByBoundaryForce(Particle_State p[], int bfst[], int nxt[]);
 void rotateRigidBody(Particle_State p[], RigidPreValue rig[], double angVel);
