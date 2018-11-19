@@ -335,15 +335,14 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
           }else{//interaction between fluid and boundary particles
             //1 means surface is hydrophily, 2 means surface is hydrophoby
             if(p[j].color==1){
-              //interCoeff=HPHILY_INTERACTION;
+              interCoeff=HPHILY_INTERACTION;
               //interCoeff=FLUID_INTERACTION*cos(CONTACT_ANGLE);
-              interCoeff=FLUID_INTERACTION*(cos(CONTACT_ANGLE)+1.0)/2.0;
             }else if(p[j].color==2){
-              //interCoeff=HPHOBY_INTERACTION;
+              interCoeff=HPHOBY_INTERACTION;
               //interCoeff=FLUID_INTERACTION*cos(CONTACT_ANGLE);
-              interCoeff=FLUID_INTERACTION*(cos(CONTACT_ANGLE)+1.0)/2.0;
-            }
-            else if(p[j].color==0){
+            }else if(p[j].color==3){
+              interCoeff=FLUID_INTERACTION*(cos(CONTACT_ANGLE)+1.0)/2.0;//improved constant angle based upon Yang(2017)
+            }else if(p[j].color==0){
               interCoeff=0;
             }
           }

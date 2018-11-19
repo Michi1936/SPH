@@ -70,8 +70,9 @@ int wallParticles(Particle_State p[]){
     if(green==255){
       p[i].color=1;//hydrophilic
     }else if(green==0){
-
       p[i].color=2;//hydrophobic
+    } else if(green==200){
+      p[i].color=3;
     }
     i++;
   }
