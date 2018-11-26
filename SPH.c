@@ -312,9 +312,7 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
   for(i=0; i<FLP; i++){
     int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
     int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
-    
     int jx, jy;
-
 
     for(jx=ix-1; jx<=ix+1; jx++){
       for(jy=iy-1; jy<=iy+1; jy++){
@@ -363,10 +361,6 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
           interfacialForce+=sqrt(aijx*aijx+aijy*aijy);
           //if a fluid particle is forced by rigid body particle,
           //this rigid body particle must be forced by the fluid particle because of Newton's 3rd law.
-          /*if(j>=FLP+BP){
-            p[j].ax+=-aijx;
-            p[j].ay+=-aijy;
-            }*/
           j = nxt[j];
           if(j==-1){
 	    break;
@@ -375,6 +369,68 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
       }
     }
   }
+#pragma omp parallel for schedule(dynamic, 64)
+  for(i=FLP+BP; i<N; i++){
+    int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
+    int iy = (int)((p[i].py-MIN_Y)/BktLgth)+1;
+    int jx, jy;
+
+    for(jx=ix-1; jx<=ix+1; jx++){
+      for(jy=iy-1; jy<=iy+1; jy++){
+        int jb = jx + jy*nBx;
+        int j = bfst[jb];
+        if(j==-1){
+          continue;
+        }
+        for(;;){
+          double aijx, aijy;
+          double interCoeff=0;
+          double enl=ENLARGEMENT;//enlargement coefficient
+          aijx=0, aijy=0;
+          if(j<FLP){
+            //interaction between fluid particles
+            //some kind of surface tension
+            interCoeff=FLUID_INTERACTION;
+          }else{//interaction between fluid and boundary particles
+            //1 means surface is hydrophily, 2 means surface is hydrophoby
+            if(p[j].color==1){
+              interCoeff=HPHILY_INTERACTION;
+              //interCoeff=FLUID_INTERACTION*cos(CONTACT_ANGLE);
+            }else if(p[j].color==2){
+              interCoeff=HPHOBY_INTERACTION;
+              //interCoeff=FLUID_INTERACTION*cos(CONTACT_ANGLE);
+            }else if(p[j].color==3){
+              interCoeff=FLUID_INTERACTION*(cos(CONTACT_ANGLE)+1.0)/2.0;//improved constant angle based upon Yang(2017)
+            }else if(p[j].color==0){
+              interCoeff=0;
+            }
+          }
+	  double dx = (p[i].px-p[j].px);
+	  double dy = (p[i].py-p[j].py);
+          double dist = sqrt(dx*dx+dy*dy);
+          
+          if(dist<=enl*h_smooth){
+            aijx=interCoeff*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h_smooth))*dx/(dist+epsilon);
+	    aijy=interCoeff*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h_smooth))*dy/(dist+epsilon);
+          }else{
+            aijx=0;
+            aijy=0;
+          }
+
+          p[i].ax+=aijx;
+          p[i].ay+=aijy;
+          interfacialForce+=sqrt(aijx*aijx+aijy*aijy);
+          //if a fluid particle is forced by rigid body particle,
+          //this rigid body particle must be forced by the fluid particle because of Newton's 3rd law.
+          j = nxt[j];
+          if(j==-1){
+	    break;
+	  }
+        }
+      }
+    }
+  }
+
   fprintf(fp, "%f\n", interfacialForce);
 }
 
