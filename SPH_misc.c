@@ -82,9 +82,9 @@ void makeFileNamePrefix(char fileNamePrefix[], char srcName[], double impactVel)
   local = localtime(&timer);
 
   if(impactVel>=0){
-    sprintf(prefix, "%s_%.2f_%02d%02d_%02d%02d",srcName, impactVel, local->tm_mon+1, local->tm_mday, local->tm_hour, local->tm_min);
+    sprintf(prefix, "%s_%02d%02d_%02d%02d",srcName, local->tm_mon+1, local->tm_mday, local->tm_hour, local->tm_min);
   }else if(impactVel<0){
-    sprintf(prefix, "%s_%.2f_%02d%02d_%02d%02d",srcName, impactVel, local->tm_mon, local->tm_mday, local->tm_hour, local->tm_min);
+    sprintf(prefix, "%s_%02d%02d_%02d%02d",srcName, local->tm_mon, local->tm_mday, local->tm_hour, local->tm_min);
     //    sprintf(prefix, "impactVelmin%.2f_dt%.8f_nu%.4f_%s",  -impactVel, dt,nu,srcName);
   }
 

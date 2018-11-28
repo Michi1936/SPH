@@ -359,8 +359,13 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
           p[i].ax+=aijx;
           p[i].ay+=aijy;
           interfacialForce+=sqrt(aijx*aijx+aijy*aijy);
+          
           //if a fluid particle is forced by rigid body particle,
           //this rigid body particle must be forced by the fluid particle because of Newton's 3rd law.
+          if(j>=FLP+BP){
+            p[j].ax+=-aijx;
+            p[j].ay=-aijy;
+          }
           j = nxt[j];
           if(j==-1){
 	    break;
@@ -369,6 +374,8 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
       }
     }
   }
+
+  /*  
 #pragma omp parallel for schedule(dynamic, 64)
   for(i=FLP+BP; i<N; i++){
     int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
@@ -430,7 +437,7 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
       }
     }
   }
-
+  */
   fprintf(fp, "%f\n", interfacialForce);
 }
 
