@@ -101,7 +101,7 @@ int main(void)
   fprintf(stderr, "%s\n", imgName);
 
   //writing dat file name
-  sprintf(fName, "./Source_%s/%s_0.00_%d_%d_data.dat", imgName, imgName, date[0], date[1]);
+  sprintf(fName, "./Source_%s/%s_%d_%d_data.dat", imgName, imgName, date[0], date[1]);
   fprintf(stderr, "%s\n", fName);
 
   writePrevName(imgName, date);
