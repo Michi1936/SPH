@@ -54,10 +54,11 @@ int main(void)
 {
   int targetIndex;
   FILE *data;
-
+  FILE *output;
   char imgName[128];
   char fName[256];
   char tmpStr[256];
+  char outputfName[256];
 
   pState p[FLP];
   int date[2];
@@ -147,6 +148,13 @@ int main(void)
     fprintf(stderr, "%f %f\n", p[i].px, p[i].py);
   }
 
+  sprintf(outputfName, "INDEX%d_%s_%d_%d_.dat", targetIndex, imgName, date[0], date[1]);
+  output=fopen(outputfName,"w");
+  for(i=0; i<particleIndex; i++){
+    fprintf(output,"%d %f %f %f %f %f\n", i, p[i].px, p[i].py, p[i].vx, p[i].vy, p[i].vabs);
+  }
+
   fclose(data);
+  fclose(output);
   return 0;
 }
