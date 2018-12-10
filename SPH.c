@@ -23,10 +23,10 @@ double kernel(Particle_State p1, Particle_State p2)//p1 is central particle
   double dist = sqrt(dx*dx+dy*dy);
   double q = dist/h_smooth;
   double val=0;
-  if(0<=q && q<=1){
+  if(0.0<=q && q<=1.0){
     val=cubicSpline1(q);
   }
-  else if(1<=q && q<=2){
+  else if(1.0<=q && q<=2.0){
     val=cubicSpline2(q);
   }
   else {
@@ -46,20 +46,20 @@ double gradKernel(Particle_State p1, Particle_State p2, int axis)//calculate gra
   double coeff_y = (dy)/(dist*h_smooth+epsilon);
   double val=0;
   if(axis==0){//x direction 
-    if(0<=q && q<=1){
+    if(0.0<=q && q<=1.0){
       val = (15.0/(pow(h_smooth,2)*14.0*M_PI))*coeff_x*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
     }
-    else if(1<=q && q<=2){
+    else if(1.0<=q && q<=2.0){
       val = -(15.0/(pow(h_smooth,2)*14.0*M_PI))*coeff_x*(3.0*pow(2.0-q,2));
     }
     else {
       val = 0;
     }
   }else if(axis==1){//y direction 
-    if(0<=q && q<=1){
+    if(0.0<=q && q<=1.0){
       val = (15.0/(pow(h_smooth,2)*14.0*M_PI))*coeff_y*(12.0*pow(1.0-q,2)-3.0*pow(2.0-q,2));
     }
-    else if(1<=q && q<=2){
+    else if(1.0<=q && q<=2.0){
       val = -(15.0/(pow(h_smooth,2)*14.0*M_PI))*coeff_y*(3.0*pow(2.0-q,2));
     }
     else {
@@ -184,7 +184,7 @@ void calcAccelByExternalForces(Particle_State p[])
   int i;
 #pragma omp parallel for schedule(dynamic,64)
   for(i=0; i<N; i++){
-    if(i>=FLP && i<FLP+BP){
+    if(i>=FLP && i<FLP+BP){//gravitational force is not calculated for boundary particle
       continue;
     }
     double aijx, aijy;
@@ -364,7 +364,7 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
           //this rigid body particle must be forced by the fluid particle because of Newton's 3rd law.
           if(j>=FLP+BP){
             p[j].ax+=-aijx;
-            p[j].ay=-aijy;
+            p[j].ay+=-aijy;
           }
           j = nxt[j];
           if(j==-1){

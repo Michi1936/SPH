@@ -28,7 +28,8 @@ int main(int argc, char *argv[])
   char date[256];
   char type[32];
   double angVel=0;
-  double impactVel=IMPACT_VELOCITY;
+  //  double impactVel=IMPACT_VELOCITY;
+  double impactVel=atof(argv[1]);
 
   time_t t=time(NULL);
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));
@@ -130,8 +131,8 @@ int main(int argc, char *argv[])
     }else{
       leapfrogStep(a,rig,i);
       if(i==MOTION_START_TIME){
-        fprintf(stderr, "\nAt %d rigid body is rotated\n", i);
-        //       rotateRigidBody(a, rig, angVel);
+        //fprintf(stderr, "\nAt %d rigid body is rotated\n", i);
+        //rotateRigidBody(a, rig, angVel);
         setInitialVelocity(a, impactVel);
         fprintf(stderr, "Rigid Body Velocity is set\n");
       }
@@ -147,9 +148,7 @@ int main(int argc, char *argv[])
     calcAccelByExternalForces(a);
     calcAccelByPressure(a,bfst, nxt);
     calcAccelByViscosity(a,bfst, nxt,i);
-      
     calcInterfacialForce(a, bfst, nxt, interfacialForce);
-    //calcAccelBySurfaceTension(a, bfst, nxt);
     
     if(BOUNDARY_FORCE==1){
       calcAccelByBoundaryForce(a, bfst, nxt);

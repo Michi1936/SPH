@@ -17,15 +17,15 @@
 #define cs 80.0
 //#define dh 0.0001 
 #define epsilon 1.0e-8 //small number not to make denominator in gradKernel zero
-#define T 120000//time step
-#define DAMPTIME 15000//2.5sec for exp2
-#define MOTION_START_TIME DAMPTIME+10000//at 3.9sec impact happens for exp2
+#define T 60000//time step
+#define DAMPTIME 10000//2.5sec for exp2
+#define MOTION_START_TIME DAMPTIME+5000//at 3.9sec impact happens for exp2
 #define ENLARGEMENT 3.0
 #define FLUID_INTERACTION 30.0
 #define CONTACT_ANGLE M_PI/4.0
 #define HPHILY_INTERACTION FLUID_INTERACTION*(cos(CONTACT_ANGLE))
 #define HPHOBY_INTERACTION -FLUID_INTERACTION*(cos(CONTACT_ANGLE)) //negative value
-#define IMPACT_VELOCITY 5.0
+#define IMPACT_VELOCITY 0.0
 #define ANGLE_OF_INCIDENT M_PI/2.0
 #define BOUNDARY_FORCE 0//if this value is zero calcAccelByBoundaryForce is not called.
 
