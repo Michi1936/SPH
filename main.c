@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
   char type[32];
   double angVel=0;
   //  double impactVel=IMPACT_VELOCITY;
-  double impactVel=atof(argv[1]);
+  double impactVel=0.0;
 
   time_t t=time(NULL);
   strftime(date, sizeof(date), "%Y/%m/%d %a %H:%M:%S", localtime(&t));

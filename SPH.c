@@ -221,8 +221,8 @@ void calcAccelByPressure(Particle_State p[], int bfst[], int nxt[])
             presCoef=((p[i].p)/(pow(p[i].rho,2.0)+epsilon))+(p[j].p/(pow(p[j].rho,2.0)+epsilon));
             aijx=-p[j].mass*presCoef*gradKernel(p[i],p[j],0);
             aijy=-p[j].mass*presCoef*gradKernel(p[i],p[j],1);
-            p[i].ax += aijx;
-            p[i].ay += aijy;
+            p[i].ax+=aijx;
+            p[i].ay+=aijy;
             j = nxt[j];
             if(j==-1){
 	      break;
@@ -362,10 +362,10 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
           
           //if a fluid particle is forced by rigid body particle,
           //this rigid body particle must be forced by the fluid particle because of Newton's 3rd law.
-          if(j>=FLP+BP){
-            p[j].ax+=-aijx;
-            p[j].ay+=-aijy;
-          }
+          /* if(j>=FLP+BP){ */
+          /*   p[j].ax+=-aijx; */
+          /*   p[j].ay+=-aijy; */
+          /* } */
           j = nxt[j];
           if(j==-1){
 	    break;
@@ -374,8 +374,7 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
       }
     }
   }
-
-  /*  
+ 
 #pragma omp parallel for schedule(dynamic, 64)
   for(i=FLP+BP; i<N; i++){
     int ix = (int)((p[i].px-MIN_X)/BktLgth)+1;
@@ -389,28 +388,27 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
         if(j==-1){
           continue;
         }
+        //consider interaction between rigid and fluid
+        if(j>=FLP){
+          continue;
+        }
         for(;;){
           double aijx, aijy;
           double interCoeff=0;
           double enl=ENLARGEMENT;//enlargement coefficient
           aijx=0, aijy=0;
-          if(j<FLP){
-            //interaction between fluid particles
-            //some kind of surface tension
-            interCoeff=FLUID_INTERACTION;
-          }else{//interaction between fluid and boundary particles
-            //1 means surface is hydrophily, 2 means surface is hydrophoby
-            if(p[j].color==1){
-              interCoeff=HPHILY_INTERACTION;
-              //interCoeff=FLUID_INTERACTION*cos(CONTACT_ANGLE);
-            }else if(p[j].color==2){
-              interCoeff=HPHOBY_INTERACTION;
-              //interCoeff=FLUID_INTERACTION*cos(CONTACT_ANGLE);
-            }else if(p[j].color==3){
-              interCoeff=FLUID_INTERACTION*(cos(CONTACT_ANGLE)+1.0)/2.0;//improved constant angle based upon Yang(2017)
-            }else if(p[j].color==0){
-              interCoeff=0;
-            }
+          //interaction between fluid and boundary particles
+          //1 means surface is hydrophily, 2 means surface is hydrophoby
+          if(p[i].color==1){
+            interCoeff=HPHILY_INTERACTION;
+            //interCoeff=FLUID_INTERACTION*cos(CONTACT_ANGLE);
+          }else if(p[i].color==2){
+            interCoeff=HPHOBY_INTERACTION;
+            //interCoeff=FLUID_INTERACTION*cos(CONTACT_ANGLE);
+          }else if(p[i].color==3){
+            interCoeff=FLUID_INTERACTION*(cos(CONTACT_ANGLE)+1.0)/2.0;//improved constant angle based upon Yang(2017)
+          }else if(p[i].color==0){
+            interCoeff=0;
           }
 	  double dx = (p[i].px-p[j].px);
 	  double dy = (p[i].py-p[j].py);
@@ -437,8 +435,7 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
       }
     }
   }
-  */
-  fprintf(fp, "%f\n", interfacialForce);
+   fprintf(fp, "%f\n", interfacialForce);
 }
 
 void calcAccelBySurfaceTension(Particle_State p[], int bfst[], int nxt[])
@@ -628,7 +625,6 @@ void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[], FILE *fp, int 
       Tx+=p[i].vxh/OBP;
       Ty+=p[i].vyh/OBP;
     }
-
 
     for(i=FLP+BP; i<N; i++){//calculating anglar velocity
       Rot+=p[i].mass*(qx[i-FLP-BP]*p[i].vyh-qy[i-FLP-BP]*p[i].vxh)/(inertia+epsilon);

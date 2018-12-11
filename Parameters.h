@@ -1,4 +1,4 @@
-#ifndef _PARAMETERS_H_
+#ifndef _PARAMETERS_H_pppp
 #define _PARAMETERS_H_
 
 #include <stdio.h>
@@ -8,7 +8,7 @@
 #define dt 1.0e-4//time step size
 #define rho0 1000.0 // reference density
 #define m (M_PI*h_smooth*h_smooth*rho0/12.0) //particle mass
-#define rigidMassMultiplier 2.0
+#define rigidMassMultiplier 3.0
 #define rigidMass m*rigidMassMultiplier
 #define nu 2.0e-2 //viscosity coefficient
 #define g 9.8//gravitational constant
@@ -17,11 +17,11 @@
 #define cs 80.0
 //#define dh 0.0001 
 #define epsilon 1.0e-8 //small number not to make denominator in gradKernel zero
-#define T 60000//time step
-#define DAMPTIME 10000//2.5sec for exp2
+#define T 35000//time step
+#define DAMPTIME 7000//2.5sec for exp2
 #define MOTION_START_TIME DAMPTIME+5000//at 3.9sec impact happens for exp2
 #define ENLARGEMENT 3.0
-#define FLUID_INTERACTION 30.0
+#define FLUID_INTERACTION 15.0
 #define CONTACT_ANGLE M_PI/4.0
 #define HPHILY_INTERACTION FLUID_INTERACTION*(cos(CONTACT_ANGLE))
 #define HPHOBY_INTERACTION -FLUID_INTERACTION*(cos(CONTACT_ANGLE)) //negative value
