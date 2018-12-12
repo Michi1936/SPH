@@ -389,9 +389,6 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
           continue;
         }
         //consider interaction between rigid and fluid
-        if(j>=FLP){
-          continue;
-        }
         for(;;){
           double aijx, aijy;
           double interCoeff=0;
@@ -418,6 +415,10 @@ void calcInterfacialForce(Particle_State p[], int bfst[], int nxt[], FILE *fp)
             aijx=interCoeff*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h_smooth))*dx/(dist+epsilon);
 	    aijy=interCoeff*p[j].mass*cos((3.0*M_PI)*dist/(2.0*enl*h_smooth))*dy/(dist+epsilon);
           }else{
+            aijx=0;
+            aijy=0;
+          }
+          if(j>=FLP){
             aijx=0;
             aijy=0;
           }
