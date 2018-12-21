@@ -53,6 +53,41 @@ int fluidParticles(Particle_State p[])//set fluid particles from fluid.txt
   return 0;
 }
 
+int fluidParticlesFromDat(Particle_State p[])
+{
+  FILE *fp;
+  int i=0;
+  int lineCount=0;
+  int particleNumber=0;
+  float px, py, vx, vy, ax, ay, pres, rho;
+  char readline[256];
+  px=0, py=0, vx=0, vy=0, ax=0, ay=0, pres=0, rho=0;
+  fp=fopen("initialFluidState.dat", "r");
+  if(fp==NULL){
+    printf(" cannot be read!");
+    return -1;
+  }
+
+  while(fgets(readline, 256, fp)!=NULL){
+    if(lineCount>=1){
+      sscanf(readline, "%d %f %f %f %f %f %f %f %f ",&particleNumber, &px, &py, &vx, &vy, &ax, &ay, &rho, &pres);
+    p[particleNumber].px=px;
+    p[particleNumber].py=py;
+    p[particleNumber].vx=vx;
+    p[particleNumber].vy=vy;
+    p[particleNumber].ax=ay;
+    p[particleNumber].ay=ay;
+    p[particleNumber].p=pres;
+    p[particleNumber].rho=rho;
+    p[particleNumber].vxh=vx-ax*dt/2.0;
+    p[particleNumber].vyh=vy-ay*dt/2.0;
+    i++;
+    }
+    lineCount++;
+  }
+  fclose(fp);
+  return 0;
+}
 
 int wallParticles(Particle_State p[]){
   FILE *fp;
@@ -116,7 +151,7 @@ void setInitialVelocity(Particle_State p[], double impactVel)
   int i;
   double angle=ANGLE_OF_INCIDENT;
   for(i=FLP+BP; i<N; i++){
-    p[i].py-=1.0;
+    //    p[i].py-=7.0;
     p[i].vxh+=impactVel*cos(angle);
     p[i].vyh+=-impactVel*sin(angle);
   }

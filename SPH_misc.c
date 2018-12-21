@@ -21,6 +21,9 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
     if(temp[i]=='.' && temp[i+1]=='p' && temp[i+2]=='n' && temp[i+3]=='g'){
       break;
     }
+    else if(temp[i]=='.' && temp[i+1]=='e' && temp[i+2]=='n' && temp[i+3]=='d'){
+      break;
+    }
     if(temp[i]=='/'){
       printf("skipped ");
       continue;

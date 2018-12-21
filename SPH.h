@@ -47,6 +47,8 @@ void leapfrogStep(Particle_State p[], RigidPreValue rig[], int time);
 
 void initialization(Particle_State p[], RigidPreValue rig[]);
 int fluidParticles(Particle_State p[]);
+int fluidParticlesFromDat(Particle_State p[]);
+
 int wallParticles(Particle_State p[]);
 int obstacleBoundaryParticles(Particle_State p[]);
 void setInitialVelocity(Particle_State p[], double impactVel);

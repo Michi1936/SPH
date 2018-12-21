@@ -642,7 +642,7 @@ void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[], FILE *fp, int 
     }
     //until here correction of position is complete
     //------------------------------------------------------
-
+    //fprintf(stderr,"Check!\n");
     gx=0;
     gy=0;
     inertia=0;
@@ -660,9 +660,9 @@ void rigidBodyCorrection(Particle_State p[], RigidPreValue rig[], FILE *fp, int 
       qy[i-FLP-BP]=p[i].py-gy;
     }
 
-    for(i=FLP+BP; i<N; i++){//calculating inertia
-      double dist=qx[i-FLP-BP]*qx[i-FLP-BP] + qy[i-FLP-BP]*qy[i-FLP-BP];
-      inertia+=p[i].mass*(dist);
+    for(i=0; i<OBP; i++){//calculating inertia
+      double dist2=qx[i]*qx[i] + qy[i]*qy[i];
+      inertia+=p[i+FLP+BP].mass*(dist2);
     }
 
     for(i=FLP+BP; i<N; i++){//calculating translation velocity
