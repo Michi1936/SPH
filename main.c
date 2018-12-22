@@ -42,8 +42,8 @@ int main(int argc, char *argv[])
 
   //placing particles
   initialization(a, rig);
-  fluidParticles(a);
-  //fluidParticlesFromDat(a);
+  //fluidParticles(a);
+  fluidParticlesFromDat(a);
   wallParticles(a);
   obstacleBoundaryParticles(a);
   fprintf(stderr, "Particles are placed.\n");
@@ -129,6 +129,7 @@ int main(int argc, char *argv[])
   for(i=1; i<=T; i++){
     if(i==1){
       leapfrogStart(a, rig);
+      fprintf(stderr, "leap frog started!");
     }else{
       leapfrogStep(a,rig,i);
       if(i==MOTION_START_TIME){

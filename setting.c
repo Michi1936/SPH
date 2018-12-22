@@ -151,7 +151,7 @@ void setInitialVelocity(Particle_State p[], double impactVel)
   int i;
   double angle=ANGLE_OF_INCIDENT;
   for(i=FLP+BP; i<N; i++){
-    //    p[i].py-=7.0;
+    p[i].py-=7.0;
     p[i].vxh+=impactVel*cos(angle);
     p[i].vyh+=-impactVel*sin(angle);
   }
