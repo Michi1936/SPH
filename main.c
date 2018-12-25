@@ -42,8 +42,8 @@ int main(int argc, char *argv[])
 
   //placing particles
   initialization(a, rig);
-  //fluidParticles(a);
-  fluidParticlesFromDat(a);
+  fluidParticles(a);
+  //fluidParticlesFromDat(a);
   wallParticles(a);
   obstacleBoundaryParticles(a);
   fprintf(stderr, "Particles are placed.\n");
