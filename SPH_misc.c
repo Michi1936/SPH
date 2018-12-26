@@ -7,12 +7,36 @@
 #include"Parameters.h"
 #include"numbers.h"
 
+void outputWaveParam(char srcName[]){
+  char fileName[512];
+  char readline[512];
+  FILE *output;
+  FILE *read;
+  time_t timer;
+  struct tm *local;
+
+  timer=time(NULL);
+  local=localtime(&timer);
+
+  sprintf(fileName, "./Source_%s/%02d%02d_%02d%02d_waveParameters.dat", srcName,local->tm_mon+1, local->tm_mday, local->tm_hour, local->tm_min);
+
+  read=fopen("waveParameters.dat","r");
+  output=fopen(fileName, "w");
+
+  while(fgets(readline,512,read)!=NULL){
+    fprintf(output,"%s\n", readline);
+  }
+  
+  fclose(read);
+  fclose(output);
+}
 
 void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
     //extracting source image name on 1st line of numbers.h
 {
   char temp[64];
   int charCount=0;
+  int check=0;
   int i;
 
   fgets(temp, 64, fp);
@@ -22,6 +46,7 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
       break;
     }
     else if(temp[i]=='.' && temp[i+1]=='e' && temp[i+2]=='n' && temp[i+3]=='d'){
+      check=1;
       break;
     }
     if(temp[i]=='/'){
@@ -36,6 +61,10 @@ void getSourceImageName(FILE *fp, char srcName[])//fp is supposed to be numbers
   srcName[charCount]='\0';
   fprintf(stderr, "\nsrcName is %s\n", srcName);
   printf("\n");
+
+  if(check==1){
+    outputWaveParam(srcName);
+  }
 }
 
 double calcRadius(Particle_State p[])

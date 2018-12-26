@@ -60,6 +60,7 @@ void freeBucket(int *bfst, int *blst, int*nxt);
 double gradSpikey(Particle_State p1, Particle_State p2, int axis);
 double poly6(Particle_State p1, Particle_State p2);
 
+void outputWaveParam(char srcName[]);
 void getSourceImageName(FILE *fp, char srcName[]);
 double calcRadius(Particle_State p[]);
 void makeFileNamePrefix(char fNamePrefix[], char srcName[], double impactVel);
