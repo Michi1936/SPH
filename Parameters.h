@@ -17,12 +17,12 @@
 #define cs 80.0
 //#define dh 0.0001 
 #define epsilon 1.0e-8 //small number not to make denominator in gradKernel zero
-#define T 200000//time step
-#define DAMPTIME 5//2.5sec for exp2
+#define T 50000//time step
+#define DAMPTIME 5000//2.5sec for exp2
 #define MOTION_START_TIME DAMPTIME+5000//at 3.9sec impact happens for exp2
 #define ENLARGEMENT 3.0
-#define FLUID_INTERACTION 15.0
-#define CONTACT_ANGLE M_PI/4.0
+#define FLUID_INTERACTION 60.0
+#define CONTACT_ANGLE M_PI/3.0
 #define HPHILY_INTERACTION FLUID_INTERACTION*(cos(CONTACT_ANGLE))
 #define HPHOBY_INTERACTION -FLUID_INTERACTION*(cos(CONTACT_ANGLE)) //negative value
 #define IMPACT_VELOCITY 10.0
@@ -33,7 +33,7 @@
 #define MAX_X 40//40
 #define MAX_Y 40//20
 #define MIN_X -20//-20
-#define MIN_Y -5//-5
+#define MIN_Y -10//-5
 #define BktLgth 0.3//0.3
 #define BktNum (double)(1.0/BktLgth)
 #define nBx ((int)((MAX_X-MIN_X)/BktLgth)+2 )
